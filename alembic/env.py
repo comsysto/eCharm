@@ -9,7 +9,7 @@ current_path = os.path.abspath('.')
 sys.path.append(current_path)
 from models.station import Station
 from models.address import Address
-
+from models.charging import Charging
 
 from models import Base
 from settings import db_uri

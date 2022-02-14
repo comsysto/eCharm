@@ -20,6 +20,7 @@ class Station(Base):
     date_updated = Column(Date)
     raw_data = Column(String)
     address = relationship("Address")
+    charging = relationship("Charging")
 
     def __repr__(self):
         return '<stations with id: {}>'.format(self.id)

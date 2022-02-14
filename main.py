@@ -27,6 +27,7 @@ engine = create_engine(db_uri, echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
 
+'''
 for index, row in tqdm(df_dropped.iterrows()):
     net_stations = create_station(row)
     session.add(new_stations)
@@ -34,5 +35,6 @@ for index, row in tqdm(df_dropped.iterrows()):
         session.commit()
     except:
         session.rollback()
+'''
 
 
