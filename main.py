@@ -13,6 +13,9 @@ from models.station import Station
 from models.address import Address
 from sqlalchemy.sql import text
 
+
+
+
 #Read excel file as pandas dataframe
 df = pd.read_excel(r'Ladesaeulenregister.xlsx')
 #df = pd.read_csv('stations.csv', engine='python')

@@ -29,7 +29,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/Users/mido/PycharmProjects/bnaMapping/venv"
+set -gx VIRTUAL_ENV "/Users/mido/PycharmProjects/new_projects/stations-pipelines/venv"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

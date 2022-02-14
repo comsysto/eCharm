@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/mido/PycharmProjects/bnaMapping/venv"
+VIRTUAL_ENV="/Users/mido/PycharmProjects/new_projects/stations-pipelines/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

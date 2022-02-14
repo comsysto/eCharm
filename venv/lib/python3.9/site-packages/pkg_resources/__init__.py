@@ -113,11 +113,6 @@ def parse_version(v):
     try:
         return packaging.version.Version(v)
     except packaging.version.InvalidVersion:
-        warnings.warn(
-            f"{v} is an invalid version and will not be supported in "
-            "a future release",
-            PkgResourcesDeprecationWarning,
-        )
         return packaging.version.LegacyVersion(v)
 
 
@@ -1484,7 +1479,7 @@ class NullProvider:
     def _validate_resource_path(path):
         """
         Validate the resource paths according to the docs.
-        https://setuptools.pypa.io/en/latest/pkg_resources.html#basic-resource-access
+        https://setuptools.readthedocs.io/en/latest/pkg_resources.html#basic-resource-access
 
         >>> warned = getfixture('recwarn')
         >>> warnings.simplefilter('always')
@@ -2015,7 +2010,7 @@ def _by_version_descending(names):
 
     >>> names = 'bar', 'foo', 'Python-2.7.10.egg', 'Python-2.7.2.egg'
     >>> _by_version_descending(names)
-    ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'bar', 'foo']
+    ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'foo', 'bar']
     >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.egg'
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.egg', 'Setuptools-1.2.3b1.egg']
@@ -2023,22 +2018,13 @@ def _by_version_descending(names):
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.post1.egg', 'Setuptools-1.2.3b1.egg']
     """
-    def try_parse(name):
-        """
-        Attempt to parse as a version or return a null version.
-        """
-        try:
-            return packaging.version.Version(name)
-        except Exception:
-            return packaging.version.Version('0')
-
     def _by_version(name):
         """
         Parse each component of the filename
         """
         name, ext = os.path.splitext(name)
         parts = itertools.chain(name.split('-'), [ext])
-        return [try_parse(part) for part in parts]
+        return [packaging.version.parse(part) for part in parts]
 
     return sorted(names, key=_by_version, reverse=True)
 
@@ -2396,19 +2382,18 @@ def _set_parent_ns(packageName):
         setattr(sys.modules[parent], name, sys.modules[packageName])
 
 
-def _nonblank(str):
-    return str and not str.startswith('#')
-
-
-@functools.singledispatch
-def yield_lines(iterable):
-    """Yield valid lines of a string or iterable"""
-    return itertools.chain.from_iterable(map(yield_lines, iterable))
-
-
-@yield_lines.register(str)
-def _(text):
-    return filter(_nonblank, map(str.strip, text.splitlines()))
+def yield_lines(strs):
+    """Yield non-empty/non-comment lines of a string or sequence"""
+    if isinstance(strs, str):
+        for s in strs.splitlines():
+            s = s.strip()
+            # skip blank lines/comments
+            if s and not s.startswith('#'):
+                yield s
+    else:
+        for ss in strs:
+            for s in yield_lines(ss):
+                yield s
 
 
 MODULE = re.compile(r"\w+(\.\w+)*$").match
@@ -3047,12 +3032,12 @@ class DistInfoDistribution(Distribution):
                 if not req.marker or req.marker.evaluate({'extra': extra}):
                     yield req
 
-        common = types.MappingProxyType(dict.fromkeys(reqs_for_extra(None)))
+        common = frozenset(reqs_for_extra(None))
         dm[None].extend(common)
 
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             s_extra = safe_extra(extra.strip())
-            dm[s_extra] = [r for r in reqs_for_extra(extra) if r not in common]
+            dm[s_extra] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
 
@@ -3254,15 +3239,6 @@ def _initialize(g=globals()):
     )
 
 
-class PkgResourcesDeprecationWarning(Warning):
-    """
-    Base class for warning about deprecations in ``pkg_resources``
-
-    This class is not derived from ``DeprecationWarning``, and as such is
-    visible by default.
-    """
-
-
 @_call_aside
 def _initialize_master_working_set():
     """
@@ -3301,3 +3277,12 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+class PkgResourcesDeprecationWarning(Warning):
+    """
+    Base class for warning about deprecations in ``pkg_resources``
+
+    This class is not derived from ``DeprecationWarning``, and as such is
+    visible by default.
+    """
