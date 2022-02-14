@@ -1,0 +1,18 @@
+version: "3"
+services:
+  metabase:
+    image: metabase/metabase
+    container_name: stations_metabase
+    ports:
+      - "3002:3000"
+    depends_on:
+      - db
+  db:
+    image: kartoza/postgis
+    container_name: bna_database
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "54322:5432"
