@@ -1,6 +1,6 @@
 #import for the pipeline
 import pandas as pd
-from mapping.stations import map_address
+from mapping.stations import map_address, map_stations_bna
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
@@ -11,33 +11,38 @@ from sqlalchemy.orm import sessionmaker
 from settings import db_uri
 from models.station import Station
 from models.address import Address
+from models.charging import Charging
 from sqlalchemy.sql import text
 
 
 
+def bna_pipeline():
+    # Read excel file as pandas dataframe
+    df = pd.read_excel(r'data/bundesagentor_stations.xlsx')
+    df.columns = df.iloc[9]
 
-#Read excel file as pandas dataframe
-df = pd.read_excel(r'Ladesaeulenregister.xlsx')
-#df = pd.read_csv('stations.csv', engine='python')
-#set column 4 as header
-df.columns = df.iloc[4]
+    #Drop the comments in the excel
+    df_dropped = df[10:]
 
-df_dropped = df[5:]
+    # df_mapped = map_address(df_dropped)
+    engine = create_engine(db_uri, echo=True)
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-#df_mapped = map_address(df_dropped)
+    for index, row in tqdm(df_dropped.iterrows()):
+        mapped_station = map_stations_bna(row)
+        session.add(mapped_station)
+        try:
+            session.commit()
+        except:
+            session.rollback()
 
-engine = create_engine(db_uri, echo=True)
-Session = sessionmaker(bind=engine)
-session = Session()
+if __name__ == '__main__':
+    bna_pipeline()
+
 
 '''
-for index, row in tqdm(df_dropped.iterrows()):
-    net_stations = create_station(row)
-    session.add(new_stations)
-    try:
-        session.commit()
-    except:
-        session.rollback()
+
 '''
 
 

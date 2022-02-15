@@ -1,3 +1,5 @@
+from shapely.geometry import Point
+
 from models.station import Station
 
 
@@ -7,15 +9,14 @@ def map_address(df):
     return stations_df_mapped
 
 
-def create_station(row):
+def map_stations_bna(row):
     new_station = Station()
-    new_station.operator = row.loc['Betreiber']
-    new_station.data_source = "DE"
-    new_station.street = row.loc['Straße']
-    new_station.house_number = row.loc['Hausnummer']
-    #coordinates = Point(
-    #    float(row['ChargeDeviceLocation.Longitude']),
-    #    float(row['ChargeDeviceLocation.Latitude'])
-    #).wkt
-    #new_stations.coordinates = coordinates
+    new_station.operator = row['Betreiber']
+    new_station.data_source = "BNA"
+    coordinates = Point(
+        float(row['Längengrad']),
+        float(row['Breitengrad'])
+    ).wkt
+    new_station.coordinates = coordinates
+    new_station.date_created = row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),
     return new_station

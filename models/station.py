@@ -1,4 +1,14 @@
-from sqlalchemy import Column, DateTime, String, Integer, func, Date, Time
+from sqlalchemy import (
+    ARRAY,
+    BINARY,
+    Boolean,
+    Column,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Date,
+)
 from sqlalchemy.orm import relationship
 from geoalchemy2.types import Geometry
 
@@ -11,6 +21,7 @@ from sqlalchemy.dialects import postgresql
 class Station(Base):
     __tablename__ = 'stations'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    source_id = Column(String, index=True)
     data_source = Column(String)
     operator = Column(String)
     payment = Column(String)
@@ -21,6 +32,7 @@ class Station(Base):
     raw_data = Column(String)
     address = relationship("Address")
     charging = relationship("Charging")
+
 
     def __repr__(self):
         return '<stations with id: {}>'.format(self.id)

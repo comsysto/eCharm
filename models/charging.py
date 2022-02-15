@@ -22,6 +22,7 @@ class Charging(Base):
     dc_support = Column(Boolean)
     total_kw = Column(Float)
     max_kw = Column(Float)
+    charging = relationship("Station")
 
     def __repr__(self):
         return '<charging with id: {}>'.format(self.id)

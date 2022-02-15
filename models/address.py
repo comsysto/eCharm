@@ -22,6 +22,7 @@ class Address(Base):
     country = Column(String)
     gmaps_latitude = Column(Float(precision=32))
     gmaps_longitude = Column(Float(precision=32))
+    charging = relationship("Station")
 
 
     def __repr__(self):
