@@ -1,6 +1,7 @@
 #import for the pipeline
 import pandas as pd
-from mapping.stations import map_address, map_stations_bna
+from mapping.stations import map_address_bna, map_stations_bna
+from mapping.charging import map_charging_bna
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
@@ -32,9 +33,16 @@ def bna_pipeline():
     for index, row in tqdm(df_dropped.iterrows()):
         mapped_station = map_stations_bna(row)
         session.add(mapped_station)
+        session.flush()
+        mapped_address = map_address_bna(row, mapped_station.id)
+        session.add(mapped_address)
+        mapped_charging = map_charging_bna(row, mapped_station.id)
+        session.add(mapped_charging)
+
         try:
             session.commit()
-        except:
+        except Exception as e:
+            print(e)
             session.rollback()
 
 if __name__ == '__main__':
