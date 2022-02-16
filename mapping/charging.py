@@ -98,10 +98,10 @@ def map_charging_bna(row, station_id):
     charging = Charging()
     charging.station_id = station_id
     charging.capacity = capacity
-    charging.kw_list = [*kw_list][0]
+    charging.kw_list = kw_list
     charging.ampere_list = None
     charging.volt_list = None
-    charging.socket_type_list = socket_type_list[0]
+    charging.socket_type_list = socket_type_list
     charging.dc_support = dc_support
     charging.total_kw = total_kw
     charging.max_kw = max(kw_list) if kw_list else None
