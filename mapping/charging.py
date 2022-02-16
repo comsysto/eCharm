@@ -70,9 +70,8 @@ def map_charging_bna(row, station_id):
             f"kw_list {kw_list} length does not equal capacity {capacity}!")
 
 # Stations with only Schuko-Steckern are no charging stations for cars.
-    if kw_list and max(kw_list) < MIN_KW:
-        raise ValueError("Max electrical power smaller than %d kW" % MIN_KW)
-
+    #if kw_list and max(kw_list) < MIN_KW:
+    #    raise ValueError("Max electrical power smaller than %d kW" % MIN_KW)
 # ampere_list not available
 # volt_list not available
 # socket_type_list
@@ -96,18 +95,15 @@ def map_charging_bna(row, station_id):
             f"Difference between length of kw_list {kw_list_len} and capacity {capacity}!"
         )
 
-
     charging = Charging()
     charging.station_id = station_id
     charging.capacity = capacity
-    charging.kw_list = [*kw_list],
-    charging.ampere_list = None,
-    charging.volt_list = None,
-    charging.socket_type_list = socket_type_list,
-    charging.dc_support = dc_support,
-    charging.total_kw = total_kw,
-    charging.max_kw = max(kw_list) if kw_list else None,
+    charging.kw_list = [*kw_list][0]
+    charging.ampere_list = None
+    charging.volt_list = None
+    charging.socket_type_list = socket_type_list[0]
+    charging.dc_support = dc_support
+    charging.total_kw = total_kw
+    charging.max_kw = max(kw_list) if kw_list else None
     #charging = _clean_attributes(charging)
-    
-    print(charging)
     return charging

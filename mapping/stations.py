@@ -3,6 +3,8 @@ import hashlib
 from shapely.geometry import Point
 from models.station import Station
 from models.address import Address
+from utils.bna_functions import check_coordinates
+
 
 def lat_long_hash(lat_row, long_row):
     id_hash: hashlib._Hash = hashlib.sha256(
@@ -41,8 +43,8 @@ def map_address_bna(row, station_id):
     return map_address
 
 def map_stations_bna(row):
-    lat = row['Längengrad']
-    long = row['Breitengrad']
+    lat = check_coordinates(row['Längengrad'])
+    long = check_coordinates(row['Breitengrad'])
 
     new_station = Station()
     new_station.source_id = lat_long_hash(lat, long)
