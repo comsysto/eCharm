@@ -1,22 +1,7 @@
-from sqlalchemy import (
-    ARRAY,
-    BINARY,
-    Boolean,
-    Column,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Date,
-)
-from sqlalchemy.orm import relationship
 from geoalchemy2.types import Geometry
-
+from sqlalchemy import Column, Date, Integer, String
+from sqlalchemy.orm import relationship
 from models import Base
-from sqlalchemy.types import Float
-from enum import Enum
-from sqlalchemy.dialects import postgresql
-
 
 class Station(Base):
     __tablename__ = 'stations'
@@ -32,7 +17,6 @@ class Station(Base):
     raw_data = Column(String)
     address = relationship("Address")
     charging = relationship("Charging")
-
 
     def __repr__(self):
         return '<stations with id: {}>'.format(self.id)
