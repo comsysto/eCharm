@@ -2,21 +2,22 @@ import math
 import pandas as pd
 
 from models.charging import Charging
-from typing import Dict, List, Optional
+from typing import List, Optional
 from numbers import Number
 from utils.logging_utils import log
 
 # max sockets/charging points per charging station
 MAX_CAPACITY = 4
+
 # average capacity across all charging stations is set when capacity>MAX_CAPACITY
 AVG_CAPACITY = 2
 
 # min electrical power (in kW) per charging station
 MIN_KW = 5
 
-def _clean_attributes(charging: Dict):
-    if charging["capacity"] and charging["capacity"] > MAX_CAPACITY:
-        charging["capacity"] = AVG_CAPACITY
+def _clean_attributes(charging: Charging):
+    if charging.capacity and charging.capacity > MAX_CAPACITY:
+        charging.charging = AVG_CAPACITY
     return charging
 
 def map_charging_bna(row, station_id):
@@ -67,10 +68,11 @@ def map_charging_bna(row, station_id):
     capacity: Optional[int] = row["Anzahl Ladepunkte"]
     if len(kw_list) != row["Anzahl Ladepunkte"]:
         log.warning(
-            f"kw_list {kw_list} length does not equal capacity {capacity}!")
+            f"kw_list {kw_list} length does not equal capacity {capacity}!"
+        )
 
 # Stations with only Schuko-Steckern are no charging stations for cars.
-    #if kw_list and max(kw_list) < MIN_KW:
+    # if kw_list and max(kw_list) < MIN_KW:
     #    raise ValueError("Max electrical power smaller than %d kW" % MIN_KW)
 # ampere_list not available
 # volt_list not available
@@ -105,5 +107,5 @@ def map_charging_bna(row, station_id):
     charging.dc_support = dc_support
     charging.total_kw = total_kw
     charging.max_kw = max(kw_list) if kw_list else None
-    #charging = _clean_attributes(charging)
+    charging = _clean_attributes(charging)
     return charging
