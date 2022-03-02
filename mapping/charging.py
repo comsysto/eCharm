@@ -120,21 +120,20 @@ def map_charging_ocm(row, station_id):
     socket_type_list: List[str] = []
 
     # Stations with only Schuko-Steckern are no charging stations for cars.
-    #if kw_list and max(kw_list) < MIN_KW:
+    # if kw_list and max(kw_list) < MIN_KW:
     #    raise ValueError("Max electrical power smaller than %d kW" % MIN_KW)
 
     mapped_charging_ocm = Charging()
-    mapped_charging_ocm.station_id=station_id
-    mapped_charging_ocm.capacity=capacity
-    mapped_charging_ocm.kw_list= None
-    mapped_charging_ocm.ampere_list=None
-    mapped_charging_ocm.volt_list=None
-    mapped_charging_ocm.socket_type_list=[row['title_connection']]
-    mapped_charging_ocm.dc_support=None
-    mapped_charging_ocm.total_kw=row['PowerKW']
-    mapped_charging_ocm.max_kw=None
+    mapped_charging_ocm.station_id = station_id
+    mapped_charging_ocm.capacity = capacity
+    mapped_charging_ocm.kw_list = None
+    mapped_charging_ocm.ampere_list = None
+    mapped_charging_ocm.volt_list = None
+    mapped_charging_ocm.socket_type_list = [row["title_connection"]]
+    mapped_charging_ocm.dc_support = None
+    mapped_charging_ocm.total_kw = row["PowerKW"]
+    mapped_charging_ocm.max_kw = None
 
-
-    #mapped_charging_ocm = _clean_attributes(mapped_charging_ocm)
+    # mapped_charging_ocm = _clean_attributes(mapped_charging_ocm)
 
     return mapped_charging_ocm

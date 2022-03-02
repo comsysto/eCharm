@@ -61,17 +61,12 @@ def map_stations_bna(row):
 def map_stations_ocm(row):
     lat = check_coordinates(row["AddressInfo.Latitude"])
     long = check_coordinates(row["AddressInfo.Longitude"])
-    operator: Optional[str] = (
-        row["Title"]
-    )
+    operator: Optional[str] = row["Title"]
     new_station = Station()
     new_station.source_id = lat_long_hash(lat, long)
     new_station.operator = operator
     new_station.data_source = "OCM"
-    coordinates = Point(
-        float(lat),
-        float(long)
-    ).wkt
+    coordinates = Point(float(lat), float(long)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = row["DateCreated"]
     return new_station
@@ -82,28 +77,18 @@ def map_address_ocm(row, station_id):
         country: Optional[Dict] = row["Title_y"]
     except:
         country = None
-    postcode: Optional[str] = (
-        row["AddressInfo.Postcode"]
-    )
+    postcode: Optional[str] = row["AddressInfo.Postcode"]
     postcode = (
-        "".join([s for s in postcode if s.isdigit()])
-        if postcode is not None
-        else ""
+        "".join([s for s in postcode if s.isdigit()]) if postcode is not None else ""
     )
-    town: Optional[str] = (
-        row["AddressInfo.Town"]
-    )
+    town: Optional[str] = row["AddressInfo.Town"]
     if town is None:
         town = ""
-    state_old: Optional[str] = (
-        row["AddressInfo.StateOrProvince"]
-    )
+    state_old: Optional[str] = row["AddressInfo.StateOrProvince"]
     if state_old is None:
         state_old = ""
     country: Optional[str] = row["ISOCode"]
-    street: Optional[str] = (
-        row["AddressInfo.AddressLine1"]
-    )
+    street: Optional[str] = row["AddressInfo.AddressLine1"]
     if len(postcode) != 5:
         log.warning(
             f"Postcode {postcode} of town {town} is not of length 5! Will set postcode to None!"
@@ -123,11 +108,11 @@ def map_address_ocm(row, station_id):
         state_old = None
     map_address = Address()
     map_address.state_old = None
-    map_address.station_id=station_id
-    map_address.street=street
-    map_address.town=town
-    map_address.postcode=postcode
-    map_address.district_old=None
-    map_address.state_old=state_old
-    map_address.country=country
+    map_address.station_id = station_id
+    map_address.street = street
+    map_address.town = town
+    map_address.postcode = postcode
+    map_address.district_old = None
+    map_address.state_old = state_old
+    map_address.country = country
     return map_address

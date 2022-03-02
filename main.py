@@ -1,6 +1,11 @@
-#import for the pipeline
+# import for the pipeline
 import pandas as pd
-from mapping.stations import map_address_bna, map_stations_bna, map_stations_ocm, map_address_ocm
+from mapping.stations import (
+    map_address_bna,
+    map_stations_bna,
+    map_stations_ocm,
+    map_address_ocm,
+)
 from mapping.charging import map_charging_bna, map_charging_ocm
 import pandas as pd
 import geopandas as gpd
@@ -16,13 +21,12 @@ from models.charging import Charging
 from sqlalchemy.sql import text
 
 
-
 def bna_pipeline():
     # Read excel file as pandas dataframe
-    df = pd.read_excel(r'data/bundesagentor_stations.xlsx')
+    df = pd.read_excel(r"data/bundesagentor_stations.xlsx")
     df.columns = df.iloc[9]
 
-    #Drop the comments in the excel
+    # Drop the comments in the excel
     df_dropped = df[10:]
 
     # df_mapped = map_address(df_dropped)
@@ -45,9 +49,10 @@ def bna_pipeline():
             print(e)
             session.rollback()
 
+
 def ocm_pipeline():
     # Read excel file as pandas dataframe
-    df = pd.read_csv(r'data/ocm_stations.csv')
+    df = pd.read_csv(r"data/ocm_stations.csv")
 
     # df_mapped = map_address(df_dropped)
     engine = create_engine(db_uri, echo=True)
@@ -70,12 +75,10 @@ def ocm_pipeline():
             session.rollback()
 
 
-if __name__ == '__main__':
-    #bna_pipeline()
+if __name__ == "__main__":
+    # bna_pipeline()
     ocm_pipeline()
 
-'''
+"""
 
-'''
-
-
+"""

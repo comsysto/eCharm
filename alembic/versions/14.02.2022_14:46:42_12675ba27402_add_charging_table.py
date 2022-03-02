@@ -32,10 +32,7 @@ def upgrade():
         sa.Column("dc_support", sa.Boolean(), nullable=True),
         sa.Column("total_kw", sa.Float(), nullable=True),
         sa.Column("max_kw", sa.Float(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["station_id"],
-            ["stations.id"],
-        ),
+        sa.ForeignKeyConstraint(["station_id"], ["stations.id"],),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###

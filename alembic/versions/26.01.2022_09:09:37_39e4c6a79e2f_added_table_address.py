@@ -24,10 +24,7 @@ def upgrade():
         sa.Column("station_id", sa.Integer(), nullable=True),
         sa.Column("date_created", sa.Date(), nullable=True),
         sa.Column("date_updated", sa.Date(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["station_id"],
-            ["stations.id"],
-        ),
+        sa.ForeignKeyConstraint(["station_id"], ["stations.id"],),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###
