@@ -1,4 +1,15 @@
-from sqlalchemy import Column, DateTime, String, Integer, func, Date, Time, ForeignKey, ARRAY, Boolean
+from sqlalchemy import (
+    Column,
+    DateTime,
+    String,
+    Integer,
+    func,
+    Date,
+    Time,
+    ForeignKey,
+    ARRAY,
+    Boolean,
+)
 from sqlalchemy.orm import relationship
 from geoalchemy2.types import Geometry
 
@@ -9,9 +20,9 @@ from sqlalchemy.dialects import postgresql
 
 
 class Charging(Base):
-    __tablename__ = 'charging'
+    __tablename__ = "charging"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    station_id = Column(Integer, ForeignKey('stations.id'))
+    station_id = Column(Integer, ForeignKey("stations.id"))
     date_created = Column(Date)
     date_updated = Column(Date)
     capacity = Column(Integer)
@@ -25,4 +36,4 @@ class Charging(Base):
     charging = relationship("Station")
 
     def __repr__(self):
-        return '<charging with id: {}>'.format(self.id)
+        return "<charging with id: {}>".format(self.id)

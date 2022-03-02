@@ -15,10 +15,12 @@ AVG_CAPACITY = 2
 # min electrical power (in kW) per charging station
 MIN_KW = 5
 
+
 def _clean_attributes(charging: Charging):
     if charging.capacity and charging.capacity > MAX_CAPACITY:
         charging.charging = AVG_CAPACITY
     return charging
+
 
 def map_charging_bna(row, station_id):
     total_kw: Optional[float] = row["Anschlussleistung"]
@@ -34,7 +36,7 @@ def map_charging_bna(row, station_id):
             total_kw = None
     if isinstance(total_kw, Number):
         if math.isnan(total_kw):
-            #log.warn("Found nan in total_kw! Will set total_kw to None!")
+            # log.warn("Found nan in total_kw! Will set total_kw to None!")
             total_kw = None
     if not isinstance(total_kw, Number):
         log.warn(
@@ -42,7 +44,7 @@ def map_charging_bna(row, station_id):
         )
         total_kw = None
 
-# kw_list
+    # kw_list
     kw_list: List[float] = []
     for k, v in station_raw.items():
         if not (("P" in k) & ("[kW]" in k)):
@@ -67,16 +69,14 @@ def map_charging_bna(row, station_id):
 
     capacity: Optional[int] = row["Anzahl Ladepunkte"]
     if len(kw_list) != row["Anzahl Ladepunkte"]:
-        log.warning(
-            f"kw_list {kw_list} length does not equal capacity {capacity}!"
-        )
+        log.warning(f"kw_list {kw_list} length does not equal capacity {capacity}!")
 
-# Stations with only Schuko-Steckern are no charging stations for cars.
+    # Stations with only Schuko-Steckern are no charging stations for cars.
     # if kw_list and max(kw_list) < MIN_KW:
     #    raise ValueError("Max electrical power smaller than %d kW" % MIN_KW)
-# ampere_list not available
-# volt_list not available
-# socket_type_list
+    # ampere_list not available
+    # volt_list not available
+    # socket_type_list
     socket_types_infos: List[str] = [
         v
         for k, v in station_raw.items()
