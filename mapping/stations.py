@@ -78,24 +78,29 @@ def map_address_ocm(row, station_id):
         country: Optional[Dict] = row["Title_y"]
     except:
         country = None
-    postcode: Optional[str] = row["AddressInfo.Postcode"]
-    postcode = (
-        "".join([s for s in postcode if s.isdigit()]) if postcode is not None else ""
-    )
+    try:
+        postcode: Optional[str] = row["AddressInfo.Postcode"]
+        postcode = (
+            "".join([s for s in postcode if s.isdigit()])
+            if postcode is not None
+            else ""
+        )
+    except:
+        postcode = None
     town: Optional[str] = row["AddressInfo.Town"]
-    if town is None:
+    if not isinstance(town, str):
         town = ""
     state_old: Optional[str] = row["AddressInfo.StateOrProvince"]
     if state_old is None:
         state_old = ""
     country: Optional[str] = row["ISOCode"]
     street: Optional[str] = row["AddressInfo.AddressLine1"]
-    if len(postcode) != 5:
+    if (postcode is None) or len(postcode) != 5:
         log.warning(
             f"Postcode {postcode} of town {town} is not of length 5! Will set postcode to None!"
         )
         postcode = None
-    if (len(town) < 2) | (not all(not s.isdigit() for s in town)):
+    if (len(town) < 2) or (not all(not s.isdigit() for s in town)):
         log.warning(
             f"Town {town} has less than 2 chars or contains digits! Will set town to None!"
         )
