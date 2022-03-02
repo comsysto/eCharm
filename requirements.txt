@@ -10,6 +10,7 @@ openpyxl==3.0.9
 tqdm==4.62.3
 pandas==1.4.1
 geopandas==0.10.2
+GeoAlchemy2==0.10.2
 
 
 
