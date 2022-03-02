@@ -26,7 +26,7 @@ Black reformats the code, isort orders the imports and flake8 checks for remaini
 Example usage:
 ```bash
 isort -rc -sl .
-autoflake --remove-all-unused-imports -i -r .
+autoflake --remove-all-unused-imports -i -r --exclude alembic .
 isort -rc -m 3 .
 ```
 	

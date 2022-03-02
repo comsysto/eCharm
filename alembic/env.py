@@ -1,3 +1,4 @@
+# flake8: noqa
 import os
 import sys
 from logging.config import fileConfig
@@ -8,7 +9,8 @@ from alembic import context
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from models import Base, station, address, charging #TODO: protect from auto delete by flake!
+from models import Base
+from models import address, charging, station
 from settings import db_uri
 
 # this is the Alembic Config object, which provides
