@@ -1,6 +1,7 @@
 from geoalchemy2.types import Geometry
 from sqlalchemy import Column, Date, Integer, String
 from sqlalchemy.orm import relationship
+
 from models import Base
 
 

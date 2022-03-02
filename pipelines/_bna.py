@@ -1,7 +1,8 @@
+from tqdm import tqdm
+
 from mapping.charging import map_charging_bna
 from mapping.stations import map_address_bna, map_stations_bna
 from services.excel_file_loader_service import ExcelFileLoaderService
-from tqdm import tqdm
 from utils.logging_utils import log
 
 

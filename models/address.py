@@ -1,11 +1,9 @@
-from sqlalchemy import Column, DateTime, String, Integer, func, Date, Time, ForeignKey
+
+from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from geoalchemy2.types import Geometry
+from sqlalchemy.types import Float
 
 from models import Base
-from sqlalchemy.types import Float, FLOAT
-from enum import Enum
-from sqlalchemy.dialects import postgresql
 
 
 class Address(Base):

@@ -1,7 +1,8 @@
-import os
 import logging
-from db.helper import is_db_healthy
+
 import click
+
+from db.helper import is_db_healthy
 
 log = logging.getLogger("app")
 

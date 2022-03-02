@@ -1,9 +1,10 @@
 import hashlib
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 from shapely.geometry import Point
-from models.station import Station
+
 from models.address import Address
+from models.station import Station
 from utils.bna_functions import check_coordinates
 from utils.logging_utils import log
 

@@ -5,12 +5,11 @@ Revises: 9a298d5411a0
 Create Date: 2022-01-25 10:39:48.498783
 
 """
-from alembic import op
 import sqlalchemy as sa
-
-
 # revision identifiers, used by Alembic.
 from geoalchemy2 import Geometry
+
+from alembic import op
 
 revision = "8941b66b24e2"
 down_revision = "9a298d5411a0"

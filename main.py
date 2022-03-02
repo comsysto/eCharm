@@ -1,24 +1,17 @@
 # import for the pipeline
 import pandas as pd
-from mapping.stations import (
-    map_address_bna,
-    map_stations_bna,
-    map_stations_ocm,
-    map_address_ocm,
-)
-from mapping.charging import map_charging_bna, map_charging_ocm
-import pandas as pd
-import geopandas as gpd
-from shapely.geometry import Point
-from geopandas.tools import geocode
-from tqdm import tqdm
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from tqdm import tqdm
+
+from mapping.charging import map_charging_bna, map_charging_ocm
+from mapping.stations import (
+    map_address_bna,
+    map_address_ocm,
+    map_stations_bna,
+    map_stations_ocm
+)
 from settings import db_uri
-from models.station import Station
-from models.address import Address
-from models.charging import Charging
-from sqlalchemy.sql import text
 
 
 def bna_pipeline():

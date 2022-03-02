@@ -1,13 +1,11 @@
 import os
-import sqlalchemy
-import numpy as np
-import pandas as pd
-
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
 from contextlib import contextmanager
 
-from utils.aws_utils import get_ssm_parameter
+import numpy as np
+import pandas as pd
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 ENV = os.getenv("ENV", "LOCAL").upper()
 db_secret = "postgres"

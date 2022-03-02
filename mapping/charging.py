@@ -1,9 +1,10 @@
 import math
+from numbers import Number
+from typing import List, Optional
+
 import pandas as pd
 
 from models.charging import Charging
-from typing import List, Optional
-from numbers import Number
 from utils.logging_utils import log
 
 # max sockets/charging points per charging station

@@ -1,16 +1,13 @@
-from alembic import context
-from sqlalchemy import pool
-from sqlalchemy import engine_from_config
-from logging.config import fileConfig
 import os
 import sys
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from models.station import Station
-from models.address import Address
-from models.charging import Charging
-
 from models import Base
 from settings import db_uri
 

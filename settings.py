@@ -1,9 +1,9 @@
-from dotenv import load_dotenv
 import logging
 import logging.config
 import os
 import sys
 
+from dotenv import load_dotenv
 
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(parent_dir)
