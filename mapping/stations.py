@@ -60,18 +60,52 @@ def map_stations_bna(row):
 
 
 def map_stations_ocm(row):
+    datasource = "OCM"
     lat = check_coordinates(row["AddressInfo.Latitude"])
     long = check_coordinates(row["AddressInfo.Longitude"])
     operator: Optional[str] = row["Title"]
     new_station = Station()
-    new_station.source_id = lat_long_hash(lat, long)
+    new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = operator
-    new_station.data_source = "OCM"
+    new_station.data_source = datasource
     coordinates = Point(float(lat), float(long)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = row["DateCreated"]
     return new_station
 
+def map_station_osm(entry):
+    datasource = "OSM"
+    lat = check_coordinates(entry['lat'])
+    lon = check_coordinates(entry['lon'])
+    operator: Optional[str] = entry['tags'].get('operator')
+    new_station = Station()
+    new_station.source_id = lat_long_hash(lat, lon, datasource)
+    new_station.operator = operator
+    new_station.data_source = datasource
+    coordinates = Point(float(lat), float(lon)).wkt
+    new_station.coordinates = coordinates
+    new_station.date_created = entry["timestamp"]
+    return new_station
+
+def map_address_osm(entry, station_id):
+    if 'tags' in entry:
+        tags = entry['tags']
+        if 'addr:city' in entry and 'addr:country' in entry and 'addr:housenumber' in entry and 'addr:postcode' in entry and 'addr:street' in entry:
+            city = tags['addr:city']
+            country = tags['addr:country']
+            housenumber = tags['addr:housenumber']
+            postcode = tags['addr:postcode']
+            street = tags['addr:street']
+            map_address = Address()
+            map_address.state_old = None
+            map_address.station_id = station_id
+            map_address.street = street + ' ' + housenumber
+            map_address.town = city
+            map_address.postcode = postcode
+            map_address.district_old = None
+            map_address.country = country
+            return map_address
+    return None
 
 def map_address_ocm(row, station_id):
     try:
