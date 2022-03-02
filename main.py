@@ -11,6 +11,7 @@ from mapping.stations import (
     map_stations_bna,
     map_stations_ocm
 )
+from models.station import Station
 from settings import db_uri
 
 
@@ -28,13 +29,13 @@ def bna_pipeline():
     session = Session()
 
     for index, row in tqdm(df_dropped.iterrows()):
-        mapped_station = map_stations_bna(row)
+        mapped_address = map_address_bna(row, None)
+        mapped_charging = map_charging_bna(row, None)
+        mapped_station: Station = map_stations_bna(row)
+        mapped_station.address = mapped_address
+        mapped_station.charging = mapped_charging
+        mapped_station.hash = hash(mapped_station)
         session.add(mapped_station)
-        session.flush()
-        mapped_address = map_address_bna(row, mapped_station.id)
-        session.add(mapped_address)
-        mapped_charging = map_charging_bna(row, mapped_station.id)
-        session.add(mapped_charging)
 
         try:
             session.commit()
@@ -53,7 +54,7 @@ def ocm_pipeline():
     session = Session()
 
     for index, row in tqdm(df.iterrows()):
-        mapped_station = map_stations_ocm(row)
+        mapped_station: Station = map_stations_ocm(row)
         session.add(mapped_station)
         session.flush()
         mapped_address = map_address_ocm(row, mapped_station.id)
@@ -69,9 +70,5 @@ def ocm_pipeline():
 
 
 if __name__ == "__main__":
-    # bna_pipeline()
-    ocm_pipeline()
-
-"""
-
-"""
+    bna_pipeline()
+    # ocm_pipeline()

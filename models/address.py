@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
@@ -8,7 +8,7 @@ from models import Base
 class Address(Base):
     __tablename__ = "address"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    station_id = Column(Integer, ForeignKey("stations.id"))
+    station_id = Column(Integer, ForeignKey("stations.id"), nullable=False, unique=True)
     date_created = Column(Date)
     date_updated = Column(Date)
     street = Column(String)
@@ -19,7 +19,23 @@ class Address(Base):
     country = Column(String)
     gmaps_latitude = Column(Float(precision=32))
     gmaps_longitude = Column(Float(precision=32))
-    charging = relationship("Station")
+    station = relationship("Station", back_populates="address")
 
     def __repr__(self):
         return "<stations with id: {}>".format(self.id)
+
+    def __hash__(self):
+        return hash(
+            (
+                self.date_created,
+                self.date_updated,
+                self.street,
+                self.town,
+                self.district_old,
+                self.district,
+                self.state,
+                self.country,
+                self.gmaps_latitude,
+                self.gmaps_longitude,
+            )
+        )

@@ -35,7 +35,6 @@ def map_address_bna(row, station_id):
         log.warning(f"Failed to process town {town}! Will set town to None!")
         town = None
     map_address = Address()
-    map_address.station_id = (station_id,)
     map_address.street = (street,)
     map_address.town = (town,)
     map_address.postcode = (postcode,)
@@ -56,6 +55,7 @@ def map_stations_bna(row):
     coordinates = Point(float(lat), float(long)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)
+    new_station.id = hash(new_station)
     return new_station
 
 
