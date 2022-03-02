@@ -23,6 +23,8 @@ def bna_pipeline():
     # Drop the comments in the excel
     df_dropped = df[10:]
 
+    df_dropped.drop_duplicates(subset=["Breitengrad", "Längengrad"], keep="first", inplace=True)
+
     # df_mapped = map_address(df_dropped)
     engine = create_engine(db_uri, echo=True)
     Session = sessionmaker(bind=engine)
@@ -66,7 +68,6 @@ def ocm_pipeline():
         except Exception as e:
             print(e)
             session.rollback()
-
 
 if __name__ == "__main__":
     bna_pipeline()
