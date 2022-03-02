@@ -9,9 +9,9 @@ from sqlalchemy.dialects import postgresql
 
 
 class Address(Base):
-    __tablename__ = 'address'
+    __tablename__ = "address"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    station_id = Column(Integer, ForeignKey('stations.id'))
+    station_id = Column(Integer, ForeignKey("stations.id"))
     date_created = Column(Date)
     date_updated = Column(Date)
     street = Column(String)
@@ -24,6 +24,5 @@ class Address(Base):
     gmaps_longitude = Column(Float(precision=32))
     charging = relationship("Station")
 
-
     def __repr__(self):
-        return '<stations with id: {}>'.format(self.id)
+        return "<stations with id: {}>".format(self.id)
