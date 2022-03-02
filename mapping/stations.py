@@ -56,7 +56,6 @@ def map_stations_bna(row):
     coordinates = Point(float(lat), float(long)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)
-    new_station.id = hash(new_station)
     return new_station
 
 

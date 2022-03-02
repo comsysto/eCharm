@@ -7,7 +7,7 @@ from models import Base
 
 class Station(Base):
     __tablename__ = "stations"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, index=True, nullable=False, unique=True)
     data_source = Column(String)
     operator = Column(String)
