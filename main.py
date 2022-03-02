@@ -34,7 +34,6 @@ def bna_pipeline():
         mapped_station: Station = map_stations_bna(row)
         mapped_station.address = mapped_address
         mapped_station.charging = mapped_charging
-        mapped_station.hash = hash(mapped_station)
         session.add(mapped_station)
 
         try:

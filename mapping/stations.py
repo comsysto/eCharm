@@ -9,8 +9,8 @@ from utils.bna_functions import check_coordinates
 from utils.logging_utils import log
 
 
-def lat_long_hash(lat_row, long_row):
-    id_hash: hashlib._Hash = hashlib.sha256(f"{lat_row}{long_row}".encode("utf8"))
+def lat_long_hash(lat_row, long_row, data_source):
+    id_hash: hashlib._Hash = hashlib.sha256(f"{lat_row}{long_row}{data_source}".encode("utf8"))
     identifier: bytes = id_hash.hexdigest().encode(
         "utf8"
     )  # TODO: should we return a string here?
@@ -49,9 +49,10 @@ def map_stations_bna(row):
     long = check_coordinates(row["Breitengrad"])
 
     new_station = Station()
-    new_station.source_id = lat_long_hash(lat, long)
+    datasource = "BNA"
+    new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = row["Betreiber"]
-    new_station.data_source = "BNA"
+    new_station.data_source = datasource
     coordinates = Point(float(lat), float(long)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)

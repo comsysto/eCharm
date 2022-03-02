@@ -51,4 +51,8 @@ docker compose up
 alembic upgrade head
 ```
 
+In order to create new revision
+```bash
+alembic revision --autogenerate -m "your revision comment"
+```
 

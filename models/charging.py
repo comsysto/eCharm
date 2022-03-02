@@ -1,6 +1,5 @@
 from sqlalchemy import (
     ARRAY,
-    BigInteger,
     Boolean,
     Column,
     Date,
@@ -33,18 +32,3 @@ class Charging(Base):
     def __repr__(self):
         return "<charging with id: {}>".format(self.id)
 
-    def __hash__(self):
-        return hash(
-            (
-                self.date_created,
-                self.date_updated,
-                self.capacity,
-                tuple(self.kw_list),
-                tuple(self.ampere_list),
-                tuple(self.volt_list),
-                tuple(self.socket_type_list),
-                self.dc_support,
-                self.total_kw,
-                self.max_kw,
-            )
-        )

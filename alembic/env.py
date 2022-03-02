@@ -8,7 +8,7 @@ from alembic import context
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from models import Base
+from models import Base, station, address, charging #TODO: protect from auto delete by flake!
 from settings import db_uri
 
 # this is the Alembic Config object, which provides
@@ -63,6 +63,8 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
+    alembic_config = config.get_section(config.config_ini_section)
+    alembic_config['sqlalchemy.url'] = db_uri
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",

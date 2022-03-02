@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, Date, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
@@ -23,19 +23,3 @@ class Address(Base):
 
     def __repr__(self):
         return "<stations with id: {}>".format(self.id)
-
-    def __hash__(self):
-        return hash(
-            (
-                self.date_created,
-                self.date_updated,
-                self.street,
-                self.town,
-                self.district_old,
-                self.district,
-                self.state,
-                self.country,
-                self.gmaps_latitude,
-                self.gmaps_longitude,
-            )
-        )
