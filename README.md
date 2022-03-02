@@ -43,15 +43,12 @@ pip install -r requirements.txt
 ```
 
 ## docker
-```
+```bash
 docker compose up  
 ```
 
-```
+```bash
 alembic upgrade head
-```
-```
-alembic downgrade -1
 ```
 
 
