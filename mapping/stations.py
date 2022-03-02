@@ -90,7 +90,7 @@ def map_station_osm(entry):
 def map_address_osm(entry, station_id):
     if 'tags' in entry:
         tags = entry['tags']
-        if 'addr:city' in entry and 'addr:country' in entry and 'addr:housenumber' in entry and 'addr:postcode' in entry and 'addr:street' in entry:
+        if 'addr:city' in tags and 'addr:country' in tags and 'addr:housenumber' in tags and 'addr:postcode' in tags and 'addr:street' in tags:
             city = tags['addr:city']
             country = tags['addr:country']
             housenumber = tags['addr:housenumber']

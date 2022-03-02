@@ -82,7 +82,6 @@ def osm_pipeline():
         for element in data['elements']:
             station: Station = map_station_osm(element)
             session.add(station)
-            session.flush()
             address = map_address_osm(element,station.id)
             if address is not None:
                 session.add(address)
