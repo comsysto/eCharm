@@ -1,8 +1,8 @@
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 
-dynamodb = boto3.resource('dynamodb')
-client = boto3.client('dynamodb')
+dynamodb = boto3.resource("dynamodb")
+client = boto3.client("dynamodb")
 
 
 def insert_item(table, item):
@@ -29,10 +29,8 @@ def get_item(table, key):
     :return:
     """
     table = dynamodb.Table(table)
-    response = table.get_item(
-        Key=key
-    )
-    item = response['Item']
+    response = table.get_item(Key=key)
+    item = response["Item"]
     return item
 
 
@@ -44,11 +42,11 @@ def get_all_items(table):
     table = dynamodb.Table(table)
     # Get all data, will take a while to get all the data
     response = table.scan()
-    data = response['Items']
+    data = response["Items"]
 
-    while 'LastEvaluatedKey' in response:
-        response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
-        data.extend(response['Items'])
+    while "LastEvaluatedKey" in response:
+        response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+        data.extend(response["Items"])
     return data
 
 
@@ -63,27 +61,32 @@ def query_by_key(table, key, condition, compare_value):
 
     example query_by_key('secutix-test-client-table', key='type', condition='eq', compare_value='/client/order')
     """
-    conditions = {'eq': 'Equal', 'gt': 'GreaterThan', 'gte': 'GreaterThanEqual', 'lt': 'LessThan',
-                  'lte': 'LessThanEqual'}
+    conditions = {
+        "eq": "Equal",
+        "gt": "GreaterThan",
+        "gte": "GreaterThanEqual",
+        "lt": "LessThan",
+        "lte": "LessThanEqual",
+    }
     if condition not in conditions.keys():
-        message = '\n\t\t\t\t'
+        message = "\n\t\t\t\t"
         for key, value in conditions.items():
-            message += key + ' for ' + value + '\n\t\t\t\t'
-        raise ValueError('Condition must be the following value ' + message)
+            message += key + " for " + value + "\n\t\t\t\t"
+        raise ValueError("Condition must be the following value " + message)
 
     table = dynamodb.Table(table)
     response = table.query(
         KeyConditionExpression=getattr(Key(key), condition)(compare_value)
     )
 
-    data = response['Items']
+    data = response["Items"]
 
-    while 'LastEvaluatedKey' in response:
+    while "LastEvaluatedKey" in response:
         response = table.query(
             KeyConditionExpression=getattr(Key(key), condition)(compare_value),
-            ExclusiveStartKey=response['LastEvaluatedKey']
+            ExclusiveStartKey=response["LastEvaluatedKey"],
         )
-        data.extend(response['Items'])
+        data.extend(response["Items"])
     return data
 
 
@@ -100,17 +103,21 @@ def query_by_key_between_value(table, key, low_value, high_value):
     """
     table = dynamodb.Table(table)
     response = table.query(
-        KeyConditionExpression=Key(key).between(low_value=low_value, high_value=high_value)
+        KeyConditionExpression=Key(key).between(
+            low_value=low_value, high_value=high_value
+        )
     )
 
-    data = response['Items']
+    data = response["Items"]
 
-    while 'LastEvaluatedKey' in response:
+    while "LastEvaluatedKey" in response:
         response = table.query(
-            KeyConditionExpression=Key(key).between(low_value=low_value, high_value=high_value),
-            ExclusiveStartKey=response['LastEvaluatedKey']
+            KeyConditionExpression=Key(key).between(
+                low_value=low_value, high_value=high_value
+            ),
+            ExclusiveStartKey=response["LastEvaluatedKey"],
         )
-        data.extend(response['Items'])
+        data.extend(response["Items"])
     return data
 
 
@@ -124,26 +131,31 @@ def query_by_attr(table, attr, condition, compare_value):
     :return: list(dict)
     example query_by_attr('secutix-test-client-table', key='timestamp', condition='gt', compare_value='2020-01-01')
     """
-    conditions = {'eq': 'Equal', 'gt': 'GreaterThan', 'gte': 'GreaterThanEqual', 'lt': 'LessThan',
-                  'lte': 'LessThanEqual'}
+    conditions = {
+        "eq": "Equal",
+        "gt": "GreaterThan",
+        "gte": "GreaterThanEqual",
+        "lt": "LessThan",
+        "lte": "LessThanEqual",
+    }
     if condition not in conditions.keys():
-        message = '\n\t\t\t\t'
+        message = "\n\t\t\t\t"
         for key, value in conditions.items():
-            message += key + ' for ' + value + '\n\t\t\t\t'
-        raise ValueError('Condition must be the following value ' + message)
+            message += key + " for " + value + "\n\t\t\t\t"
+        raise ValueError("Condition must be the following value " + message)
 
     table = dynamodb.Table(table)
     response = table.scan(
         FilterExpression=getattr(Attr(attr), condition)(compare_value)
     )
 
-    data = response['Items']
-    while 'LastEvaluatedKey' in response:
+    data = response["Items"]
+    while "LastEvaluatedKey" in response:
         response = table.scan(
             FilterExpression=getattr(Attr(attr), condition)(compare_value),
-            ExclusiveStartKey=response['LastEvaluatedKey']
+            ExclusiveStartKey=response["LastEvaluatedKey"],
         )
-        data.extend(response['Items'])
+        data.extend(response["Items"])
     return data
 
 
@@ -162,29 +174,28 @@ def query_by_attr_between_value(table, attr, low_value, high_value):
         FilterExpression=Attr(attr).between(low_value=low_value, high_value=high_value)
     )
 
-    data = response['Items']
-    while 'LastEvaluatedKey' in response:
+    data = response["Items"]
+    while "LastEvaluatedKey" in response:
         response = table.scan(
-            FilterExpression=Attr(attr).between(low_value=low_value, high_value=high_value),
-            ExclusiveStartKey=response['LastEvaluatedKey']
+            FilterExpression=Attr(attr).between(
+                low_value=low_value, high_value=high_value
+            ),
+            ExclusiveStartKey=response["LastEvaluatedKey"],
         )
-        data.extend(response['Items'])
+        data.extend(response["Items"])
     return data
 
 
 def query_custom_condition(table, condition):
     table = dynamodb.Table(table)
-    response = table.scan(
-        FilterExpression=condition
-    )
+    response = table.scan(FilterExpression=condition)
 
-    data = response['Items']
-    while 'LastEvaluatedKey' in response:
+    data = response["Items"]
+    while "LastEvaluatedKey" in response:
         response = table.scan(
-            FilterExpression=condition,
-            ExclusiveStartKey=response['LastEvaluatedKey']
+            FilterExpression=condition, ExclusiveStartKey=response["LastEvaluatedKey"]
         )
-        data.extend(response['Items'])
+        data.extend(response["Items"])
     return data
 
 
@@ -209,30 +220,30 @@ def update_item(table, key, attributes):
     ExpressionAttributeValues = {}
 
     for index, k in enumerate(key):
-        ConditionExpression.append(f'#{k}{index} = :keyval{index}')
-        ExpressionAttributeValues[f':keyval{index}'] = key[k]
-        ExpressionAttributeNames[f'#{k}{index}'] = k
+        ConditionExpression.append(f"#{k}{index} = :keyval{index}")
+        ExpressionAttributeValues[f":keyval{index}"] = key[k]
+        ExpressionAttributeNames[f"#{k}{index}"] = k
 
     for index, k in enumerate(attributes):
-        UpdateExpression.append(f'#{k}{index} = :val{index}')
-        ConditionExpression.append(f'#{k}{index} <> :val{index}')
+        UpdateExpression.append(f"#{k}{index} = :val{index}")
+        ConditionExpression.append(f"#{k}{index} <> :val{index}")
 
-        ExpressionAttributeValues[f':val{index}'] = attributes[k]
-        ExpressionAttributeNames[f'#{k}{index}'] = k
+        ExpressionAttributeValues[f":val{index}"] = attributes[k]
+        ExpressionAttributeNames[f"#{k}{index}"] = k
 
-    UpdateExpression = ' '.join(UpdateExpression)
-    ConditionExpression = ' AND '.join(ConditionExpression)
+    UpdateExpression = " ".join(UpdateExpression)
+    ConditionExpression = " AND ".join(ConditionExpression)
     try:
         resp = table.update_item(
             Key=key,
-            UpdateExpression=f'SET {UpdateExpression}',
+            UpdateExpression=f"SET {UpdateExpression}",
             ExpressionAttributeValues=ExpressionAttributeValues,
             ExpressionAttributeNames=ExpressionAttributeNames,  # prevent reserved keyword
             ConditionExpression=ConditionExpression,
-            ReturnValues='UPDATED_NEW'
+            ReturnValues="UPDATED_NEW",
         )
     except client.exceptions.ConditionalCheckFailedException:
-        raise ValueError('Key not exists')
+        raise ValueError("Key not exists")
 
     return resp
 
@@ -258,21 +269,21 @@ def insert_item_update(table, key, attributes):
     ExpressionAttributeValues = {}
 
     for index, k in enumerate(attributes):
-        UpdateExpression.append(f'#{k}{index} = :val{index}')
-        ExpressionAttributeValues[f':val{index}'] = attributes[k]
-        ExpressionAttributeNames[f'#{k}{index}'] = k
+        UpdateExpression.append(f"#{k}{index} = :val{index}")
+        ExpressionAttributeValues[f":val{index}"] = attributes[k]
+        ExpressionAttributeNames[f"#{k}{index}"] = k
 
-    UpdateExpression = ' '.join(UpdateExpression)
+    UpdateExpression = " ".join(UpdateExpression)
 
     try:
         resp = table.update_item(
             Key=key,
-            UpdateExpression=f'SET {UpdateExpression}',
+            UpdateExpression=f"SET {UpdateExpression}",
             ExpressionAttributeValues=ExpressionAttributeValues,
             ExpressionAttributeNames=ExpressionAttributeNames,  # prevent reserved keyword
-            ReturnValues='UPDATED_NEW'
+            ReturnValues="UPDATED_NEW",
         )
     except client.exceptions.ConditionalCheckFailedException:
-        raise ValueError('Key not exists')
+        raise ValueError("Key not exists")
 
     return resp

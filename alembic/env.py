@@ -5,7 +5,7 @@ from logging.config import fileConfig
 import os
 import sys
 
-current_path = os.path.abspath('.')
+current_path = os.path.abspath(".")
 sys.path.append(current_path)
 from models.station import Station
 from models.address import Address
@@ -32,7 +32,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-config.set_main_option('sqlalchemy.url', db_uri)
+config.set_main_option("sqlalchemy.url", db_uri)
 
 
 def run_migrations_offline():
@@ -74,9 +74,7 @@ def run_migrations_online():
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
-            target_metadata=target_metadata,
-            compare_type=True
+            connection=connection, target_metadata=target_metadata, compare_type=True
         )
 
         with context.begin_transaction():

@@ -6,7 +6,9 @@ def setup_logger(name, info_only=True):
     if info_only:
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+        formatter = logging.Formatter(
+            fmt="%(asctime)s - %(levelname)s - %(module)s - %(message)s"
+        )
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(formatter)
         logger.addHandler(stream_handler)
@@ -15,9 +17,11 @@ def setup_logger(name, info_only=True):
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)
 
-        formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+        formatter = logging.Formatter(
+            fmt="%(asctime)s - %(levelname)s - %(module)s - %(message)s"
+        )
 
-        loghdl = RotatingFileHandler(name + '.log')
+        loghdl = RotatingFileHandler(name + ".log")
         loghdl.setLevel(logging.DEBUG)
         loghdl.setFormatter(formatter)
         logger.addHandler(loghdl)
@@ -29,4 +33,4 @@ def setup_logger(name, info_only=True):
     return logger
 
 
-log = setup_logger(name='appLog')
+log = setup_logger(name="appLog")
