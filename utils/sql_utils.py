@@ -8,11 +8,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 ENV = os.getenv("ENV", "LOCAL").upper()
-db_secret = "postgres"
-db_host = "localhost"
-db_port = "54322"
 
-db_uri = f"postgresql://{db_secret}:{db_secret}@{db_host}:{db_port}/{db_secret}"
+from settings import db_uri
 print(f"Database URI: {db_uri}")
 
 engine = create_engine(db_uri, pool_pre_ping=True)

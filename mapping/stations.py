@@ -13,9 +13,7 @@ def lat_long_hash(lat_row, long_row, data_source):
     id_hash: hashlib._Hash = hashlib.sha256(
         f"{lat_row}{long_row}{data_source}".encode("utf8")
     )
-    identifier: bytes = id_hash.hexdigest().encode(
-        "utf8"
-    )  # TODO: should we return a string here?
+    identifier: str = id_hash.hexdigest()
     return identifier
 
 

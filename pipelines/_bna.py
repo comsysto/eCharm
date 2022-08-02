@@ -1,11 +1,12 @@
 import configparser
 import os
 import pathlib
+from pathlib import Path
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from db import Session
 from mapping.charging import map_charging_bna
 from mapping.stations import map_address_bna, map_stations_bna
 from services.excel_file_loader_service import ExcelFileLoaderService
@@ -22,26 +23,31 @@ class BnaPipeline:
         self.offline: bool = offline
 
     def _retrieve_data(self, config):
-        tmp_data_path = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "..", config["EXCEL"]["path"]
-        )
+
+        data_dir = os.path.join(
+            pathlib.Path(__file__).parent.resolve(), "..", "data")
+        Path(data_dir).mkdir(parents=True, exist_ok=True)
+        tmp_data_path = os.path.join(data_dir, config["EXCEL"]["filename"])
+
         if not self.offline:
             get_bna_data(tmp_data_path)
         self.excel_df = ExcelFileLoaderService().load(tmp_data_path)
 
     def run(self):
         self._retrieve_data(self.config)
-        try:
-            for _, row in tqdm(self.excel_df.iterrows()):
-                mapped_station = map_stations_bna(row)
-                mapped_address = map_address_bna(row, mapped_station.id)
-                mapped_charging = map_charging_bna(row, mapped_station.id)
-                self.db_session.bulk_save_objects(
-                    [mapped_station, mapped_address, mapped_charging]
-                )
+        for _, row in tqdm(self.excel_df.iterrows()):
+            mapped_address = map_address_bna(row, None)
+            mapped_charging = map_charging_bna(row, None)
+            mapped_station = map_stations_bna(row)
+            mapped_station.address = mapped_address
+            mapped_station.charging = mapped_charging
+            self.db_session.add(mapped_station)
+            try:
                 self.db_session.commit()
-        except IntegrityError as e:
-            log.debug("BNA-Entry exists already!")
-        except Exception as e:
-            log.error("BNA pipeline failed to run.", e)
-            self.db_session.rollback()
+                self.db_session.flush()
+            except IntegrityError as e:
+                log.debug("BNA-Entry exists already!")
+            except Exception as e:
+                log.error("BNA pipeline failed to run.", e)
+                self.db_session.rollback()
+

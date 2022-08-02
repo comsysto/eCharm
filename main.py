@@ -26,38 +26,6 @@ from pipelines._bna import BnaPipeline
 from settings import db_uri
 
 
-def bna_pipeline():
-    # Read excel file as pandas dataframe
-    df = pd.read_excel(r"data/bundesagentor_stations.xlsx")
-    df.columns = df.iloc[9]
-
-    # Drop the comments in the excel
-    df_dropped = df[10:]
-
-    df_dropped.drop_duplicates(
-        subset=["Breitengrad", "Längengrad"], keep="first", inplace=True
-    )
-
-    # df_mapped = map_address(df_dropped)
-    engine = create_engine(db_uri, echo=True)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    for index, row in tqdm(df_dropped.iterrows()):
-        mapped_address = map_address_bna(row, None)
-        mapped_charging = map_charging_bna(row, None)
-        mapped_station: Station = map_stations_bna(row)
-        mapped_station.address = mapped_address
-        mapped_station.charging = mapped_charging
-        session.add(mapped_station)
-
-        try:
-            session.commit()
-        except Exception as e:
-            print(e)
-            session.rollback()
-
-
 def ocm_pipeline():
     # Read excel file as pandas dataframe
     df = pd.read_csv(r"data/ocm_stations.csv")
@@ -106,12 +74,12 @@ def osm_pipeline():
 
 
 if __name__ == "__main__":
-    import configparser
 
+    current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
+    import configparser
     config: configparser = configparser.RawConfigParser()
-    config.read(
-        os.path.join(pathlib.Path(__file__).parent.resolve(), "config", "config.ini")
-    )
+    config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
+
     bna: BnaPipeline = BnaPipeline(
         config=config,
         db_session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
