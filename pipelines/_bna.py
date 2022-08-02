@@ -23,10 +23,13 @@ class BnaPipeline:
         self.offline: bool = offline
 
     def _retrieve_data(self, config):
-        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "..", "data")
+        data_dir: str = os.path.join(
+            pathlib.Path(__file__).parent.resolve(), "..", "data"
+        )
         Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(data_dir, config["EXCEL"]["filename"])
-        if not self.offline:get_bna_data(tmp_data_path)
+        if not self.offline:
+            get_bna_data(tmp_data_path)
         self.excel_df = ExcelFileLoaderService().load(tmp_data_path)
 
     def run(self):
@@ -46,4 +49,3 @@ class BnaPipeline:
             except Exception as e:
                 log.error("BNA pipeline failed to run.", e)
                 self.db_session.rollback()
-

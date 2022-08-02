@@ -8,17 +8,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from mapping.charging import (
-    map_charging_bna,
-    map_charging_ocm,
-    map_charging_osm
-)
+from mapping.charging import map_charging_ocm, map_charging_osm
 from mapping.stations import (
-    map_address_bna,
     map_address_ocm,
     map_address_osm,
     map_station_osm,
-    map_stations_bna,
     map_stations_ocm
 )
 from models.station import Station
@@ -77,6 +71,7 @@ if __name__ == "__main__":
 
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
+
     config: configparser = configparser.RawConfigParser()
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
 
