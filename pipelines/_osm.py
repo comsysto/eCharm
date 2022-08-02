@@ -27,7 +27,8 @@ class OsmPipeline:
         tmp_file_path = os.path.join(data_dir, self.config["OSM"]["filename"])
         if not self.offline:
             get_osm_data(tmp_file_path)
-        self.data = json.loads(tmp_file_path)
+        with open(tmp_file_path, "r") as f:
+            self.data = json.loads(f)
 
     def run(self):
         self._retrieve_data()
