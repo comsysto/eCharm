@@ -31,13 +31,33 @@ isort -rc -m 3 .
 ```
 	
 ## Setup
-First create enviroment and activate:
+
+### Install Pyenv if not already existing
+
+Linux:
+
+    curl https://pyenv.run | bash
+
+Mac:
+
+    brew install pyenv
+
+Install and activate Python 3.9.x , e.g.
+
+    pyenv install 3.9.10
+    pyenv local 3.9.10
+
+Check local version
+
+    python --version
+
+### Create enviroment and activate:
 ```
 python -m venv venv
 source venv/bin/activate  
 ```
 
-second install the requierements file:
+and install the requirements file:
 ```
 pip install -r requirements.txt  
 ```
