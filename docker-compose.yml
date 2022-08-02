@@ -15,4 +15,4 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
     ports:
-      - "54322:5432"
+      - ${DB_PORT}:5432

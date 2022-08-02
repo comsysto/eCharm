@@ -26,13 +26,13 @@ db_user = os.getenv("DB_USER", "postgres")
 db_password = os.getenv("DB_PASSWORD", "postgres")
 db_uri = (
     "postgresql://"
-    + "postgres"
+    + db_user
     + ":"
-    + "postgres"
+    + db_password
     + "@"
-    + "localhost"
+    + db_host
     + ":"
-    + "54322"
+    + db_port
     + "/"
-    + "myDatabase"
+    + db_name
 )

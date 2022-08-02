@@ -62,6 +62,18 @@ and install the requirements file:
 pip install -r requirements.txt  
 ```
 
+### Set environment variables
+
+Add
+
+    DB_NAME=gis
+    DB_HOST=localhost
+    DB_PORT=54322
+    DB_USER=docker
+    DB_PASSWORD=docker
+
+to `.env` file in the root directory
+
 ## docker
 ```bash
 docker compose up  
