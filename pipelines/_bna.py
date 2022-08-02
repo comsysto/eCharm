@@ -42,7 +42,7 @@ class BnaPipeline:
                 self.session.commit()
                 self.session.flush()
             except IntegrityError as e:
-                log.debug("BNA-Entry exists already!")
+                log.debug(f"BNA-Entry exists already! Error: {e}")
             except Exception as e:
-                log.error("BNA pipeline failed to run.", e)
+                log.error(f"BNA pipeline failed to run! Error: {e}")
                 self.session.rollback()

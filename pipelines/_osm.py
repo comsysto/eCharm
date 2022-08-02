@@ -28,7 +28,7 @@ class OsmPipeline:
         if not self.offline:
             get_osm_data(tmp_file_path)
         with open(tmp_file_path, "r") as f:
-            self.data = json.loads(f)
+            self.data = json.load(f)
 
     def run(self):
         self._retrieve_data()
@@ -43,7 +43,7 @@ class OsmPipeline:
                 self.session.commit()
                 self.session.flush()
             except IntegrityError as e:
-                log.debug("BNA-Entry exists already!")
+                log.debug(f"OSM-Entry exists already! Error: {e}")
             except Exception as e:
-                log.error("BNA pipeline failed to run.", e)
+                log.error(f"BNA pipeline failed to run! Error: {e}")
                 self.session.rollback()
