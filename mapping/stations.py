@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 from typing import Dict, Optional
 
@@ -44,7 +45,7 @@ def map_address_bna(row, station_id):
     return map_address
 
 
-def map_stations_bna(row):
+def map_station_bna(row):
     lat = check_coordinates(row["Längengrad"])
     long = check_coordinates(row["Breitengrad"])
 
@@ -59,7 +60,7 @@ def map_stations_bna(row):
     return new_station
 
 
-def map_stations_ocm(row):
+def map_station_ocm(row):
     datasource = "OCM"
     lat = check_coordinates(row["AddressInfo.Latitude"])
     long = check_coordinates(row["AddressInfo.Longitude"])
@@ -74,8 +75,8 @@ def map_stations_ocm(row):
     return new_station
 
 
-def map_station_osm(entry):
-    datasource = "OSM"
+def map_station_osm(entry: Dict):
+    datasource: str = "OSM"
     lat = check_coordinates(entry["lat"])
     lon = check_coordinates(entry["lon"])
     operator: Optional[str] = entry["tags"].get("operator")
@@ -83,9 +84,8 @@ def map_station_osm(entry):
     new_station.source_id = lat_long_hash(lat, lon, datasource)
     new_station.operator = operator
     new_station.data_source = datasource
-    coordinates = Point(float(lat), float(lon)).wkt
-    new_station.coordinates = coordinates
-    new_station.date_created = entry["timestamp"]
+    new_station.coordinates = Point(float(lat), float(lon)).wkt
+    new_station.date_created = entry.get("timestamp", datetime.datetime.now())
     return new_station
 
 
@@ -114,7 +114,6 @@ def map_address_osm(entry, station_id):
             map_address.country = country
             return map_address
     return None
-
 
 def map_address_ocm(row, station_id):
     try:

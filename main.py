@@ -13,7 +13,7 @@ from mapping.stations import (
     map_address_ocm,
     map_address_osm,
     map_station_osm,
-    map_stations_ocm
+    map_station_ocm
 )
 from models.station import Station
 from pipelines._osm import OsmPipeline
@@ -30,7 +30,7 @@ def ocm_pipeline():
     session = Session()
 
     for index, row in tqdm(df.iterrows()):
-        mapped_station: Station = map_stations_ocm(row)
+        mapped_station: Station = map_station_ocm(row)
         session.add(mapped_station)
         session.flush()
         mapped_address = map_address_ocm(row, mapped_station.id)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     osm: OsmPipeline = OsmPipeline(
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=False,
+        offline=True,
     )
     osm.run()
     print("")

@@ -2,13 +2,13 @@ import configparser
 import json
 import os
 import pathlib
+from typing import Dict, List, Optional
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tqdm import tqdm
 
-from mapping.charging import map_charging_bna
-from mapping.stations import map_address_bna, map_stations_bna
+from mapping.charging import map_charging_osm
+from mapping.stations import map_station_osm, map_address_osm
 from utils.logging_utils import log
 from utils.osm_receiver import get_osm_data
 
@@ -18,6 +18,7 @@ class OsmPipeline:
         self.config = config
         self.session = session
         self.offline: bool = offline
+        self.data: Optional[Dict] = None
 
     def _retrieve_data(self):
         data_dir: str = os.path.join(
@@ -32,10 +33,11 @@ class OsmPipeline:
 
     def run(self):
         self._retrieve_data()
-        for _, row in tqdm(self.data.iterrows()):
-            mapped_address = map_address_bna(row, None)
-            mapped_charging = map_charging_bna(row, None)
-            mapped_station = map_stations_bna(row)
+        entry: Dict
+        for entry in self.data.get("elements", []):
+            mapped_address = map_address_osm(entry, None)
+            mapped_charging = map_charging_osm(entry, None)
+            mapped_station = map_station_osm(entry)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
             self.session.add(mapped_station)
@@ -45,5 +47,5 @@ class OsmPipeline:
             except IntegrityError as e:
                 log.debug(f"OSM-Entry exists already! Error: {e}")
             except Exception as e:
-                log.error(f"BNA pipeline failed to run! Error: {e}")
+                log.error(f"OSM-Pipeline failed to run! Error: {e}")
                 self.session.rollback()
