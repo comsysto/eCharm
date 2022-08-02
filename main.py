@@ -10,7 +10,7 @@ from tqdm import tqdm
 from mapping.charging import map_charging_ocm
 from mapping.stations import map_address_ocm, map_station_ocm
 from models.station import Station
-from pipelines._osm import OsmPipeline
+from pipelines._ocm import OcmPipeline
 from settings import db_uri
 
 
@@ -52,10 +52,17 @@ if __name__ == "__main__":
     #     offline=True,
     # )
     # bna.run()
-    osm: OsmPipeline = OsmPipeline(
+    # osm: OsmPipeline = OsmPipeline(
+    #     config=config,
+    #     session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+    #     offline=True,
+    # )
+    # osm.run()
+
+    ocm: OcmPipeline = OcmPipeline(
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
+        offline=False,
     )
-    osm.run()
+    ocm.run()
     print("")

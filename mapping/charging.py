@@ -115,14 +115,6 @@ def map_charging_bna(row, station_id):
 def map_charging_ocm(row, station_id):
     # TODO: compute kW if missing and possible
     capacity: int = row["NumberOfPoints"]
-    kw_list: List[float] = []
-    ampere_list: List[float] = []
-    volt_list: List[float] = []
-    socket_type_list: List[str] = []
-
-    # Stations with only Schuko-Steckern are no charging stations for cars.
-    # if kw_list and max(kw_list) < MIN_KW:
-    #    raise ValueError("Max electrical power smaller than %d kW" % MIN_KW)
 
     mapped_charging_ocm = Charging()
     mapped_charging_ocm.station_id = station_id
@@ -134,8 +126,6 @@ def map_charging_ocm(row, station_id):
     mapped_charging_ocm.dc_support = None
     mapped_charging_ocm.total_kw = row["PowerKW"]
     mapped_charging_ocm.max_kw = None
-
-    # mapped_charging_ocm = _clean_attributes(mapped_charging_ocm)
 
     return mapped_charging_ocm
 

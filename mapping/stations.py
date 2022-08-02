@@ -118,10 +118,6 @@ def map_address_osm(entry, station_id):
 
 def map_address_ocm(row, station_id):
     try:
-        country: Optional[Dict] = row["Title_y"]
-    except:
-        country = None
-    try:
         postcode: Optional[str] = row["AddressInfo.Postcode"]
         postcode = (
             "".join([s for s in postcode if s.isdigit()])

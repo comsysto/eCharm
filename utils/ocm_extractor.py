@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import shutil
 
 import git
@@ -8,17 +9,12 @@ import pandas as pd
 from utils.logging_utils import log
 
 
-def ocm_extractor():
+def ocm_extractor(tmp_file_path: str):
     # Dataframes
     f_stations = pd.DataFrame()
     f_connection = pd.DataFrame()
     f_countries = pd.DataFrame()
     f_operators = pd.DataFrame()
-    f_stations_connections = pd.DataFrame()
-
-    # directory
-    dirname = os.path.dirname(__file__)
-    data_path = os.path.join(dirname, "..", "..", "..")
 
     # function to delete the repo
     def delete_directory(direct):
@@ -30,7 +26,9 @@ def ocm_extractor():
         except OSError as e:
             log.warn("Delete directory: %s - %s." % (e.filename, e.strerror))
 
-    directory_to_delete = os.path.join(data_path, "ocm-export")
+    directory_to_delete = os.path.join(
+        pathlib.Path(tmp_file_path).parent.resolve(), "ocm-export"
+    )
     # Delete the repo before cloning
     delete_directory(directory_to_delete)
 
@@ -39,10 +37,7 @@ def ocm_extractor():
         git.Git("/test").clone("https://github.com/openchargemap/ocm-export")
     except:
         print("no need to clone")
-    rootdir = "ocm-export/data/DE"
-    # iterate over the folders and files
-    print("start")
-    for subdir, dirs, files in os.walk(rootdir):
+    for subdir, dirs, files in os.walk(os.path.join(directory_to_delete, "data", "DE")):
         for file in files:
             # Opening JSON file
             f = open(os.path.join(subdir, file))
@@ -66,9 +61,10 @@ def ocm_extractor():
             f_stations = f_stations.append(
                 pd_merged_with_connections, ignore_index=True
             )
-            # self.data_once.append(data)
 
-    with open("./ocm-export/data/referencedata.json", "r+") as f:
+    with open(
+        os.path.join(directory_to_delete, "data", "referencedata.json", "r+")
+    ) as f:
         data_ref = json.load(f)
 
     for _connection_type in data_ref["ConnectionTypes"]:
@@ -136,7 +132,4 @@ def ocm_extractor():
         how="left",
     )
 
-    pd_merged_with_operators_merged.to_csv("../data/ocm_stations.csv")
-
-
-ocm_extractor()
+    pd_merged_with_operators_merged.to_json(tmp_file_path)
