@@ -16,7 +16,7 @@ from mapping.stations import (
     map_stations_ocm
 )
 from models.station import Station
-from pipelines._bna import BnaPipeline
+from pipelines._osm import OsmPipeline
 from settings import db_uri
 
 
@@ -68,19 +68,22 @@ def osm_pipeline():
 
 
 if __name__ == "__main__":
-
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
 
     config: configparser = configparser.RawConfigParser()
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
 
-    bna: BnaPipeline = BnaPipeline(
+    # bna: BnaPipeline = BnaPipeline(
+    #     config=config,
+    #     db_session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+    #     offline=True,
+    # )
+    # bna.run()
+    osm: OsmPipeline = OsmPipeline(
         config=config,
-        db_session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
+        session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+        offline=False,
     )
-    bna.run()
+    osm.run()
     print("")
-    # ocm_pipeline()
-    # osm_pipeline()

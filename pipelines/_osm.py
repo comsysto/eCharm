@@ -1,4 +1,5 @@
 import configparser
+import json
 import os
 import pathlib
 
@@ -8,12 +9,11 @@ from tqdm import tqdm
 
 from mapping.charging import map_charging_bna
 from mapping.stations import map_address_bna, map_stations_bna
-from services.excel_file_loader_service import ExcelFileLoaderService
-from utils.bna_crawler import get_bna_data
 from utils.logging_utils import log
+from utils.osm_receiver import get_osm_data
 
 
-class BnaPipeline:
+class OsmPipeline:
     def __init__(self, config: configparser, session: Session, offline: bool = False):
         self.config = config
         self.session = session
@@ -24,10 +24,10 @@ class BnaPipeline:
             pathlib.Path(__file__).parent.resolve(), "..", "data"
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_data_path = os.path.join(data_dir, self.config["BNA"]["filename"])
+        tmp_file_path = os.path.join(data_dir, self.config["OSM"]["filename"])
         if not self.offline:
-            get_bna_data(tmp_data_path)
-        self.data = ExcelFileLoaderService().load(tmp_data_path)
+            get_osm_data(tmp_file_path)
+        self.data = json.loads(tmp_file_path)
 
     def run(self):
         self._retrieve_data()
