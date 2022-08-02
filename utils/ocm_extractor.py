@@ -3,8 +3,8 @@ import os
 import pathlib
 import shutil
 
-import git
 import pandas as pd
+from git import Repo
 
 from utils.logging_utils import log
 
@@ -34,7 +34,8 @@ def ocm_extractor(tmp_file_path: str):
 
     # get data from ocm Repo
     try:
-        git.Repo.clone_from(
+        # TODO: sparse checkout or download!
+        Repo.clone_from(
             "https://github.com/openchargemap/ocm-export", directory_to_delete
         )
     except:
