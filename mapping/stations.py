@@ -115,6 +115,7 @@ def map_address_osm(entry, station_id):
             return map_address
     return None
 
+
 def map_address_ocm(row, station_id):
     try:
         country: Optional[Dict] = row["Title_y"]

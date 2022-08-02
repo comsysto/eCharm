@@ -12,8 +12,8 @@ from mapping.charging import map_charging_ocm, map_charging_osm
 from mapping.stations import (
     map_address_ocm,
     map_address_osm,
-    map_station_osm,
-    map_station_ocm
+    map_station_ocm,
+    map_station_osm
 )
 from models.station import Station
 from pipelines._osm import OsmPipeline

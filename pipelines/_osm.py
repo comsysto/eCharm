@@ -2,13 +2,13 @@ import configparser
 import json
 import os
 import pathlib
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from mapping.charging import map_charging_osm
-from mapping.stations import map_station_osm, map_address_osm
+from mapping.stations import map_address_osm, map_station_osm
 from utils.logging_utils import log
 from utils.osm_receiver import get_osm_data
 
