@@ -74,16 +74,19 @@ Add
 
 to `.env` file in the root directory
 
-## docker
+### Start docker container
 ```bash
 docker compose up  
 ```
 
+### Initialize DB
 ```bash
 alembic upgrade head
 ```
 
-In order to create new revision
+
+## Alembic
+If you change the data model, you can create new revision by
 ```bash
 alembic revision --autogenerate -m "your revision comment"
 ```
