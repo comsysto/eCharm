@@ -1,8 +1,9 @@
+
 import requests
 from bs4 import BeautifulSoup
 
 
-def get_bna_data():
+def get_bna_data(tmp_data_path: str):
     # Base url & header
     headers = {"User-Agent": "Mozilla/5.0"}
     base_url = "https://www.bundesnetzagentur.de/SharedDocs/Downloads/DE/Sachgebiete/Energie/Unternehmen_Institutionen/E_Mobilitaet/Ladesaeulenregister.html"
@@ -18,9 +19,6 @@ def get_bna_data():
     resp = requests.get(full_download_link)
 
     # save excel file
-    output = open("../data/bundesagentor_stations.xlsx", "wb")
+    output = open(tmp_data_path, "wb")
     output.write(resp.content)
     output.close()
-
-
-get_bna_data()

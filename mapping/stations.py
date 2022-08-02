@@ -10,7 +10,9 @@ from utils.logging_utils import log
 
 
 def lat_long_hash(lat_row, long_row, data_source):
-    id_hash: hashlib._Hash = hashlib.sha256(f"{lat_row}{long_row}{data_source}".encode("utf8"))
+    id_hash: hashlib._Hash = hashlib.sha256(
+        f"{lat_row}{long_row}{data_source}".encode("utf8")
+    )
     identifier: bytes = id_hash.hexdigest().encode(
         "utf8"
     )  # TODO: should we return a string here?
@@ -73,11 +75,12 @@ def map_stations_ocm(row):
     new_station.date_created = row["DateCreated"]
     return new_station
 
+
 def map_station_osm(entry):
     datasource = "OSM"
-    lat = check_coordinates(entry['lat'])
-    lon = check_coordinates(entry['lon'])
-    operator: Optional[str] = entry['tags'].get('operator')
+    lat = check_coordinates(entry["lat"])
+    lon = check_coordinates(entry["lon"])
+    operator: Optional[str] = entry["tags"].get("operator")
     new_station = Station()
     new_station.source_id = lat_long_hash(lat, lon, datasource)
     new_station.operator = operator
@@ -87,25 +90,33 @@ def map_station_osm(entry):
     new_station.date_created = entry["timestamp"]
     return new_station
 
+
 def map_address_osm(entry, station_id):
-    if 'tags' in entry:
-        tags = entry['tags']
-        if 'addr:city' in tags and 'addr:country' in tags and 'addr:housenumber' in tags and 'addr:postcode' in tags and 'addr:street' in tags:
-            city = tags['addr:city']
-            country = tags['addr:country']
-            housenumber = tags['addr:housenumber']
-            postcode = tags['addr:postcode']
-            street = tags['addr:street']
+    if "tags" in entry:
+        tags = entry["tags"]
+        if (
+            "addr:city" in tags
+            and "addr:country" in tags
+            and "addr:housenumber" in tags
+            and "addr:postcode" in tags
+            and "addr:street" in tags
+        ):
+            city = tags["addr:city"]
+            country = tags["addr:country"]
+            housenumber = tags["addr:housenumber"]
+            postcode = tags["addr:postcode"]
+            street = tags["addr:street"]
             map_address = Address()
             map_address.state_old = None
             map_address.station_id = station_id
-            map_address.street = street + ' ' + housenumber
+            map_address.street = street + " " + housenumber
             map_address.town = city
             map_address.postcode = postcode
             map_address.district_old = None
             map_address.country = country
             return map_address
     return None
+
 
 def map_address_ocm(row, station_id):
     try:

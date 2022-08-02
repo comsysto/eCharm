@@ -113,11 +113,15 @@ def ocm_extractor():
         .reset_index()
     )
 
-    pd_merged_with_operators_connections_titles = pd_merged_with_operators_connections_titles.rename(
-        columns={"ID_x": "id_con_titles"}
+    pd_merged_with_operators_connections_titles = (
+        pd_merged_with_operators_connections_titles.rename(
+            columns={"ID_x": "id_con_titles"}
+        )
     )
-    pd_merged_with_operators_connections_titles = pd_merged_with_operators_connections_titles.rename(
-        columns={"Title_x": "title_connection"}
+    pd_merged_with_operators_connections_titles = (
+        pd_merged_with_operators_connections_titles.rename(
+            columns={"Title_x": "title_connection"}
+        )
     )
 
     pd_merged_with_operators = pd_merged_with_operators.drop_duplicates(

@@ -31,4 +31,3 @@ class Charging(Base):
 
     def __repr__(self):
         return "<charging with id: {}>".format(self.id)
-

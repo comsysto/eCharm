@@ -110,8 +110,10 @@ def insert_on_conflict_do_update(
         check_cols = get_primary_keys_of_table(table_name=table_name)
 
     for chunk in chunks(list_obj=insert_dict, batch_size=batch):
-        insert_stmt_str = "INSERT INTO {schema}.{table_name} ({column_names}) VALUES ".format(
-            schema=schema, table_name=table_name, column_names=column_names_str
+        insert_stmt_str = (
+            "INSERT INTO {schema}.{table_name} ({column_names}) VALUES ".format(
+                schema=schema, table_name=table_name, column_names=column_names_str
+            )
         )
         values = []
         for entry in chunk:
@@ -130,8 +132,10 @@ def insert_on_conflict_do_update(
             )
 
         excluded = excluded[:-1]
-        insert_stmt_str = "{insert} ON CONFLICT ({pkey}) DO UPDATE {excluded_stmt};".format(
-            insert=insert_stmt_str, pkey=pkey, excluded_stmt=excluded
+        insert_stmt_str = (
+            "{insert} ON CONFLICT ({pkey}) DO UPDATE {excluded_stmt};".format(
+                insert=insert_stmt_str, pkey=pkey, excluded_stmt=excluded
+            )
         )
         insert_stmt_str = insert_stmt_str.replace("'null'", "null")
         with session_scope() as session:
@@ -148,8 +152,10 @@ def insert_return_ids(
         ['"{}"'.format(col_name) for col_name in column_names_list]
     )
 
-    insert_stmt_str = "INSERT INTO {schema}.{table_name} ({column_names}) VALUES ".format(
-        schema=schema, table_name=table_name, column_names=column_names_str
+    insert_stmt_str = (
+        "INSERT INTO {schema}.{table_name} ({column_names}) VALUES ".format(
+            schema=schema, table_name=table_name, column_names=column_names_str
+        )
     )
     values = []
     for entry in insert_dict:

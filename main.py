@@ -1,19 +1,28 @@
 # import for the pipeline
 import json
+import os
+import pathlib
 
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from mapping.charging import map_charging_bna, map_charging_ocm, map_charging_osm
+from mapping.charging import (
+    map_charging_bna,
+    map_charging_ocm,
+    map_charging_osm
+)
 from mapping.stations import (
     map_address_bna,
     map_address_ocm,
+    map_address_osm,
+    map_station_osm,
     map_stations_bna,
-    map_stations_ocm, map_station_osm, map_address_osm
+    map_stations_ocm
 )
 from models.station import Station
+from pipelines._bna import BnaPipeline
 from settings import db_uri
 
 
@@ -25,7 +34,9 @@ def bna_pipeline():
     # Drop the comments in the excel
     df_dropped = df[10:]
 
-    df_dropped.drop_duplicates(subset=["Breitengrad", "Längengrad"], keep="first", inplace=True)
+    df_dropped.drop_duplicates(
+        subset=["Breitengrad", "Längengrad"], keep="first", inplace=True
+    )
 
     # df_mapped = map_address(df_dropped)
     engine = create_engine(db_uri, echo=True)
@@ -77,15 +88,15 @@ def osm_pipeline():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    with open('data/osm_stations.json') as osmStations:
+    with open("data/osm_stations.json") as osmStations:
         data = json.load(osmStations)
-        for element in data['elements']:
+        for element in data["elements"]:
             station: Station = map_station_osm(element)
             session.add(station)
-            address = map_address_osm(element,station.id)
+            address = map_address_osm(element, station.id)
             if address is not None:
                 session.add(address)
-            charging = map_charging_osm(element,station.id)
+            charging = map_charging_osm(element, station.id)
             session.add(charging)
             try:
                 session.commit()
@@ -95,6 +106,18 @@ def osm_pipeline():
 
 
 if __name__ == "__main__":
-    # bna_pipeline()
+    import configparser
+
+    config: configparser = configparser.RawConfigParser()
+    config.read(
+        os.path.join(pathlib.Path(__file__).parent.resolve(), "config", "config.ini")
+    )
+    bna: BnaPipeline = BnaPipeline(
+        config=config,
+        db_session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+        offline=True,
+    )
+    bna.run()
+    print("")
     # ocm_pipeline()
-    osm_pipeline()
+    # osm_pipeline()

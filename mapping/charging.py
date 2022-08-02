@@ -140,8 +140,8 @@ def map_charging_ocm(row, station_id):
     return mapped_charging_ocm
 
 
-def map_charging_osm(entry,station_id):
-    charging=Charging()
-    charging.station_id=station_id
+def map_charging_osm(entry, station_id):
+    charging = Charging()
+    charging.station_id = station_id
     # TODO: read charging info
     return charging
