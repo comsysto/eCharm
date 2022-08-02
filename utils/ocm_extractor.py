@@ -24,7 +24,7 @@ def ocm_extractor(tmp_file_path: str):
         try:
             shutil.rmtree(folder_path)
         except OSError as e:
-            log.warn("Delete directory: %s - %s." % (e.filename, e.strerror))
+            log.warn(f"Delete directory: {e.filename} - {e.strerror}.")
 
     directory_to_delete = os.path.join(
         pathlib.Path(tmp_file_path).parent.resolve(), "ocm-export"
@@ -34,7 +34,9 @@ def ocm_extractor(tmp_file_path: str):
 
     # get data from ocm Repo
     try:
-        git.Git("/test").clone("https://github.com/openchargemap/ocm-export")
+        git.Repo.clone_from(
+            "https://github.com/openchargemap/ocm-export", directory_to_delete
+        )
     except:
         print("no need to clone")
     for subdir, dirs, files in os.walk(os.path.join(directory_to_delete, "data", "DE")):
