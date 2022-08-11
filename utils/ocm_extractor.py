@@ -101,9 +101,7 @@ def ocm_extractor(tmp_file_path: str):
 
     data: pd.DataFrame = pd.DataFrame()
     for subdir, dirs, files in os.walk(os.path.join(data_dir)):
-        for i, file in enumerate(files):
-            if i > 100:
-                break
+        for file in files:
             data: pd.DataFrame = pd.concat(
                 [
                     data,
