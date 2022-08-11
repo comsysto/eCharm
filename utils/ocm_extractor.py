@@ -2,11 +2,10 @@ import json
 import os
 import pathlib
 import shutil
+import subprocess
 
 import pandas as pd
-from git import Repo
-
-from utils.logging_utils import log
+from packaging import version
 
 
 def ocm_extractor(tmp_file_path: str):
@@ -16,31 +15,54 @@ def ocm_extractor(tmp_file_path: str):
     f_countries = pd.DataFrame()
     f_operators = pd.DataFrame()
 
-    # function to delete the repo
-    def delete_directory(direct):
-        # getting the folder path from the user
-        folder_path = direct
+    data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
+    ocm_data_root_dir: str = os.path.join(data_dir, "ocm-export")
+    ocm_data_dir: str = os.path.join(ocm_data_root_dir, "data/De")
 
-        try:
-            shutil.rmtree(folder_path)
-        except OSError as e:
-            log.warn(f"Delete directory: {e.filename} - {e.strerror}.")
-
-    directory_to_delete = os.path.join(
-        pathlib.Path(tmp_file_path).parent.resolve(), "ocm-export"
-    )
-    # Delete the repo before cloning
-    delete_directory(directory_to_delete)
-
-    # get data from ocm Repo
     try:
-        # TODO: sparse checkout or download!
-        Repo.clone_from(
-            "https://github.com/openchargemap/ocm-export", directory_to_delete
+        git_version_raw: str = subprocess.check_output(["git", "--version"])
+        git_version: version = version.parse(
+            git_version_raw.decode("utf-8").strip().split(" ")[-1]
         )
-    except:
-        print("no need to clone")
-    for subdir, dirs, files in os.walk(os.path.join(directory_to_delete, "data", "DE")):
+    except FileNotFoundError as e:
+        raise RuntimeError(f"Git is not installed! {e}")
+    except TypeError as e:
+        raise RuntimeError(f"Could not parse git version! {e}")
+    else:
+        if git_version < version.parse("2.25.0"):
+            raise RuntimeError("Git version must be >= 2.25.0!")
+
+    if (not os.path.isdir(ocm_data_dir)) or len(os.listdir(ocm_data_dir)) == 0:
+        shutil.rmtree(ocm_data_root_dir, ignore_errors=True)
+        subprocess.call(
+            [
+                "git",
+                "clone",
+                "https://github.com/openchargemap/ocm-export",
+                "--no-checkout",
+                "--depth",
+                "1",
+            ],
+            cwd=data_dir,
+            stdout=subprocess.PIPE,
+        )
+        subprocess.call(
+            ["git", "sparse-checkout", "init", "--cone"],
+            cwd=ocm_data_root_dir,
+            stdout=subprocess.PIPE,
+        )
+        subprocess.call(
+            ["git", "sparse-checkout", "set", "data/DE"],
+            cwd=ocm_data_root_dir,
+            stdout=subprocess.PIPE,
+        )
+        subprocess.call(
+            ["git", "checkout"], cwd=ocm_data_root_dir, stdout=subprocess.PIPE
+        )
+    else:
+        subprocess.call(["git", "pull"], cwd=ocm_data_root_dir, stdout=subprocess.PIPE)
+
+    for subdir, dirs, files in os.walk(os.path.join(data_dir, "data", "DE")):
         for file in files:
             # Opening JSON file
             f = open(os.path.join(subdir, file))
@@ -65,9 +87,7 @@ def ocm_extractor(tmp_file_path: str):
                 pd_merged_with_connections, ignore_index=True
             )
 
-    with open(
-        os.path.join(directory_to_delete, "data", "referencedata.json", "r+")
-    ) as f:
+    with open(os.path.join(ocm_data_dir, "..", "referencedata.json"), "r+") as f:
         data_ref = json.load(f)
 
     for _connection_type in data_ref["ConnectionTypes"]:
@@ -112,15 +132,11 @@ def ocm_extractor(tmp_file_path: str):
         .reset_index()
     )
 
-    pd_merged_with_operators_connections_titles = (
-        pd_merged_with_operators_connections_titles.rename(
-            columns={"ID_x": "id_con_titles"}
-        )
+    pd_merged_with_operators_connections_titles = pd_merged_with_operators_connections_titles.rename(
+        columns={"ID_x": "id_con_titles"}
     )
-    pd_merged_with_operators_connections_titles = (
-        pd_merged_with_operators_connections_titles.rename(
-            columns={"Title_x": "title_connection"}
-        )
+    pd_merged_with_operators_connections_titles = pd_merged_with_operators_connections_titles.rename(
+        columns={"Title_x": "title_connection"}
     )
 
     pd_merged_with_operators = pd_merged_with_operators.drop_duplicates(
