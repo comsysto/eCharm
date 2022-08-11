@@ -34,7 +34,7 @@ class OcmPipeline:
     def run(self):
         self._retrieve_data()
         entry: Dict
-        for entry in self.data.get("elements", []):
+        for id, entry in self.data.items():
             mapped_address = map_address_ocm(entry, None)
             mapped_charging = map_charging_ocm(entry, None)
             mapped_station = map_station_ocm(entry)
