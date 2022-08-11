@@ -6,6 +6,7 @@ Create Date: 2022-01-25 10:39:48.498783
 
 """
 import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 from geoalchemy2 import Geometry
 

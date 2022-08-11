@@ -1,12 +1,4 @@
-from sqlalchemy import (
-    ARRAY,
-    Boolean,
-    Column,
-    Date,
-    ForeignKey,
-    Integer,
-    String
-)
+from sqlalchemy import ARRAY, Boolean, Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
