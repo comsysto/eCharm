@@ -16,7 +16,9 @@ def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
     return frame
 
 
-def merge_connection_types(connection: pd.DataFrame, reference_data: pd.DataFrame):
+def merge_connection_types(
+    connection: pd.DataFrame, reference_data: pd.DataFrame
+) -> pd.DataFrame:
     connection_ids: pd.Series = connection[
         "ConnectionTypeID"
     ].dropna().drop_duplicates()
@@ -28,7 +30,9 @@ def merge_connection_types(connection: pd.DataFrame, reference_data: pd.DataFram
     )
 
 
-def merge_address_infos(address_info: pd.Series, reference_data: pd.DataFrame):
+def merge_address_infos(
+    address_info: pd.Series, reference_data: pd.DataFrame
+) -> pd.DataFrame:
     return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
 
 

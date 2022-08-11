@@ -2,6 +2,7 @@ import datetime
 import hashlib
 from typing import Dict, Optional
 
+from dateutil import parser
 from shapely.geometry import Point
 
 from models.address import Address
@@ -62,17 +63,27 @@ def map_station_bna(row):
 
 def map_station_ocm(row):
     datasource = "OCM"
-    lat = check_coordinates(row["AddressInfo.Latitude"])
-    long = check_coordinates(row["AddressInfo.Longitude"])
-    operator: Optional[str] = row["Title"]
+    address_info: Dict = row.get("AddressInfo", {})
+    lat: float = check_coordinates(address_info.get("Latitude"))
+    long: float = check_coordinates(address_info.get("Longitude"))
+    operator: Optional[str] = row.get("OperatorInfo", {}).get("Title")
     new_station = Station()
     new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = operator
     new_station.data_source = datasource
     coordinates = Point(float(lat), float(long)).wkt
     new_station.coordinates = coordinates
-    new_station.date_created = row["DateCreated"]
+    new_station.date_created = parse_date(row.get("DateCreated"))
+    new_station.date_updated = parse_date(row.get("DateUpdated"))
     return new_station
+
+
+def parse_date(date):
+    try:
+        return parser.parse(date)
+    except TypeError as e:
+        log.debug(f"Could not parse DateCreated! {e}")
+        return None
 
 
 def map_station_osm(entry: Dict):
@@ -117,20 +128,21 @@ def map_address_osm(entry, station_id):
 
 
 def map_address_ocm(row, station_id):
-    postcode_raw: Optional[str] = row.get("AddressInfo", {}).get("Postcode")
+    address_info: Dict = row.get("AddressInfo", {})
+    postcode_raw: Optional[str] = address_info.get("Postcode")
     postcode: Optional[str] = postcode_raw if postcode_raw.isdigit() and isinstance(
         postcode_raw, str
     ) else None
 
-    town_raw: Optional[str] = row.get("AddressInfo", {}).get("Town")
+    town_raw: Optional[str] = address_info.get("Town")
     town: Optional[str] = town_raw if isinstance(town_raw, str) else None
 
-    state_old_raw: Optional[str] = row.get("AddressInfo", {}).get("StateOrProvince")
+    state_old_raw: Optional[str] = address_info.get("StateOrProvince")
     state_old: Optional[str] = state_old_raw if isinstance(state_old_raw, str) else None
 
-    country: Optional[str] = row.get("AddressInfo", {}).get("ISOCode")
+    country: Optional[str] = address_info.get("ISOCode")
 
-    street_raw: Optional[str] = row.get("AddressInfo", {}).get("AddressLine1")
+    street_raw: Optional[str] = address_info.get("AddressLine1")
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
     map_address = Address()

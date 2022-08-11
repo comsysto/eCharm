@@ -113,19 +113,34 @@ def map_charging_bna(row, station_id):
 
 
 def map_charging_ocm(row, station_id):
-    # TODO: compute kW if missing and possible
-    capacity: int = row["NumberOfPoints"]
+    connections: pd.DataFrame = pd.DataFrame(row.get("Connections", [])).transpose()
 
     mapped_charging_ocm = Charging()
     mapped_charging_ocm.station_id = station_id
-    mapped_charging_ocm.capacity = capacity
+    mapped_charging_ocm.capacity = row.get("NumberOfPoints")
     mapped_charging_ocm.kw_list = None
-    mapped_charging_ocm.ampere_list = None
-    mapped_charging_ocm.volt_list = None
-    mapped_charging_ocm.socket_type_list = [row["title_connection"]]
+    mapped_charging_ocm.ampere_list = (
+        connections["Amps"].to_list() if "Amps" in connections.columns else None
+    )
+    mapped_charging_ocm.volt_list = (
+        connections["Voltage"].to_list() if "Voltage" in connections.columns else None
+    )
+    mapped_charging_ocm.socket_type_list = (
+        connections["Title"].str.cat(sep=",")
+        if "Title" in connections.columns
+        else None
+    )
     mapped_charging_ocm.dc_support = None
-    mapped_charging_ocm.total_kw = row["PowerKW"]
-    mapped_charging_ocm.max_kw = None
+    mapped_charging_ocm.total_kw = (
+        connections["PowerKW"].dropna().sum()
+        if "PowerKW" in connections.columns
+        else None
+    )
+    mapped_charging_ocm.max_kw = (
+        connections["PowerKW"].dropna().max()
+        if "PowerKW" in connections.columns
+        else None
+    )
 
     return mapped_charging_ocm
 
