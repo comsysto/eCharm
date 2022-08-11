@@ -117,40 +117,22 @@ def map_address_osm(entry, station_id):
 
 
 def map_address_ocm(row, station_id):
-    try:
-        postcode: Optional[str] = row["AddressInfo.Postcode"]
-        postcode = (
-            "".join([s for s in postcode if s.isdigit()])
-            if postcode is not None
-            else ""
-        )
-    except:
-        postcode = None
-    town: Optional[str] = row["AddressInfo.Town"]
-    if not isinstance(town, str):
-        town = ""
-    state_old: Optional[str] = row["AddressInfo.StateOrProvince"]
-    if state_old is None:
-        state_old = ""
-    country: Optional[str] = row["ISOCode"]
-    street: Optional[str] = row["AddressInfo.AddressLine1"]
-    if (postcode is None) or len(postcode) != 5:
-        log.warning(
-            f"Postcode {postcode} of town {town} is not of length 5! Will set postcode to None!"
-        )
-        postcode = None
-    if (len(town) < 2) or (not all(not s.isdigit() for s in town)):
-        log.warning(
-            f"Town {town} has less than 2 chars or contains digits! Will set town to None!"
-        )
-        town = None
-    try:
-        if (not all(not s.isdigit() for s in state_old)) | (len(state_old) < 2):
-            log.warning(
-                f"StateOld {state_old} contains digits or has less than 2 chars! Will set state_old to None!"
-            )
-    except:
-        state_old = None
+    postcode_raw: Optional[str] = row.get("AddressInfo", {}).get("Postcode")
+    postcode: Optional[str] = postcode_raw if postcode_raw.isdigit() and isinstance(
+        postcode_raw, str
+    ) else None
+
+    town_raw: Optional[str] = row.get("AddressInfo", {}).get("Town")
+    town: Optional[str] = town_raw if isinstance(town_raw, str) else None
+
+    state_old_raw: Optional[str] = row.get("AddressInfo", {}).get("StateOrProvince")
+    state_old: Optional[str] = state_old_raw if isinstance(state_old_raw, str) else None
+
+    country: Optional[str] = row.get("AddressInfo", {}).get("ISOCode")
+
+    street_raw: Optional[str] = row.get("AddressInfo", {}).get("AddressLine1")
+    street: Optional[str] = street_raw if isinstance(street_raw, str) else None
+
     map_address = Address()
     map_address.state_old = None
     map_address.station_id = station_id

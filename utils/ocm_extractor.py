@@ -17,20 +17,34 @@ def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
 
 
 def merge_connection_types(connection: pd.DataFrame, reference_data: pd.DataFrame):
-    connection_ids: pd.Series = connection["ConnectionTypeID"].dropna().drop_duplicates()
-    return connection.merge(reference_data.loc[connection_ids], how="left", left_on="ConnectionTypeID",
-                            right_index=True)
+    connection_ids: pd.Series = connection[
+        "ConnectionTypeID"
+    ].dropna().drop_duplicates()
+    return connection.merge(
+        reference_data.loc[connection_ids],
+        how="left",
+        left_on="ConnectionTypeID",
+        right_index=True,
+    )
 
 
 def merge_address_infos(address_info: pd.Series, reference_data: pd.DataFrame):
     return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
 
 
-def merge_with_reference_data(row: pd.Series, connection_types: pd.DataFrame, address_info: pd.DataFrame,
-                              operators: pd.DataFrame):
-    row["Connections"] = merge_connection_types(connection=pd.json_normalize(row["Connections"]),
-                                                reference_data=connection_types)
-    row["AddressInfo"] = merge_address_infos(address_info=pd.Series(row["AddressInfo"]), reference_data=address_info)
+def merge_with_reference_data(
+    row: pd.Series,
+    connection_types: pd.DataFrame,
+    address_info: pd.DataFrame,
+    operators: pd.DataFrame,
+):
+    row["Connections"] = merge_connection_types(
+        connection=pd.json_normalize(row["Connections"]),
+        reference_data=connection_types,
+    )
+    row["AddressInfo"] = merge_address_infos(
+        address_info=pd.Series(row["AddressInfo"]), reference_data=address_info
+    )
     row["OperatorID"] = operators.loc[row["OperatorID"]]
     return row
 
@@ -77,31 +91,46 @@ def ocm_extractor(tmp_file_path: str):
             cwd=data_root_dir,
             stdout=subprocess.PIPE,
         )
-        subprocess.call(
-            ["git", "checkout"], cwd=data_root_dir, stdout=subprocess.PIPE
-        )
+        subprocess.call(["git", "checkout"], cwd=data_root_dir, stdout=subprocess.PIPE)
     else:
         subprocess.call(["git", "pull"], cwd=data_root_dir, stdout=subprocess.PIPE)
 
     data: pd.DataFrame = pd.DataFrame()
     for subdir, dirs, files in os.walk(os.path.join(data_dir)):
         for i, file in enumerate(files):
-            if (i > 100):
+            if i > 100:
                 break
             data: pd.DataFrame = pd.concat(
-                [data, pd.read_json(os.path.join(subdir, file), orient="records", typ="series")], axis=1)
+                [
+                    data,
+                    pd.read_json(
+                        os.path.join(subdir, file), orient="records", typ="series"
+                    ),
+                ],
+                axis=1,
+            )
 
     data = data.transpose()
 
     with open(os.path.join(data_dir, "..", "referencedata.json"), "r+") as f:
         data_ref: Dict = json.load(f)
 
-    connection_types: pd.DataFrame = reference_data_to_frame(data_ref["ConnectionTypes"])
+    connection_types: pd.DataFrame = reference_data_to_frame(
+        data_ref["ConnectionTypes"]
+    )
     address_info: pd.DataFrame = reference_data_to_frame(data_ref["Countries"])
     operators: pd.DataFrame = reference_data_to_frame(data_ref["Operators"])
 
-    data[["Connections", "AddressInfo", "OperatorInfo"]] = data[["Connections", "AddressInfo", "OperatorID"]].apply(
-        lambda x: merge_with_reference_data(row=x, connection_types=connection_types, address_info=address_info,
-                                            operators=operators), axis=1)
+    data[["Connections", "AddressInfo", "OperatorInfo"]] = data[
+        ["Connections", "AddressInfo", "OperatorID"]
+    ].apply(
+        lambda x: merge_with_reference_data(
+            row=x,
+            connection_types=connection_types,
+            address_info=address_info,
+            operators=operators,
+        ),
+        axis=1,
+    )
 
     data.reset_index(drop=True).to_json(tmp_file_path, orient="index")
