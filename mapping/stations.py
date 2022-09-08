@@ -64,9 +64,9 @@ def map_station_bna(row):
 def map_station_ocm(row):
     datasource = "OCM"
     address_info: Dict = row.get("AddressInfo", {})
-    lat: float = check_coordinates(address_info.get("Latitude"))
-    long: float = check_coordinates(address_info.get("Longitude"))
-    operator: Optional[str] = row.get("OperatorInfo", {}).get("Title")
+    lat: float = check_coordinates(row["AddressInfo.Latitude"])
+    long: float = check_coordinates(row["AddressInfo.Longitude"])
+    operator: Optional[str] = row["Title_y"]
     new_station = Station()
     new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = operator
@@ -129,20 +129,18 @@ def map_address_osm(entry, station_id):
 
 def map_address_ocm(row, station_id):
     address_info: Dict = row.get("AddressInfo", {})
-    postcode_raw: Optional[str] = address_info.get("Postcode")
-    postcode: Optional[str] = postcode_raw if postcode_raw.isdigit() and isinstance(
-        postcode_raw, str
-    ) else None
+    postcode_raw: Optional[str] = row["AddressInfo.Postcode"]
+    postcode: Optional[str] = postcode_raw
 
-    town_raw: Optional[str] = address_info.get("Town")
+    town_raw: Optional[str] = row["AddressInfo.Town"]
     town: Optional[str] = town_raw if isinstance(town_raw, str) else None
 
-    state_old_raw: Optional[str] = address_info.get("StateOrProvince")
+    state_old_raw: Optional[str] = row["AddressInfo.StateOrProvince"]
     state_old: Optional[str] = state_old_raw if isinstance(state_old_raw, str) else None
 
-    country: Optional[str] = address_info.get("ISOCode")
+    country: Optional[str] = row["Title_x"]
 
-    street_raw: Optional[str] = address_info.get("AddressLine1")
+    street_raw: Optional[str] = row["AddressInfo.AddressLine1"]
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
     map_address = Address()

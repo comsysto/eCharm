@@ -122,25 +122,21 @@ def ocm_extractor(tmp_file_path: str):
 
     connection_types: pd.DataFrame = pd.json_normalize(data_ref["ConnectionTypes"])
     connection_frame = pd.json_normalize(records, record_path=['Connections'], meta=['UUID'])
-    connection_frame = pd.merge(connection_frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID")
+    connection_frame = pd.merge(connection_frame, connection_types, how="left", left_on="ConnectionTypeID",
+                                right_on="ID")
     connection_frame_grouped = connection_frame.groupby("UUID").agg(list)
     connection_frame_grouped.reset_index(inplace=True)
-    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(lambda x: x.to_frame(),axis=1)
-    data = pd.merge(data, connection_frame_grouped[["ConnectionsEnriched","UUID"]], how="left", on="UUID")
+    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(lambda x: x.to_frame(), axis=1)
+    data = pd.merge(data, connection_frame_grouped[["ConnectionsEnriched", "UUID"]], how="left", on="UUID")
 
-    address_info: pd.DataFrame = reference_data_to_frame(data_ref["Countries"])
-    operators: pd.DataFrame = reference_data_to_frame(data_ref["Operators"])
+    address_info: pd.DataFrame = pd.json_normalize(data_ref["Countries"])
+    address_info = address_info.rename(columns={'ID': 'CountryID'})
+    pd_merged_with_countries = pd.merge(data, address_info,
+                                        left_on='AddressInfo.CountryID', right_on='CountryID', how='left')
 
-    data[["Connections", "AddressInfo", "OperatorInfo"]] = data[
-        ["Connections", "AddressInfo", "OperatorID"]
-    ].apply(
-        lambda x: merge_with_reference_data(
-            row=x,
-            connection_types=connection_types,
-            address_info=address_info,
-            operators=operators,
-        ),
-        axis=1,
-    )
+    operators: pd.DataFrame = pd.json_normalize(data_ref["Operators"])
+    operators = operators.rename(columns={'ID': 'OperatorIDREF'})
+    pd_merged_with_operators = pd.merge(pd_merged_with_countries, operators, left_on='OperatorID',
+                                        right_on='OperatorIDREF', how='left')
 
-    data.reset_index(drop=True).to_json(tmp_file_path, orient="index")
+    pd_merged_with_operators.reset_index(drop=True).to_json(tmp_file_path, orient="index")
