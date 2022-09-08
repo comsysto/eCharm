@@ -56,7 +56,7 @@ def merge_with_reference_data(
 def ocm_extractor(tmp_file_path: str):
     project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
     data_root_dir: str = os.path.join(project_data_dir, "ocm-export")
-    data_dir: str = os.path.join(data_root_dir, "data/De")
+    data_dir: str = os.path.join(data_root_dir, "data/DE")
 
     try:
         git_version_raw: str = subprocess.check_output(["git", "--version"])
