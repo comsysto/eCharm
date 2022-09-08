@@ -17,7 +17,7 @@ def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
 
 
 def merge_connection_types(
-    connection: pd.DataFrame, reference_data: pd.DataFrame
+        connection: pd.DataFrame, reference_data: pd.DataFrame
 ) -> pd.DataFrame:
     connection_ids: pd.Series = connection[
         "ConnectionTypeID"
@@ -31,16 +31,16 @@ def merge_connection_types(
 
 
 def merge_address_infos(
-    address_info: pd.Series, reference_data: pd.DataFrame
+        address_info: pd.Series, reference_data: pd.DataFrame
 ) -> pd.DataFrame:
     return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
 
 
 def merge_with_reference_data(
-    row: pd.Series,
-    connection_types: pd.DataFrame,
-    address_info: pd.DataFrame,
-    operators: pd.DataFrame,
+        row: pd.Series,
+        connection_types: pd.DataFrame,
+        address_info: pd.DataFrame,
+        operators: pd.DataFrame,
 ):
     row["Connections"] = merge_connection_types(
         connection=pd.json_normalize(row["Connections"]),
@@ -99,20 +99,12 @@ def ocm_extractor(tmp_file_path: str):
     else:
         subprocess.call(["git", "pull"], cwd=data_root_dir, stdout=subprocess.PIPE)
 
-    data: pd.DataFrame = pd.DataFrame()
+    records: List = []
     for subdir, dirs, files in os.walk(os.path.join(data_dir)):
         for file in files:
-            data: pd.DataFrame = pd.concat(
-                [
-                    data,
-                    pd.read_json(
-                        os.path.join(subdir, file), orient="records", typ="series"
-                    ),
-                ],
-                axis=1,
-            )
-
-    data = data.transpose()
+            with open(os.path.join(subdir, file), "r") as f:
+                records += [(json.load(f))]
+    data: pd.DataFrame = pd.json_normalize(records)
 
     with open(os.path.join(data_dir, "..", "referencedata.json"), "r+") as f:
         data_ref: Dict = json.load(f)
