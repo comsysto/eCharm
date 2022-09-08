@@ -53,6 +53,17 @@ def merge_with_reference_data(
     return row
 
 
+def merge_connections(row, connection_types):
+    frame = pd.DataFrame(row)
+    if not "ConnectionTypeID" in frame.columns:
+        return frame
+    return pd.merge(frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID")
+
+
+def testSth(x):
+    return x.to_frame()
+
+
 def ocm_extractor(tmp_file_path: str):
     project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
     data_root_dir: str = os.path.join(project_data_dir, "ocm-export")
@@ -109,9 +120,14 @@ def ocm_extractor(tmp_file_path: str):
     with open(os.path.join(data_dir, "..", "referencedata.json"), "r+") as f:
         data_ref: Dict = json.load(f)
 
-    connection_types: pd.DataFrame = reference_data_to_frame(
-        data_ref["ConnectionTypes"]
-    )
+    connection_types: pd.DataFrame = pd.json_normalize(data_ref["ConnectionTypes"])
+    connection_frame = pd.json_normalize(records, record_path=['Connections'], meta=['UUID'])
+    connection_frame = pd.merge(connection_frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID")
+    connection_frame_grouped = connection_frame.groupby("UUID").agg(list)
+    connection_frame_grouped.reset_index(inplace=True)
+    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(lambda x: x.to_frame(),axis=1)
+    data = pd.merge(data, connection_frame_grouped[["ConnectionsEnriched","UUID"]], how="left", on="UUID")
+
     address_info: pd.DataFrame = reference_data_to_frame(data_ref["Countries"])
     operators: pd.DataFrame = reference_data_to_frame(data_ref["Operators"])
 
