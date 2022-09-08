@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     # bna: BnaPipeline = BnaPipeline(
     #     config=config,
-    #     db_session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+    #     session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
     #     offline=True,
     # )
     # bna.run()
