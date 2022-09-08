@@ -3,7 +3,7 @@ import os
 import pathlib
 import shutil
 import subprocess
-from typing import List, Dict
+from typing import Dict, List
 
 import pandas as pd
 from packaging import version

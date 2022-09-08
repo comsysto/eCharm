@@ -8,8 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
 from mapping.charging import map_charging_ocm
-from mapping.stations import map_address_ocm
-from mapping.stations import map_station_ocm
+from mapping.stations import map_address_ocm, map_station_ocm
 from models.station import Station
 from pipelines._ocm import OcmPipeline
 from settings import db_uri

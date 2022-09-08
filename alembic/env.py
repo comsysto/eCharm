@@ -2,17 +2,13 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from models import Base
-from models import address
-from models import charging
-from models import station
+from models import Base, address, charging, station
 from settings import db_uri
 
 # this is the Alembic Config object, which provides
