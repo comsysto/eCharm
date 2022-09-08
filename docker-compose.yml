@@ -9,7 +9,7 @@ services:
       - db
   db:
     image: kartoza/postgis
-    container_name: bna_database
+    container_name: stations_database
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
