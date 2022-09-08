@@ -10,6 +10,7 @@ from tqdm import tqdm
 from mapping.charging import map_charging_ocm
 from mapping.stations import map_address_ocm, map_station_ocm
 from models.station import Station
+from pipelines._merger import StationMerger
 from pipelines._ocm import OcmPipeline
 from settings import db_uri
 
@@ -62,7 +63,13 @@ if __name__ == "__main__":
     ocm: OcmPipeline = OcmPipeline(
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=False,
+        offline=True,
     )
     ocm.run()
+
+    #StationMerger(
+    #    config=config,
+    #    session=create_engine(db_uri, echo=True)
+    #).retrieveData()
+
     print("")

@@ -47,15 +47,15 @@ def map_address_bna(row, station_id):
 
 
 def map_station_bna(row):
-    lat = check_coordinates(row["Längengrad"])
-    long = check_coordinates(row["Breitengrad"])
+    lat = check_coordinates(row["Breitengrad"])
+    long = check_coordinates(row["Längengrad"])
 
     new_station = Station()
     datasource = "BNA"
     new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = row["Betreiber"]
     new_station.data_source = datasource
-    coordinates = Point(float(lat), float(long)).wkt
+    coordinates = Point(float(long), float(lat)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)
     return new_station
@@ -71,7 +71,7 @@ def map_station_ocm(row):
     new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = operator
     new_station.data_source = datasource
-    coordinates = Point(float(lat), float(long)).wkt
+    coordinates = Point(float(long), float(lat)).wkt
     new_station.coordinates = coordinates
     new_station.date_created = parse_date(row.get("DateCreated"))
     new_station.date_updated = parse_date(row.get("DateUpdated"))
@@ -95,7 +95,7 @@ def map_station_osm(entry: Dict):
     new_station.source_id = lat_long_hash(lat, lon, datasource)
     new_station.operator = operator
     new_station.data_source = datasource
-    new_station.coordinates = Point(float(lat), float(lon)).wkt
+    new_station.coordinates = Point(float(lon), float(lat)).wkt
     new_station.date_created = entry.get("timestamp", datetime.datetime.now())
     return new_station
 
