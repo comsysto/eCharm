@@ -60,16 +60,16 @@ if __name__ == "__main__":
     # )
     # osm.run()
 
-    ocm: OcmPipeline = OcmPipeline(
-        config=config,
-        session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
-    )
-    ocm.run()
+    # ocm: OcmPipeline = OcmPipeline(
+    #     config=config,
+    #     session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+    #     offline=True,
+    # )
+    # ocm.run()
 
-    #StationMerger(
-    #    config=config,
-    #    session=create_engine(db_uri, echo=True)
-    #).retrieveData()
+    StationMerger(
+       config=config,
+       con=create_engine(db_uri, echo=True)
+    ).retrieveData()
 
     print("")
