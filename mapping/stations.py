@@ -71,7 +71,7 @@ def map_station_ocm(row):
     new_station.operator = operator
     new_station.data_source = datasource
     coordinates = Point(float(long), float(lat))
-    new_station.coordinates = coordinates
+    new_station.coordinates = coordinates.wkt
     new_station.date_created = parse_date(row.get("DateCreated"))
     new_station.date_updated = parse_date(row.get("DateUpdated"))
     return new_station
@@ -94,7 +94,7 @@ def map_station_osm(entry: Dict):
     new_station.source_id = lat_long_hash(lat, lon, datasource)
     new_station.operator = operator
     new_station.data_source = datasource
-    new_station.coordinates = Point(float(lon), float(lat))
+    new_station.coordinates = Point(float(lon), float(lat)).wkt
     new_station.date_created = entry.get("timestamp", datetime.datetime.now())
     return new_station
 
