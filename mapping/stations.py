@@ -56,7 +56,7 @@ def map_station_bna(row):
     new_station.operator = row["Betreiber"]
     new_station.data_source = datasource
     coordinates = Point(float(long), float(lat))
-    new_station.coordinates = coordinates
+    new_station.coordinates = coordinates.wkt
     new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)
     return new_station
 
