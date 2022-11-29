@@ -3,6 +3,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import re
 from typing import Dict, List
 
 import pandas as pd
@@ -73,15 +74,16 @@ def ocm_extractor(tmp_file_path: str, country_code:str):
 
     try:
         git_version_raw: str = subprocess.check_output(["git", "--version"])
-        git_version: version = version.parse(
-            git_version_raw.decode("utf-8").strip().split(" ")[-1]
-        )
+        pattern = re.compile(r"\d+\.\d+\.\d+")
+        match = re.search(pattern, git_version_raw.decode("utf-8")).group()
+        git_version: version = version.parse(match)
     except FileNotFoundError as e:
         raise RuntimeError(f"Git is not installed! {e}")
     except TypeError as e:
         raise RuntimeError(f"Could not parse git version! {e}")
     else:
         if git_version < version.parse("2.25.0"):
+            print(f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
             raise RuntimeError("Git version must be >= 2.25.0!")
 
     if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:
