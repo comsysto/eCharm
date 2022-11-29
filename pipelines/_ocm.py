@@ -14,7 +14,8 @@ from utils.ocm_extractor import ocm_extractor
 
 
 class OcmPipeline:
-    def __init__(self, config: configparser, session: Session, offline: bool = False):
+    def __init__(self, country_code:str, config: configparser, session: Session, offline: bool = False):
+        self.country_code = country_code
         self.config = config
         self.session = session
         self.offline: bool = offline
@@ -27,7 +28,7 @@ class OcmPipeline:
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OCM"]["filename"])
         if not self.offline:
-            ocm_extractor(tmp_file_path)
+            ocm_extractor(tmp_file_path, self.country_code)
         with open(tmp_file_path, "r") as f:
             self.data = json.load(f)
 

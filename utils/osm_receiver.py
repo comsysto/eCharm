@@ -28,3 +28,6 @@ def get_osm_data(tmp_data_path):
         raise RuntimeError(f"Failed to get OSM-Data! Status-Code: {status_code}")
     with open(tmp_data_path, "w") as f:
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)
+
+if __name__ == "__main__":
+    get_osm_data(tmp_data_path="./osm_france.json")

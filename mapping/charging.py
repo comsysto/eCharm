@@ -150,3 +150,11 @@ def map_charging_osm(entry, station_id):
     charging.station_id = station_id
     # TODO: read charging info
     return charging
+
+
+def map_charging_fra(row, station_id):
+
+    mapped_charging_fra:Charging = Charging()
+    mapped_charging_fra.capacity = row["nbre_pdc"]
+    
+    return mapped_charging_fra

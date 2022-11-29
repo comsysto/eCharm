@@ -66,10 +66,10 @@ def testSth(x):
     return x.to_frame()
 
 
-def ocm_extractor(tmp_file_path: str):
+def ocm_extractor(tmp_file_path: str, country_code:str):
     project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
     data_root_dir: str = os.path.join(project_data_dir, "ocm-export")
-    data_dir: str = os.path.join(data_root_dir, "data/DE")
+    data_dir: str = os.path.join(data_root_dir, f"data/{country_code}")
 
     try:
         git_version_raw: str = subprocess.check_output(["git", "--version"])
@@ -104,7 +104,7 @@ def ocm_extractor(tmp_file_path: str):
             stdout=subprocess.PIPE,
         )
         subprocess.call(
-            ["git", "sparse-checkout", "set", "data/DE"],
+            ["git", "sparse-checkout", "set", f"data/{country_code}"],
             cwd=data_root_dir,
             stdout=subprocess.PIPE,
         )

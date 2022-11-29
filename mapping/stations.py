@@ -1,6 +1,7 @@
-import datetime
+from datetime import datetime
 import hashlib
 from typing import Dict, Optional
+import pandas as pd
 
 from dateutil import parser
 from shapely.geometry import Point
@@ -152,3 +153,43 @@ def map_address_ocm(row, station_id):
     map_address.state_old = state_old
     map_address.country = country
     return map_address
+
+
+#funktionen hier dazu für frankreich
+def map_address_fra(row, station_id):
+    street: str = row["adresse_station"]
+    postcode: str = str(row["consolidated_code_postal"])
+    town: str = row["consolidated_commune"]
+    country: str
+    #print(town)
+    #if not pd.isna(town):
+        #log.warning(f"Failed to process town {town}! Will set town to None!")
+       # town = None
+    map_address = Address()
+    map_address.street = (street,)
+    map_address.town = (town,)
+    map_address.postcode = (postcode,)
+    map_address.country = ("FR",)
+    return map_address
+
+def map_station_fra(row):
+    lat = check_coordinates(row["consolidated_latitude"])
+    long = check_coordinates(row["consolidated_longitude"])
+
+    new_station = Station()
+    datasource = "FRGOV"
+    new_station.source_id = row["id_station_itinerance"]
+    new_station.operator = row["nom_operateur"]
+    new_station.data_source = datasource
+    coordinates = Point(float(long), float(lat))
+    new_station.coordinates = coordinates.wkt
+    #new_station.date_created = (row["date_mise_en_service"].strptime("%Y-%m-%d"),)
+    #new_station.date_updated = (row["date_maj"].strptime("%Y-%m-%d"),)
+    #print(row["date_mise_en_service"])
+    if not pd.isna(row["date_mise_en_service"]):
+        new_station.date_created = datetime.strptime(row["date_mise_en_service"], "%Y-%m-%d")
+    if not pd.isna(row["date_maj"]):
+        new_station.date_updated = datetime.strptime(row["date_maj"], "%Y-%m-%d")
+    else: 
+        new_station.date_updated = datetime.now
+    return new_station
