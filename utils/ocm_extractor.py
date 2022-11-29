@@ -3,6 +3,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import re
 from typing import Dict, List
 
 import pandas as pd
@@ -17,11 +18,11 @@ def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
 
 
 def merge_connection_types(
-        connection: pd.DataFrame, reference_data: pd.DataFrame
+    connection: pd.DataFrame, reference_data: pd.DataFrame
 ) -> pd.DataFrame:
-    connection_ids: pd.Series = connection[
-        "ConnectionTypeID"
-    ].dropna().drop_duplicates()
+    connection_ids: pd.Series = (
+        connection["ConnectionTypeID"].dropna().drop_duplicates()
+    )
     return connection.merge(
         reference_data.loc[connection_ids],
         how="left",
@@ -31,16 +32,16 @@ def merge_connection_types(
 
 
 def merge_address_infos(
-        address_info: pd.Series, reference_data: pd.DataFrame
+    address_info: pd.Series, reference_data: pd.DataFrame
 ) -> pd.DataFrame:
     return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
 
 
 def merge_with_reference_data(
-        row: pd.Series,
-        connection_types: pd.DataFrame,
-        address_info: pd.DataFrame,
-        operators: pd.DataFrame,
+    row: pd.Series,
+    connection_types: pd.DataFrame,
+    address_info: pd.DataFrame,
+    operators: pd.DataFrame,
 ):
     row["Connections"] = merge_connection_types(
         connection=pd.json_normalize(row["Connections"]),
@@ -57,7 +58,9 @@ def merge_connections(row, connection_types):
     frame = pd.DataFrame(row)
     if not "ConnectionTypeID" in frame.columns:
         return frame
-    return pd.merge(frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID")
+    return pd.merge(
+        frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID"
+    )
 
 
 def testSth(x):
@@ -71,15 +74,16 @@ def ocm_extractor(tmp_file_path: str):
 
     try:
         git_version_raw: str = subprocess.check_output(["git", "--version"])
-        git_version: version = version.parse(
-            git_version_raw.decode("utf-8").strip().split(" ")[-1]
-        )
+        pattern = re.compile(r"\d+\.\d+\.\d+")
+        match = re.search(pattern, git_version_raw.decode("utf-8")).group()
+        git_version: version = version.parse(match)
     except FileNotFoundError as e:
         raise RuntimeError(f"Git is not installed! {e}")
     except TypeError as e:
         raise RuntimeError(f"Could not parse git version! {e}")
     else:
         if git_version < version.parse("2.25.0"):
+            print(f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
             raise RuntimeError("Git version must be >= 2.25.0!")
 
     if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:
@@ -121,22 +125,48 @@ def ocm_extractor(tmp_file_path: str):
         data_ref: Dict = json.load(f)
 
     connection_types: pd.DataFrame = pd.json_normalize(data_ref["ConnectionTypes"])
-    connection_frame = pd.json_normalize(records, record_path=['Connections'], meta=['UUID'])
-    connection_frame = pd.merge(connection_frame, connection_types, how="left", left_on="ConnectionTypeID",
-                                right_on="ID")
+    connection_frame = pd.json_normalize(
+        records, record_path=["Connections"], meta=["UUID"]
+    )
+    connection_frame = pd.merge(
+        connection_frame,
+        connection_types,
+        how="left",
+        left_on="ConnectionTypeID",
+        right_on="ID",
+    )
     connection_frame_grouped = connection_frame.groupby("UUID").agg(list)
     connection_frame_grouped.reset_index(inplace=True)
-    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(lambda x: x.to_frame(), axis=1)
-    data = pd.merge(data, connection_frame_grouped[["ConnectionsEnriched", "UUID"]], how="left", on="UUID")
+    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(
+        lambda x: x.to_frame(), axis=1
+    )
+    data = pd.merge(
+        data,
+        connection_frame_grouped[["ConnectionsEnriched", "UUID"]],
+        how="left",
+        on="UUID",
+    )
 
     address_info: pd.DataFrame = pd.json_normalize(data_ref["Countries"])
-    address_info = address_info.rename(columns={'ID': 'CountryID'})
-    pd_merged_with_countries = pd.merge(data, address_info,
-                                        left_on='AddressInfo.CountryID', right_on='CountryID', how='left')
+    address_info = address_info.rename(columns={"ID": "CountryID"})
+    pd_merged_with_countries = pd.merge(
+        data,
+        address_info,
+        left_on="AddressInfo.CountryID",
+        right_on="CountryID",
+        how="left",
+    )
 
     operators: pd.DataFrame = pd.json_normalize(data_ref["Operators"])
-    operators = operators.rename(columns={'ID': 'OperatorIDREF'})
-    pd_merged_with_operators = pd.merge(pd_merged_with_countries, operators, left_on='OperatorID',
-                                        right_on='OperatorIDREF', how='left')
+    operators = operators.rename(columns={"ID": "OperatorIDREF"})
+    pd_merged_with_operators = pd.merge(
+        pd_merged_with_countries,
+        operators,
+        left_on="OperatorID",
+        right_on="OperatorIDREF",
+        how="left",
+    )
 
-    pd_merged_with_operators.reset_index(drop=True).to_json(tmp_file_path, orient="index")
+    pd_merged_with_operators.reset_index(drop=True).to_json(
+        tmp_file_path, orient="index"
+    )

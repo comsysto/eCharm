@@ -45,7 +45,10 @@ class OcmPipeline:
                 self.session.commit()
                 self.session.flush()
             except IntegrityError as e:
-                log.debug(f"OSM-Entry exists already! Error: {e}")
+                log.error(f"OCM-Entry exists already! Error: {e}")
+                self.session.rollback()
+                continue
             except Exception as e:
-                log.error(f"OSM-Pipeline failed to run! Error: {e}")
+                log.error(f"OCM-Pipeline failed to run! Error: {e}")
+                print(e)
                 self.session.rollback()
