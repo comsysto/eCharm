@@ -11,21 +11,20 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
-# The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = '1OhXDcANV9dB4eAGn2qyTGlRNb8cgGa1oV1xyLsa0RDk'
-#SAMPLE_RANGE_NAME = 'Class Data!A1:Z100'
-
+SPREADSHEET_ID = '1bvwxsGRMaEsiuz_ghY3HEbFEMCPahINcVoGE2k_zgOc'
 
 def main():
-    """Shows basic usage of the Sheets API.
-    Prints values from a sample spreadsheet.
+    """
+    Access spreadsheet via Google Sheets API.
+    Documentation how to setup the access: https://developers.google.com/sheets/api/quickstart/python
     """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    token_filename = 'token_deepatlas.json'
+    if os.path.exists(token_filename):
+        creds = Credentials.from_authorized_user_file(token_filename, SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -35,7 +34,7 @@ def main():
                 'credentials.json', SCOPES)
             creds = flow.run_local_server(port=8083)
         # Save the credentials for the next run
-        with open('token.json', 'w') as token:
+        with open(token_filename, 'w') as token:
             token.write(creds.to_json())
 
     try:
@@ -43,7 +42,7 @@ def main():
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
                                     range='A1:Z100').execute()
         values = result.get('values', [])
 
@@ -51,7 +50,6 @@ def main():
             print('No data found.')
             return
 
-        print('Name, Major:')
         for row in values:
             # Print columns A and E, which correspond to indices 0 and 4.
             print('%s, %s' % (row[0], row[4]))
