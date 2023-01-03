@@ -18,13 +18,12 @@ class BnaPipeline:
         self.config = config
         self.session = session
         self.offline: bool = offline
+        relative_dir = os.path.join("..", "data")
+        self.data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
 
     def _retrieve_data(self):
-        data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "..", "data"
-        )
-        pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_data_path = os.path.join(data_dir, self.config["BNA"]["filename"])
+        pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
+        tmp_data_path = os.path.join(self.data_dir, self.config["BNA"]["filename"])
         if not self.offline:
             get_bna_data(tmp_data_path)
         self.data = ExcelFileLoaderService().load(tmp_data_path)
@@ -32,12 +31,15 @@ class BnaPipeline:
     def run(self):
         self._retrieve_data()
         for _, row in tqdm(self.data.iterrows()):
-            mapped_address = map_address_bna(row, None)
-            mapped_charging = map_charging_bna(row, None)
-            mapped_station = map_station_bna(row)
-            mapped_station.address = mapped_address
-            mapped_station.charging = mapped_charging
-            self.session.add(mapped_station)
+            try:
+                mapped_address = map_address_bna(row, None)
+                mapped_charging = map_charging_bna(row, None)
+                mapped_station = map_station_bna(row)
+                mapped_station.address = mapped_address
+                mapped_station.charging = mapped_charging
+                self.session.add(mapped_station)
+            except Exception as e:
+                log.error(f"BNA-Entry could not be mapped! Error: {e}")
             try:
                 self.session.commit()
                 self.session.flush()
