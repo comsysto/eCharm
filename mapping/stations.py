@@ -20,7 +20,7 @@ def lat_long_hash(lat_row, long_row, data_source):
     return identifier
 
 
-def map_address_bna(row, station_id):
+def map_address_bna(row, station_id) -> Address:
     street: str = row["Straße"] + " " + str(row["Hausnummer"])
     postcode: str = str(row["Postleitzahl"])
     town: str = row["Ort"]
@@ -96,7 +96,7 @@ def map_station_osm(entry: Dict):
     new_station.operator = operator
     new_station.data_source = datasource
     new_station.coordinates = Point(float(lon), float(lat)).wkt
-    new_station.date_created = entry.get("timestamp", datetime.datetime.now())
+    new_station.date_created = entry.get("timestamp", datetime.now())
     return new_station
 
 
