@@ -53,17 +53,10 @@ if __name__ == "__main__":
     )
     #ocm.run()
 
-    fra: FraPipeline = FraPipeline(
-     config=config,
-     session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
-    )
-    fra.run()
 
-
-
-
-    # from pipelines._merger import StationMerger
-    # StationMerger(config=config, con=create_engine(db_uri, echo=True)).retrieveData()
+    from pipelines._merger import StationMerger
+    is_test = True
+    merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=True), is_test=is_test)
+    merger.run()
 
     print("")

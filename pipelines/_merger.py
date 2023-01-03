@@ -1,67 +1,89 @@
 import configparser
-from typing import Dict, List, Optional
 
-from difflib import SequenceMatcher
 import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm
 
+from deduplication import weighted_score_strategy
 
 class StationMerger:
-    def __init__(self, config: configparser, con):
+    def __init__(self, config: configparser, con, is_test: bool = False):
         self.config = config
         self.con = con
+        self.is_test = is_test
 
 
+    def merge_attributes(self, station: pd.Series, duplicates_to_merge: pd.DataFrame):
+        """
+        Might be used in the future.
 
-    def _determine_duplicates(
-        self,
-        current_station: pd.Series,
-        duplicate_candidates: pd.DataFrame,
-        score_threshold: float = 0.49,
-        max_distance: int = 100,
-        score_weights: Optional[Dict[str, float]] = None,
-    ) -> pd.DataFrame:
-        score_weights = (
-            score_weights
-            if score_weights
-            else dict(operator=0.2, address=0.1, distance=0.7)
-        )
+        :param station:
+        :param duplicates_to_merge:
+        :return:
+        """
+        for att_name in [
+            "amperage",
+            "operator",
+            "payment",
+            "socket_type",
+            "authentication",
+            "capacity",
+            "voltage",
+        ]:
+            att_values = duplicates_to_merge[att_name].dropna().unique().tolist()
+            att_values = [str(x) for x in att_values if len(str(x)) > 0]
+            if att_name in station.dropna():
+                att_value = str(station[att_name])
+                att_values += (
+                    [att_value] if ";" not in att_value else att_value.split(";")
+                )
+            att_values = set(att_values)
+            new_value = (
+                ";".join([str(x) for x in att_values]) if att_values else None
+            )
+            station.at[att_name] = new_value
+        station.at["merged_attributes"] = True
+        return
 
-        duplicate_candidates["operator_match"] = duplicate_candidates.operator.apply(
-            lambda x: SequenceMatcher(None, current_station.operator, str(x)).ratio()
-            if (current_station.operator is not None) & (x is not None)
-            else 0.0
-        )
+    def _merge_duplicates(self, current_station: pd.Series, duplicates: pd.DataFrame) -> pd.Series:
+        """
+        Simple procedure, which follows BNA > OCM > OSM.
 
-        current_station_address = f"{current_station['street']},{current_station['town']}"
-        duplicate_candidates["address"] = duplicate_candidates[
-            ["street", "town"]
-        ].apply(lambda x: f"{x['street']},{x['town']}", axis=1)
-        duplicate_candidates["address_match"] = duplicate_candidates.address.apply(
-            lambda x: SequenceMatcher(None, current_station_address, x).ratio()
-            if (current_station_address != "None,None") & (x != "None,None")
-            else 0.0,
-        )
+        :param current_station: pd.Series contianing current station.
+        :param duplicates: pd.DataFrame containing all duplicates.
+        :return:
+        """
 
-        operator_score = (
-            score_weights["operator"] * duplicate_candidates["operator_match"]
-        )
-        address_score = score_weights["address"] * duplicate_candidates["address_match"]
-        distance_score = 70 # TODO check if we still need a distance score, wanted to filter hierarchically
-        #score_weights["distance"] * (
-        #    1 - duplicate_candidates["distance_meter"] / max_distance
-        #)
-        duplicate_candidates["matching_score"] = (
-            operator_score + address_score + distance_score
-        )
-        duplicate_candidates.loc[
-            (duplicate_candidates.matching_score > score_threshold), "is_duplicate"
-        ] = True
-        return duplicate_candidates.loc[duplicate_candidates.is_duplicate, :]
+        if current_station["data_source"] == "BNA":
+            # in case of BNA vs OCM / OSM we always stick with BNA (we do not need to do anything)
+            # TODO: check for missing attributes and merge in smart way
+            return current_station
+        data_sources = ["BNA", "OCM", "OSM"]
+        # generate data source pairs following preference ordering: BNA > OCM > OSM
+        ordered_data_source_pairs = [
+            (x, y) for x in data_sources for y in data_sources if x != "BNA"
+        ]
+        selected_station: pd.Series = pd.Series()
+        for (current_data_source, duplicate_data_source) in ordered_data_source_pairs:
+            if current_station["data_source"] != current_data_source:
+                continue
+            mergeable_stations = duplicates.loc[
+                duplicates["data_source"] == duplicate_data_source
+            ]
+            if mergeable_stations.empty:
+                continue
+
+            selected_station = mergeable_stations.iloc[0][current_station.index].copy()
+            selected_station.loc[["is_duplicate", "merged_attributes"]] = False, True
+
+            # TODO check what we do instead this line
+            #self.stations_gdf.loc[current_station.name] = selected_station
+
+            break
+        return selected_station
 
 
-    def merge(self):
+    def run(self):
         '''
             Note: We should use geography types as it's much more accurate than projection from WSG-84 to Mercator
             E.g.
@@ -88,7 +110,19 @@ class StationMerger:
         """
 
         # First get list of stations esp. their coordinates
-        gdf: gpd.GeoDataFrame = gpd.read_postgis("SELECT id as station_id, coordinates FROM stations",
+        get_stations_list_sql = """
+            SELECT id as station_id, coordinates FROM stations
+        """
+        if self.is_test:
+            munich_center_coordinates = "POINT (11.4717 48.1548)"
+            get_stations_list_sql = """
+                SELECT id as station_id, coordinates FROM stations 
+                WHERE ST_Dwithin(ST_PointFromWkb(coordinates, 4326)::geography, 
+                              ST_PointFromText('{center_coordinates}', 4326)::geography, 
+                              {radius_m}); 
+            """.format(center_coordinates=munich_center_coordinates, radius_m=5000)
+
+        gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
                                                  con=self.con, geom_col="coordinates")
         # For each station's coordinate find all surrounding stations within a certain radius (including itself)
         radius_m = 100
@@ -104,21 +138,31 @@ class StationMerger:
             print(sql)
             nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
 
-            print(nearby_stations.columns)
             print(nearby_stations)
             if len(nearby_stations) < 2:
                 # skip if only center station itself was found
                 continue
 
-            duplicates: pd.DataFrame = self._determine_duplicates(
-                current_station=nearby_stations[nearby_stations['station_id'] == current_station['station_id']],
+            # get the current station with all it's attributes
+            current_station_full: pd.Series = \
+                nearby_stations[nearby_stations['station_id'] == current_station['station_id']].squeeze()
+
+            duplicates: pd.DataFrame = weighted_score_strategy.weighted_score_duplicates(
+                current_station=current_station_full,
                 duplicate_candidates=nearby_stations[nearby_stations['station_id'] != current_station['station_id']],
                 score_threshold=score_threshold,
                 max_distance=radius_m,
                 score_weights=score_weights,
             )
 
-            print(duplicates)
+            print(f"Found duplicates:\n {duplicates}")
+
+            nearby_stations.loc[
+                nearby_stations.index.isin(duplicates.index), "is_duplicate",
+            ] = True
+
+            selected_station = self._merge_duplicates(current_station_full, duplicates)
+
             break
 
 
