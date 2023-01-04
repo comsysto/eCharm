@@ -4,7 +4,7 @@ from difflib import SequenceMatcher
 import pandas as pd
 
 
-def weighted_score_duplicates(
+def attribute_match_thresholds_duplicates(
         current_station: pd.Series,
         duplicate_candidates: pd.DataFrame,
         score_threshold: float = 0.49,
@@ -38,14 +38,23 @@ def weighted_score_duplicates(
             score_weights["operator"] * duplicate_candidates["operator_match"]
     )
     address_score = score_weights["address"] * duplicate_candidates["address_match"]
-    distance_score = 70  # TODO check if we still need a distance score, wanted to filter hierarchically
-    # score_weights["distance"] * (
-    #    1 - duplicate_candidates["distance_meter"] / max_distance
-    # )
-    duplicate_candidates["matching_score"] = (
-            operator_score + address_score + distance_score
-    )
-    duplicate_candidates.loc[
-        (duplicate_candidates.matching_score > score_threshold), "is_duplicate"
-    ] = True
-    return duplicate_candidates.loc[duplicate_candidates.is_duplicate, :]
+    distance_score = 0.7  # TODO check if we still need a distance score, wanted to filter hierarchically
+    duplicate_candidates["distance_match"] = score_weights["distance"] * (1 - duplicate_candidates["distance"] / max_distance)
+
+    for idx in range(duplicate_candidates.shape[0]):
+        duplicate_candidate: pd.Series = duplicate_candidates.iloc[idx]
+        print(f"Candidate: {duplicate_candidate}")
+        if duplicate_candidate["address_match"] >= 0.7:
+            duplicate_candidate["is_duplicate"] = True
+            print("duplicate according to address")
+        elif duplicate_candidate["operator_match"] >= 0.7:
+            duplicate_candidate["is_duplicate"] = True
+            print("duplicate according to operator")
+        elif duplicate_candidate["distance_match"] >= 0.7:
+            duplicate_candidate["is_duplicate"] = True
+            print("duplicate according to distance")
+        else:
+            duplicate_candidate["is_duplicate"] = False
+            print("no duplicate")
+
+    return #duplicate_candidates.loc[duplicate_candidates.is_duplicate, :]

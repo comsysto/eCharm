@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os.path
+import pathlib
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -14,6 +15,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 SPREADSHEET_ID = '1bvwxsGRMaEsiuz_ghY3HEbFEMCPahINcVoGE2k_zgOc'
 
 def main():
+    directory = pathlib.Path(__file__).parent.resolve()
     """
     Access spreadsheet via Google Sheets API.
     Documentation how to setup the access: https://developers.google.com/sheets/api/quickstart/python
@@ -22,7 +24,7 @@ def main():
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    token_filename = 'token_deepatlas.json'
+    token_filename = os.path.join(directory, 'token_deepatlas.json')
     if os.path.exists(token_filename):
         creds = Credentials.from_authorized_user_file(token_filename, SCOPES)
     # If there are no (valid) credentials available, let the user log in.
@@ -31,7 +33,7 @@ def main():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                os.path.join(directory, 'credentials.json'), SCOPES)
             creds = flow.run_local_server(port=8083)
         # Save the credentials for the next run
         with open(token_filename, 'w') as token:
@@ -46,13 +48,8 @@ def main():
                                     range='A1:Z100').execute()
         values = result.get('values', [])
 
-        if not values:
-            print('No data found.')
-            return
+        return values
 
-        for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s' % (row[0], row[4]))
     except HttpError as err:
         print(err)
 

@@ -4,7 +4,7 @@ import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm
 
-from deduplication import weighted_score_strategy
+from deduplication import attribute_match_thresholds_strategy
 
 class StationMerger:
     def __init__(self, config: configparser, con, is_test: bool = False):
@@ -95,20 +95,6 @@ class StationMerger:
             --> 2782 meters (correct)
         '''
 
-        find_surrounding_stations_sql = """ 
-            SELECT 
-                s.id as station_id,
-                s.data_source, s.coordinates, s.operator,
-                c.capacity,
-                a.street, a.town 
-            FROM stations s
-            LEFT JOIN charging c ON s.id = c.station_id
-            LEFT JOIN address a ON s.id = a.station_id 
-            WHERE ST_Dwithin(ST_PointFromWkb(s.coordinates, 4326)::geography, 
-                              ST_PointFromText('{center_coordinates}', 4326)::geography, 
-                              {radius_m});
-        """
-
         # First get list of stations esp. their coordinates
         get_stations_list_sql = """
             SELECT id as station_id, coordinates FROM stations
@@ -132,38 +118,64 @@ class StationMerger:
             current_station: pd.Series = gdf.iloc[idx]
             print(f"{current_station}")
 
-            sql = find_surrounding_stations_sql.format(station_id=current_station['station_id'],
-                                                       center_coordinates=current_station['coordinates'],
-                                                       radius_m=radius_m)
-            print(sql)
-            nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
+            self.merge(current_station['station_id'], current_station['coordinates'], radius_m, score_threshold, score_weights)
 
-            print(nearby_stations)
-            if len(nearby_stations) < 2:
-                # skip if only center station itself was found
-                continue
 
+    def merge(self, current_station_id, current_station_coordinates, radius_m, score_threshold, score_weights,
+              filter_by_source_id: bool = False):
+
+        find_surrounding_stations_sql = """ 
+            SELECT 
+                s.id as station_id,
+                s.source_id as source_id,
+                s.data_source, s.coordinates, s.operator,
+                c.capacity,
+                a.street, a.town,
+                ST_DISTANCE(ST_PointFromWkb(s.coordinates, 4326)::geography, 
+                              ST_PointFromText('{center_coordinates}', 4326)::geography) as distance
+            FROM stations s
+            LEFT JOIN charging c ON s.id = c.station_id
+            LEFT JOIN address a ON s.id = a.station_id 
+            WHERE ST_Dwithin(ST_PointFromWkb(s.coordinates, 4326)::geography, 
+                              ST_PointFromText('{center_coordinates}', 4326)::geography, 
+                              {radius_m});
+        """
+
+        sql = find_surrounding_stations_sql.format(station_id=current_station_id,
+                                                   center_coordinates=current_station_coordinates,
+                                                   radius_m=radius_m)
+        print(sql)
+        nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
+
+        station_id_name = 'station_id'
+        if filter_by_source_id:
+            station_id_name = 'source_id'
+
+        pd.set_option('display.max_columns', None)
+        print(f"All stations in radius: {nearby_stations}")
+        print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
+        # skip if only center station itself was found
+        if len(nearby_stations) >= 2:
             # get the current station with all it's attributes
             current_station_full: pd.Series = \
-                nearby_stations[nearby_stations['station_id'] == current_station['station_id']].squeeze()
+                nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
 
-            duplicates: pd.DataFrame = weighted_score_strategy.weighted_score_duplicates(
+            duplicates: pd.DataFrame = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
                 current_station=current_station_full,
-                duplicate_candidates=nearby_stations[nearby_stations['station_id'] != current_station['station_id']],
+                duplicate_candidates=nearby_stations[nearby_stations[station_id_name] != current_station_id],
                 score_threshold=score_threshold,
                 max_distance=radius_m,
                 score_weights=score_weights,
             )
 
-            print(f"Found duplicates:\n {duplicates}")
+            #print(f"Found duplicates:\n {duplicates}")
 
-            nearby_stations.loc[
-                nearby_stations.index.isin(duplicates.index), "is_duplicate",
-            ] = True
+            #nearby_stations.loc[
+            #    nearby_stations.index.isin(duplicates.index), "is_duplicate",
+            #] = True
 
-            selected_station = self._merge_duplicates(current_station_full, duplicates)
+            #selected_station = self._merge_duplicates(current_station_full, duplicates)
 
-            break
 
 
 
