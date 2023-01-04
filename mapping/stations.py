@@ -68,7 +68,7 @@ def map_station_ocm(row):
     long: float = check_coordinates(row["AddressInfo.Longitude"])
     operator: Optional[str] = row["Title_y"]
     new_station = Station()
-    new_station.source_id = lat_long_hash(lat, long, datasource)
+    new_station.source_id = row["ID"]
     new_station.operator = operator
     new_station.data_source = datasource
     coordinates = Point(float(long), float(lat))
@@ -92,7 +92,7 @@ def map_station_osm(entry: Dict):
     lon = check_coordinates(entry["lon"])
     operator: Optional[str] = entry["tags"].get("operator")
     new_station = Station()
-    new_station.source_id = lat_long_hash(lat, lon, datasource)
+    new_station.source_id = entry["id"]
     new_station.operator = operator
     new_station.data_source = datasource
     new_station.coordinates = Point(float(lon), float(lat)).wkt
