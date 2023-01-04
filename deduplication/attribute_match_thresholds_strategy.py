@@ -39,7 +39,7 @@ def attribute_match_thresholds_duplicates(
     )
     address_score = score_weights["address"] * duplicate_candidates["address_match"]
     distance_score = 0.7  # TODO check if we still need a distance score, wanted to filter hierarchically
-    duplicate_candidates["distance_match"] = score_weights["distance"] * (1 - duplicate_candidates["distance"] / max_distance)
+    duplicate_candidates["distance_match"] = 1 - duplicate_candidates["distance"] / max_distance
 
     for idx in range(duplicate_candidates.shape[0]):
         duplicate_candidate: pd.Series = duplicate_candidates.iloc[idx]
