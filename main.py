@@ -13,6 +13,7 @@ from pipelines._osm import OsmPipeline
 from pipelines._bna import BnaPipeline
 from pipelines._france import FraPipeline
 from settings import db_uri
+from testing import testdata
 
 if __name__ == "__main__":
     country_code = "DE"
@@ -57,6 +58,9 @@ if __name__ == "__main__":
     from pipelines._merger import StationMerger
     is_test = True
     merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=True), is_test=is_test)
-    merger.run()
+    #merger.run()
+
+
+    testdata.run()
 
     print("")

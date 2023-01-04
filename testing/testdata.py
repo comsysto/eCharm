@@ -55,7 +55,7 @@ def load_test_data() -> List[TestData]:
     return test_data
 
 
-if __name__ == '__main__':
+def run():
 
     test_data = load_test_data()
 
@@ -79,3 +79,5 @@ if __name__ == '__main__':
 
 
 
+if __name__ == '__main__':
+    run()
