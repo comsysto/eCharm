@@ -1,5 +1,6 @@
 import os
 import pathlib
+import logging
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -57,7 +58,8 @@ if __name__ == "__main__":
 
     from pipelines._merger import StationMerger
     is_test = True
-    merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=True), is_test=is_test)
+    logging.disable(logging.INFO) #only way to disable SQL Alchemy printing SQL statements, tried a lot
+    merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=False), is_test=is_test)
     #merger.run()
 
 
