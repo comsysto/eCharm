@@ -12,6 +12,8 @@ def attribute_match_thresholds_duplicates(
         score_weights: Optional[Dict[str, float]] = None,
         ) -> pd.DataFrame:
 
+    print(f"Searching for duplicates to OSM station {current_station.source_id}, operator: {current_station.operator}")
+
     score_weights = (
         score_weights
         if score_weights
@@ -41,20 +43,32 @@ def attribute_match_thresholds_duplicates(
     distance_score = 0.7  # TODO check if we still need a distance score, wanted to filter hierarchically
     duplicate_candidates["distance_match"] = 1 - duplicate_candidates["distance"] / max_distance
 
-    for idx in range(duplicate_candidates.shape[0]):
-        duplicate_candidate: pd.Series = duplicate_candidates.iloc[idx]
-        print(f"Candidate: {duplicate_candidate}")
+    #for idx in range(duplicate_candidates.shape[0]):
+    #    duplicate_candidate: pd.Series = duplicate_candidates.iloc[idx]
+
+    def is_duplicate_by_score(duplicate_candidate):
+        #print(f"Candidate: {duplicate_candidate}")
         if duplicate_candidate["address_match"] >= 0.7:
-            duplicate_candidate["is_duplicate"] = True
+            is_duplicate = True
             print("duplicate according to address")
         elif duplicate_candidate["operator_match"] >= 0.7:
-            duplicate_candidate["is_duplicate"] = True
+            is_duplicate = True
             print("duplicate according to operator")
-        elif duplicate_candidate["distance_match"] >= 0.7:
-            duplicate_candidate["is_duplicate"] = True
+        elif duplicate_candidate["distance_match"] >= 0.3:
+            is_duplicate = True
             print("duplicate according to distance")
         else:
-            duplicate_candidate["is_duplicate"] = False
-            print("no duplicate")
+            is_duplicate = False
+            print(f"no duplicate: {duplicate_candidate.data_source}, "
+                  f"source id: {duplicate_candidate.source_id}, "
+                  f"operator: {duplicate_candidate.operator}, "
+                  f"distance: {duplicate_candidate.distance}")
+        return is_duplicate
 
-    return #duplicate_candidates.loc[duplicate_candidates.is_duplicate, :]
+    # TODO: for all duplicates found via OSM, which has no address, run the check again against all candidates
+    # so e.g. if we have a duplicate with address it can be matched to other data sources via this attribute
+
+    duplicate_candidates["is_duplicate"] = duplicate_candidates.apply(is_duplicate_by_score, axis=1)
+
+    return duplicate_candidates[duplicate_candidates["is_duplicate"]]
+
