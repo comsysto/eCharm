@@ -116,13 +116,15 @@ class StationMerger:
         score_weights = dict(operator=0.2, address=0.1, distance=0.7)
         for idx in tqdm(range(gdf.shape[0])):
             current_station: pd.Series = gdf.iloc[idx]
-            print(f"{current_station}")
+            #print(f"{current_station}")
 
-            self.merge(current_station['station_id'], current_station['coordinates'], radius_m, score_threshold, score_weights)
+            duplicates, current_station_full = self.merge(current_station['station_id'], current_station['coordinates'], radius_m, score_threshold, score_weights)
+            if not duplicates.empty:
+                selected_station = self._merge_duplicates(current_station_full, duplicates)
 
 
     def merge(self, current_station_id, current_station_coordinates, radius_m, score_threshold, score_weights,
-              filter_by_source_id: bool = False):
+              filter_by_source_id: bool = False) -> (pd.DataFrame, pd.Series):
 
         find_surrounding_stations_sql = """ 
             SELECT 
@@ -144,7 +146,7 @@ class StationMerger:
         sql = find_surrounding_stations_sql.format(station_id=current_station_id,
                                                    center_coordinates=current_station_coordinates,
                                                    radius_m=radius_m)
-        print(sql)
+        #print(sql)
         nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
 
         station_id_name = 'station_id'
@@ -152,29 +154,26 @@ class StationMerger:
             station_id_name = 'source_id'
 
         pd.set_option('display.max_columns', None)
-        print(f"All stations in radius: {nearby_stations}")
-        print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
+        #print(f"All stations in radius: {nearby_stations}")
+        #print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
         # skip if only center station itself was found
         if len(nearby_stations) >= 2:
             # get the current station with all it's attributes
             current_station_full: pd.Series = \
                 nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
 
-            duplicates: pd.DataFrame = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
-                current_station=current_station_full,
-                duplicate_candidates=nearby_stations[nearby_stations[station_id_name] != current_station_id],
-                score_threshold=score_threshold,
-                max_distance=radius_m,
-                score_weights=score_weights,
-            )
+            if not current_station_full.empty:
+                duplicates: pd.DataFrame = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
+                    current_station=current_station_full,
+                    duplicate_candidates=nearby_stations[nearby_stations[station_id_name] != current_station_id],
+                    score_threshold=score_threshold,
+                    max_distance=radius_m,
+                    score_weights=score_weights,
+                )
+                return duplicates, current_station_full
 
-            #print(f"Found duplicates:\n {duplicates}")
+        return pd.DataFrame(), pd.Series()
 
-            #nearby_stations.loc[
-            #    nearby_stations.index.isin(duplicates.index), "is_duplicate",
-            #] = True
-
-            #selected_station = self._merge_duplicates(current_station_full, duplicates)
 
 
 

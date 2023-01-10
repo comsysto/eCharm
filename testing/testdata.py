@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional, List
-import pathlib
 import os
 import pathlib
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from settings import db_uri
+import pandas as pd
 
 import testdata_import
 from pipelines._merger import StationMerger
@@ -20,30 +19,26 @@ class TestData:
 
 
 def load_test_data() -> List[TestData]:
+    '''
+    Create TestData objects from spreadsheet data
+    '''
     rows = testdata_import.main()
-
     if not rows:
         print('No test data found.')
         return []
-
     test_data = []
     for row in rows[1:]:
-
         print(f"row: {row}")
-
-        if not row[0]:
+        if not row or not row[0]:
             continue
 
         test_column = TestData()
         test_column.osm_id = row[10]
-
         ocm_id = row[13]
         if ocm_id and "OCM" in ocm_id:
             ocm_id = ocm_id.split("OCM-")[1:]
             test_column.ocm_id = ocm_id
-
         test_column.bna_id = None
-
         osm_latitude = row[11].replace(",", ".")
         osm_longitude = row[12].replace(",", ".")
         if not osm_latitude == "NO":
@@ -72,12 +67,23 @@ def run():
     merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=True))
 
     #print(test_data)
-    for station in test_data:
-        if station.osm_coordinates:
-            print(f"OSM ID of central charging station: {station.osm_id}")
-            merger.merge(station.osm_id, station.osm_coordinates, radius_m, score_threshold, score_weights, filter_by_source_id=True)
-
-
+    with open("testdata_merge.csv", "w") as outfile:
+        for station in test_data:
+            duplicates: pd.DataFrame = pd.DataFrame()
+            if station.osm_coordinates:
+                #print(f"OSM ID of central charging station: {station.osm_id}")
+                duplicates, current_station = merger.merge(station.osm_id, station.osm_coordinates, radius_m, score_threshold, score_weights, filter_by_source_id=True)
+            if not duplicates.empty:
+                data_sources_in_duplicates = ','.join(duplicates.data_source.unique())
+                #print(f"Data Sources in duplicates: {data_sources_in_duplicates}")
+                result = [station.osm_id, str(len(duplicates)), data_sources_in_duplicates]
+                print(f"Result of merge on test data: {result}")
+                outfile.write(','.join(result))
+                outfile.write('\n')
+            else:
+                print(f"No successful merge on test data")
+                outfile.write('NA\n')
+        outfile.close()
 
 if __name__ == '__main__':
     run()
