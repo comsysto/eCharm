@@ -12,7 +12,12 @@ def attribute_match_thresholds_duplicates(
         score_weights: Optional[Dict[str, float]] = None,
         ) -> pd.DataFrame:
 
-    print(f"Searching for duplicates to OSM station {current_station.source_id}, operator: {current_station.operator}")
+    current_station_address = f"{current_station['street']},{current_station['town']}"
+
+    print(f"Searching for duplicates to OSM station {current_station.source_id}, "
+          f"operator: {current_station.operator}, "
+          f"address: {current_station_address}"
+          )
 
     score_weights = (
         score_weights
@@ -26,7 +31,6 @@ def attribute_match_thresholds_duplicates(
         else 0.0
     )
 
-    current_station_address = f"{current_station['street']},{current_station['town']}"
     duplicate_candidates["address"] = duplicate_candidates[
         ["street", "town"]
     ].apply(lambda x: f"{x['street']},{x['town']}", axis=1)
