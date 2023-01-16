@@ -148,6 +148,7 @@ class StationMerger:
                                                    radius_m=radius_m)
         #print(sql)
         nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
+        nearby_stations.set_index('station_id', inplace=True)
 
         station_id_name = 'station_id'
         if filter_by_source_id:
@@ -163,13 +164,13 @@ class StationMerger:
                 nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
 
             if not current_station_full.empty:
-                duplicates: pd.DataFrame = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
+                duplicate_candidates: pd.DataFrame = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
                     current_station=current_station_full,
                     duplicate_candidates=nearby_stations[nearby_stations[station_id_name] != current_station_id],
-                    score_threshold=score_threshold,
-                    max_distance=radius_m,
-                    score_weights=score_weights,
+                    station_id_name=station_id_name,
+                    max_distance=radius_m
                 )
+                duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
                 return duplicates, current_station_full
 
         return pd.DataFrame(), pd.Series()

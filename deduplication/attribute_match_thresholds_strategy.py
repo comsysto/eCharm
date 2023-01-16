@@ -7,23 +7,20 @@ import pandas as pd
 def attribute_match_thresholds_duplicates(
         current_station: pd.Series,
         duplicate_candidates: pd.DataFrame,
-        score_threshold: float = 0.49,
+        station_id_name: str,
         max_distance: int = 100,
-        score_weights: Optional[Dict[str, float]] = None,
         ) -> pd.DataFrame:
+    pd.options.mode.chained_assignment = None
+
+    if (duplicate_candidates.empty):
+        return pd.DataFrame()
 
     current_station_address = f"{current_station['street']},{current_station['town']}"
 
-    print(f"Searching for duplicates to OSM station {current_station.source_id}, "
+    print(f"### Searching for duplicates to station {current_station.source_id}, "
           f"operator: {current_station.operator}, "
           f"address: {current_station_address}"
           )
-
-    score_weights = (
-        score_weights
-        if score_weights
-        else dict(operator=0.2, address=0.1, distance=0.7)
-    )
 
     duplicate_candidates["operator_match"] = duplicate_candidates.operator.apply(
         lambda x: SequenceMatcher(None, current_station.operator, str(x)).ratio()
@@ -40,15 +37,7 @@ def attribute_match_thresholds_duplicates(
         else 0.0,
     )
 
-    operator_score = (
-            score_weights["operator"] * duplicate_candidates["operator_match"]
-    )
-    address_score = score_weights["address"] * duplicate_candidates["address_match"]
-    distance_score = 0.7  # TODO check if we still need a distance score, wanted to filter hierarchically
     duplicate_candidates["distance_match"] = 1 - duplicate_candidates["distance"] / max_distance
-
-    #for idx in range(duplicate_candidates.shape[0]):
-    #    duplicate_candidate: pd.Series = duplicate_candidates.iloc[idx]
 
     def is_duplicate_by_score(duplicate_candidate):
         #print(f"Candidate: {duplicate_candidate}")
@@ -66,13 +55,34 @@ def attribute_match_thresholds_duplicates(
             print(f"no duplicate: {duplicate_candidate.data_source}, "
                   f"source id: {duplicate_candidate.source_id}, "
                   f"operator: {duplicate_candidate.operator}, "
+                  f"address: {duplicate_candidate.address}, "
                   f"distance: {duplicate_candidate.distance}")
         return is_duplicate
 
-    # TODO: for all duplicates found via OSM, which has no address, run the check again against all candidates
-    # so e.g. if we have a duplicate with address it can be matched to other data sources via this attribute
-
     duplicate_candidates["is_duplicate"] = duplicate_candidates.apply(is_duplicate_by_score, axis=1)
 
-    return duplicate_candidates[duplicate_candidates["is_duplicate"]]
+    # for all duplicates found via OSM, which has most of the time no address info, run the check again against all candidates
+    # so e.g. if we have a duplicate with address it can be matched to other data sources via this attribute
+    duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
+    for idx in range(duplicates.shape[0]):
+        current_station: pd.Series = duplicates.iloc[idx]
+        current_station_id = current_station[station_id_name]
+
+        # new candidates are all existing candidates except the new current station
+        # and all stations which are already marked as duplicate
+        duplicate_candidates_new = duplicate_candidates[(duplicate_candidates[station_id_name] != current_station_id)
+                                                        & (~duplicate_candidates["is_duplicate"])]
+        # recursive call to the current method, but with reduced set of candidates and new current station
+        # TODO: think of changing distance threshold in this 2nd call
+        #  as coordinates of other sources are not as good as OSM coordinates
+        duplicate_candidates_new = attribute_match_thresholds_duplicates(
+            current_station=current_station,
+            duplicate_candidates=duplicate_candidates_new,
+            station_id_name=station_id_name
+        )
+        if not duplicate_candidates_new.empty:
+            # merge with original candidates
+            duplicate_candidates.update(duplicate_candidates_new)
+
+    return duplicate_candidates
 
