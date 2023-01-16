@@ -15,6 +15,7 @@ from pipelines._bna import BnaPipeline
 from pipelines._france import FraPipeline
 from settings import db_uri
 from testing import testdata
+from geojson_output import convert_to_geojson
 
 if __name__ == "__main__":
     country_code = "DE"
@@ -66,4 +67,5 @@ if __name__ == "__main__":
 
     testdata.run()
 
+    #convert_to_geojson(create_engine(db_uri, echo=False), country_code)
     print("")
