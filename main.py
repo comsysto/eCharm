@@ -41,6 +41,7 @@ if __name__ == "__main__":
         fra.run()
   
     osm: OsmPipeline = OsmPipeline(
+        country_code=country_code,
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
         offline=True,

@@ -4,11 +4,18 @@ import requests
 from requests import Response
 
 
-def get_osm_data(tmp_data_path):
+def get_osm_data(country_code: str, tmp_data_path):
+    if country_code == "DE":
+        area_name = "Deutschland"
+    elif country_code == "FR":
+        area_name = "France métropolitaine"
+    else:
+        raise Exception(f"country code '{country_code}' unknown for OSM")
+
     query_params = {
-        "data": f"""
+        "data": """
         [out:json];
-    area[name="Deutschland"];
+    area[name="{area_name}"];
     // gather results
     (
       // query part for: “"charging station"”
@@ -17,7 +24,7 @@ def get_osm_data(tmp_data_path):
       rel["amenity"="charging_station"](area);
     );
         out;
-        """
+        """.format(area_name=area_name)
     }
 
     response: Response = requests.get(

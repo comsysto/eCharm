@@ -38,7 +38,7 @@ class OcmPipeline:
         for id, entry in self.data.items():
             mapped_address = map_address_ocm(entry, None)
             mapped_charging = map_charging_ocm(entry, None)
-            mapped_station = map_station_ocm(entry)
+            mapped_station = map_station_ocm(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
             self.session.add(mapped_station)

@@ -53,6 +53,7 @@ def map_station_bna(row):
 
     new_station = Station()
     datasource = "BNA"
+    new_station.country_code = "DE"
     new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = row["Betreiber"]
     new_station.data_source = datasource
@@ -62,12 +63,13 @@ def map_station_bna(row):
     return new_station
 
 
-def map_station_ocm(row):
+def map_station_ocm(row, country_code: str):
     datasource = "OCM"
     lat: float = check_coordinates(row["AddressInfo.Latitude"])
     long: float = check_coordinates(row["AddressInfo.Longitude"])
     operator: Optional[str] = row["Title_y"]
     new_station = Station()
+    new_station.country_code = country_code
     new_station.source_id = row["ID"]
     new_station.operator = operator
     new_station.data_source = datasource
@@ -86,12 +88,13 @@ def parse_date(date):
         return None
 
 
-def map_station_osm(entry: Dict):
+def map_station_osm(entry: Dict, country_code: str):
     datasource: str = "OSM"
     lat = check_coordinates(entry["lat"])
     lon = check_coordinates(entry["lon"])
     operator: Optional[str] = entry["tags"].get("operator")
     new_station = Station()
+    new_station.country_code = country_code
     new_station.source_id = entry["id"]
     new_station.operator = operator
     new_station.data_source = datasource
@@ -178,6 +181,7 @@ def map_station_fra(row):
 
     new_station = Station()
     datasource = "FRGOV"
+    new_station.country_code = "FR"
     new_station.source_id = row["id_station_itinerance"]
     new_station.operator = row["nom_operateur"]
     new_station.data_source = datasource

@@ -14,7 +14,8 @@ from utils.osm_receiver import get_osm_data
 
 
 class OsmPipeline:
-    def __init__(self, config: configparser, session: Session, offline: bool = False):
+    def __init__(self, country_code: str, config: configparser, session: Session, offline: bool = False):
+        self.country_code = country_code
         self.config = config
         self.session = session
         self.offline: bool = offline
@@ -27,7 +28,7 @@ class OsmPipeline:
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OSM"]["filename"])
         if not self.offline:
-            get_osm_data(tmp_file_path)
+            get_osm_data(self.country_code, tmp_file_path)
         with open(tmp_file_path, "r") as f:
             self.data = json.load(f)
 
@@ -37,7 +38,7 @@ class OsmPipeline:
         for entry in self.data.get("elements", []):
             mapped_address = map_address_osm(entry, None)
             mapped_charging = map_charging_osm(entry, None)
-            mapped_station = map_station_osm(entry)
+            mapped_station = map_station_osm(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
             self.session.add(mapped_station)
