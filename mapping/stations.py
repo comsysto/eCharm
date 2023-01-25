@@ -158,7 +158,7 @@ def map_address_ocm(row, station_id):
     return map_address
 
 
-#funktionen hier dazu für frankreich
+#functions for france gov data:
 def map_address_fra(row, station_id):
     street: str = row["adresse_station"]
     postcode: str = str(row["consolidated_code_postal"])
@@ -197,3 +197,52 @@ def map_station_fra(row):
     else: 
         new_station.date_updated = datetime.now
     return new_station
+
+
+
+#functions for GB gov data:
+def map_station_gb(entry, country_code: str):
+    datasource = "GBGOV"
+    lat: float = check_coordinates(entry.get("ChargeDeviceLocation").get("Latitude"))
+    long: float = check_coordinates(entry.get("ChargeDeviceLocation").get("Longitude"))
+    operator: Optional[str] = entry.get("DeviceController").get("OrganisationName")
+    new_station = Station()
+    new_station.country_code = country_code
+    new_station.source_id = entry.get("ChargeDeviceId")
+    new_station.operator = operator
+    new_station.data_source = datasource
+    coordinates = Point(float(long), float(lat))
+    new_station.coordinates = coordinates.wkt
+    new_station.date_created = entry.get("DateCreated")
+    new_station.date_updated = entry.get("DateUpdated")
+    # TODO: find way to parse date into desired format
+    #parse_date having issues with "date out of range" at value 0"
+    return new_station
+
+
+def map_address_gb(entry, station_id):
+    address_info: Dict = entry.get("ChargeDeviceLocation").get("Address", {})
+    postcode_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("PostCode")
+    postcode: Optional[str] = postcode_raw
+
+    town_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("PostTown")
+    town: Optional[str] = town_raw if isinstance(town_raw, str) else None
+
+    state_old_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("County")
+    state_old: Optional[str] = state_old_raw if isinstance(state_old_raw, str) else None
+
+    country: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("Country")
+
+    street_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("Street")
+    street: Optional[str] = street_raw if isinstance(street_raw, str) else None
+
+    map_address = Address()
+    map_address.state_old = None
+    map_address.station_id = station_id
+    map_address.street = street
+    map_address.town = town
+    map_address.postcode = postcode
+    map_address.district_old = None
+    map_address.state_old = state_old
+    map_address.country = country
+    return map_address

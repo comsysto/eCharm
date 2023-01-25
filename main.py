@@ -13,12 +13,13 @@ from pipelines._ocm import OcmPipeline
 from pipelines._osm import OsmPipeline
 from pipelines._bna import BnaPipeline
 from pipelines._france import FraPipeline
+from pipelines._gbgov import GbPipeline
 from settings import db_uri
 from testing import testdata
 from geojson_output import convert_to_geojson
 
 if __name__ == "__main__":
-    country_code = "DE"
+    country_code = "GB"
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
 
@@ -39,7 +40,16 @@ if __name__ == "__main__":
             session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
             offline=True,
         )
-        fra.run()
+        #fra.run()
+
+    elif country_code == "GB":
+        gb: GbPipeline = GbPipeline(
+            country_code=country_code,
+            config=config,
+            session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
+            offline=True,
+        )
+        gb.run()    
   
     osm: OsmPipeline = OsmPipeline(
         country_code=country_code,
@@ -65,7 +75,7 @@ if __name__ == "__main__":
     #merger.run()
 
 
-    testdata.run()
+    #testdata.run()
 
     #convert_to_geojson(create_engine(db_uri, echo=False), country_code)
     print("")

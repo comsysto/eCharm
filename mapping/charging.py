@@ -158,3 +158,13 @@ def map_charging_fra(row, station_id):
     mapped_charging_fra.capacity = row["nbre_pdc"]
     
     return mapped_charging_fra
+
+
+def map_charging_gb(entry, station_id):
+    mapped_charging_gb:Charging = Charging()
+    mapped_charging_gb.capacity = entry.get("RatedOutputCurrent")
+    #above is not correct information (just there for testing purposes)
+    # TODO:find way to count the points of charge for each station
+    #since this information is not available in the json
+
+    return mapped_charging_gb

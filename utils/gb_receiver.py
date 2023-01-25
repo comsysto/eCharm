@@ -3,10 +3,7 @@ import json
 import requests
 from requests import Response
 
-
-#http://chargepoints.dft.gov.uk/api/retrieve/{option1}/{value1}/{option2}/{value2}/
 #https://chargepoints.dft.gov.uk/api/help
-#option = format of data received: format[xml|json|csv] - Output format, default is 'xml'
 
 def get_gb_data(tmp_data_path):
 
@@ -21,5 +18,5 @@ def get_gb_data(tmp_data_path):
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)
   
 
-if __name__ == "__main__":
-    get_gb_data(tmp_data_path="./gb_gov_data.json")
+#if __name__ == "__main__":
+#    get_gb_data(tmp_data_path="./gb_gov_data.json")
