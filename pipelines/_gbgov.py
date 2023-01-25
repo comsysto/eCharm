@@ -15,11 +15,6 @@ from utils.logging_utils import log
 
 
 class GbPipeline:
-    def __init__(self, config: configparser, session: Session, offline: bool = False):
-        self.config = config
-        self.session = session
-        self.offline: bool = offline
-
     def __init__(self, country_code:str, config: configparser, session: Session, offline: bool = False):
         self.country_code = country_code
         self.config = config
@@ -34,7 +29,7 @@ class GbPipeline:
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["GBGOV"]["filename"])
         if not self.offline:
-            get_gb_data(tmp_file_path, self.country_code)
+            get_gb_data(tmp_file_path)
         with open(tmp_file_path, "r") as f:
             self.data = json.load(f)
 
