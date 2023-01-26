@@ -72,7 +72,7 @@ def run():
             duplicates: pd.DataFrame = pd.DataFrame()
             if station.osm_coordinates:
                 #print(f"OSM ID of central charging station: {station.osm_id}")
-                duplicates, current_station = merger.merge(station.osm_id, station.osm_coordinates, radius_m, score_threshold, score_weights, filter_by_source_id=True)
+                duplicates, current_station = merger.find_duplicates(station.osm_id, station.osm_coordinates, radius_m, score_threshold, score_weights, filter_by_source_id=True)
             if not duplicates.empty:
                 data_sources_in_duplicates = ','.join(duplicates.data_source.unique())
                 #print(f"Data Sources in duplicates: {data_sources_in_duplicates}")
@@ -83,6 +83,9 @@ def run():
             else:
                 print(f"No successful merge on test data")
                 outfile.write('NA\n')
+
+            if station.osm_id == '6417375309':
+                pass#break
         outfile.close()
 
 if __name__ == '__main__':

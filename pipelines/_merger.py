@@ -1,17 +1,27 @@
 import configparser
+from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
 from tqdm import tqdm
+from sqlalchemy.orm import sessionmaker
 
+from models.station import Station
 from deduplication import attribute_match_thresholds_strategy
 
 class StationMerger:
-    def __init__(self, config: configparser, con, is_test: bool = False):
+    def __init__(self, country_code: str, config: configparser, con, is_test: bool = False):
+        self.country_code = country_code
         self.config = config
         self.con = con
         self.is_test = is_test
 
+        if self.country_code == "DE":
+            self.gov_source = "BNA"
+        elif self.country_code == "FR":
+            self.gov_source = "FRGOV"
+        else:
+            raise Exception("Unknown country code in merger")
 
     def merge_attributes(self, station: pd.Series, duplicates_to_merge: pd.DataFrame):
         """
@@ -45,42 +55,46 @@ class StationMerger:
         station.at["merged_attributes"] = True
         return
 
-    def _merge_duplicates(self, current_station: pd.Series, duplicates: pd.DataFrame) -> pd.Series:
+    def _merge_duplicates(self, stations_to_merge) -> Station:
         """
-        Simple procedure, which follows BNA > OCM > OSM.
+        Input DataFrame has columns
+                station_id, source_id, data_source, coordinates, operator, capacity, street, town, distance
 
-        :param current_station: pd.Series contianing current station.
-        :param duplicates: pd.DataFrame containing all duplicates.
+        :param stations_to_merge: pd.DataFrame containing all stations which should be merged.
         :return:
         """
 
-        if current_station["data_source"] == "BNA":
-            # in case of BNA vs OCM / OSM we always stick with BNA (we do not need to do anything)
-            # TODO: check for missing attributes and merge in smart way
-            return current_station
-        data_sources = ["BNA", "OCM", "OSM"]
-        # generate data source pairs following preference ordering: BNA > OCM > OSM
-        ordered_data_source_pairs = [
-            (x, y) for x in data_sources for y in data_sources if x != "BNA"
-        ]
-        selected_station: pd.Series = pd.Series()
-        for (current_data_source, duplicate_data_source) in ordered_data_source_pairs:
-            if current_station["data_source"] != current_data_source:
-                continue
-            mergeable_stations = duplicates.loc[
-                duplicates["data_source"] == duplicate_data_source
-            ]
-            if mergeable_stations.empty:
-                continue
+        def get_attribute_by_priority(column_name, priority_list=None):
+            if priority_list is None:
+                priority_list = [self.gov_source, 'OCM', 'OSM']
+            for source in priority_list:
+                # get stations of source with attribute not empty, and return only attribute column
+                stations_by_source = stations_to_merge[stations_to_merge['data_source'] == source][column_name].dropna()
+                if len(stations_by_source) > 0:
+                    return stations_by_source.iloc[0]
 
-            selected_station = mergeable_stations.iloc[0][current_station.index].copy()
-            selected_station.loc[["is_duplicate", "merged_attributes"]] = False, True
+        merged_station = Station()
+        merged_station.country_code = self.country_code
+        merged_station.is_merged = True
 
-            # TODO check what we do instead this line
-            #self.stations_gdf.loc[current_station.name] = selected_station
+        if isinstance(stations_to_merge, pd.Series):
+            merged_station.data_source = stations_to_merge['data_source']
+            merged_station.coordinates = stations_to_merge['coordinates'].wkt
+            merged_station.operator = stations_to_merge['operator']
+            merged_station.source_id = f"MERGED_{stations_to_merge['source_id']}"
+        else:
+            merged_station.data_source = ",".join(stations_to_merge['data_source'].unique())
+            merged_station.source_id = f"MERGED_{','.join(stations_to_merge['source_id'].tolist())}"
+            # TODO: implement SQL table mapping from merged station to source stations
+            # merged_station.relations = source ids
 
-            break
-        return selected_station
+            # get other attributes by priority:
+            # coordinates in dataframe are WKB ? maybe convert to WKT?
+            coordinates = get_attribute_by_priority('coordinates', priority_list=['OSM', 'OCM', self.gov_source])
+            merged_station.coordinates = coordinates.wkt
+            merged_station.operator = get_attribute_by_priority('operator')
+
+        return merged_station
 
 
     def run(self):
@@ -97,34 +111,59 @@ class StationMerger:
 
         # First get list of stations esp. their coordinates
         get_stations_list_sql = """
-            SELECT id as station_id, coordinates FROM stations
-        """
+            SELECT id as station_id, coordinates FROM stations WHERE NOT is_merged AND country_code='{country_code}'
+        """.format(country_code=self.country_code)
+
         if self.is_test:
             munich_center_coordinates = "POINT (11.4717 48.1548)"
             get_stations_list_sql = """
                 SELECT id as station_id, coordinates FROM stations 
                 WHERE ST_Dwithin(ST_PointFromWkb(coordinates, 4326)::geography, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
-                              {radius_m}); 
+                              {radius_m}) AND NOT is_merged; 
             """.format(center_coordinates=munich_center_coordinates, radius_m=5000)
 
         gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
                                                  con=self.con, geom_col="coordinates")
+
+        gdf.sort_values(by=['station_id'], inplace=True, ignore_index=True)
+
+        session = sessionmaker(bind=(self.con))()
+        def write_session(session):
+            try:
+                session.commit()
+                session.flush()
+            except Exception as e:
+                print(f"Writing merged stations failed! Error: {e}")
+                print(e)
+                session.rollback()
+
         # For each station's coordinate find all surrounding stations within a certain radius (including itself)
         radius_m = 100
-        score_threshold: float = 0.49
-        score_weights = dict(operator=0.2, address=0.1, distance=0.7)
         for idx in tqdm(range(gdf.shape[0])):
-            current_station: pd.Series = gdf.iloc[idx]
+            current_station: gpd.GeoSeries = gdf.iloc[idx]
             #print(f"{current_station}")
 
-            duplicates, current_station_full = self.merge(current_station['station_id'], current_station['coordinates'], radius_m, score_threshold, score_weights)
+            # find real duplicates to current station
+            duplicates, current_station_full = self.find_duplicates(current_station['station_id'], current_station['coordinates'], radius_m)
+            #print(duplicates)
             if not duplicates.empty:
-                selected_station = self._merge_duplicates(current_station_full, duplicates)
+                stations_to_merge = duplicates.append(current_station_full)
+            else:
+                #print(f"Only current station, no duplicates: {current_station_full['data_source']}")
+                stations_to_merge = current_station_full #.to_frame()
 
+            # merge attributes of duplicates into one station
+            merged_station: Station = self._merge_duplicates(stations_to_merge)
+            session.add(merged_station)
 
-    def merge(self, current_station_id, current_station_coordinates, radius_m, score_threshold, score_weights,
-              filter_by_source_id: bool = False) -> (pd.DataFrame, pd.Series):
+            if idx % 100 == 0:
+                write_session(session)
+
+        write_session(session)
+
+    def find_duplicates(self, current_station_id, current_station_coordinates, radius_m,
+                        filter_by_source_id: bool = False) -> (gpd.GeoDataFrame, gpd.GeoSeries):
 
         find_surrounding_stations_sql = """ 
             SELECT 
@@ -140,40 +179,55 @@ class StationMerger:
             LEFT JOIN address a ON s.id = a.station_id 
             WHERE ST_Dwithin(ST_PointFromWkb(s.coordinates, 4326)::geography, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
-                              {radius_m});
+                              {radius_m}) AND NOT is_merged AND country_code='{country_code}';
         """
 
         sql = find_surrounding_stations_sql.format(station_id=current_station_id,
                                                    center_coordinates=current_station_coordinates,
-                                                   radius_m=radius_m)
+                                                   radius_m=radius_m,
+                                                   country_code=self.country_code)
         #print(sql)
         nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
+
+        # copy station id to new column otherwise it's not addressable as column after setting index
+        station_id_col = 'station_id_col'
+        nearby_stations[station_id_col] = nearby_stations['station_id']
+
         nearby_stations.set_index('station_id', inplace=True)
 
-        station_id_name = 'station_id'
         if filter_by_source_id:
             station_id_name = 'source_id'
+        else:
+            station_id_name = station_id_col
+
+        # get the current station with all it's attributes
+        current_station_full: pd.Series = \
+            nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
+
 
         pd.set_option('display.max_columns', None)
         #print(f"All stations in radius: {nearby_stations}")
         #print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
         # skip if only center station itself was found
         if len(nearby_stations) >= 2:
-            # get the current station with all it's attributes
-            current_station_full: pd.Series = \
-                nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
 
             if not current_station_full.empty:
-                duplicate_candidates: pd.DataFrame = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
+                duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
+                duplicate_candidates["is_duplicate"] = False
+                current_station_full["is_duplicate"] = True
+                duplicate_candidates["address"] = duplicate_candidates[["street", "town"]].\
+                    apply(lambda x: f"{x['street']},{x['town']}", axis=1)
+                current_station_full['address'] = f"{current_station_full['street']},{current_station_full['town']}"
+                duplicate_candidates = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
                     current_station=current_station_full,
-                    duplicate_candidates=nearby_stations[nearby_stations[station_id_name] != current_station_id],
+                    duplicate_candidates=duplicate_candidates,
                     station_id_name=station_id_name,
                     max_distance=radius_m
                 )
                 duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
                 return duplicates, current_station_full
 
-        return pd.DataFrame(), pd.Series()
+        return gpd.GeoDataFrame(), current_station_full
 
 
 

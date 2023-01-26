@@ -50,7 +50,7 @@ if __name__ == "__main__":
             offline=False,
         )
         gb.run()    
-  
+
     osm: OsmPipeline = OsmPipeline(
         country_code=country_code,
         config=config,
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     from pipelines._merger import StationMerger
     is_test = True
     logging.disable(logging.INFO) #only way to disable SQL Alchemy printing SQL statements, tried a lot
-    merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=False), is_test=is_test)
+    merger: StationMerger = StationMerger(country_code=country_code, config=config, con=create_engine(db_uri, echo=False, pool_pre_ping=True), is_test=is_test)
     #merger.run()
 
 
