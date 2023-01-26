@@ -90,5 +90,16 @@ If you change the data model, you can create new revision by
 ```bash
 alembic revision --autogenerate -m "your revision comment"
 ```
+
+# Testing
+
 ## Testdata import
-For running the script `testdata_import.py` you need the file `token_deepatlas.json` which is available in the same google drive folder (DeepAtlas account) as the testdata.
+For running the script `testdata_import.py` you need to be added as user to the API in Google Cloud 
+and the Spreadsheet needs to be shared with the same user.
+
+## Metrics on test data
+Version 1 (weighted score):
+
+
+
+
