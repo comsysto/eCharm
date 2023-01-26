@@ -39,7 +39,7 @@ if __name__ == "__main__":
             session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
             offline=True,
         )
-        fra.run()
+        #fra.run()
   
     osm: OsmPipeline = OsmPipeline(
         country_code=country_code,
@@ -63,9 +63,11 @@ if __name__ == "__main__":
     logging.disable(logging.INFO) #only way to disable SQL Alchemy printing SQL statements, tried a lot
     merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=False), is_test=is_test)
     #merger.run()
+    merger: StationMerger = StationMerger(country_code=country_code, config=config, con=create_engine(db_uri, echo=False, pool_pre_ping=True), is_test=is_test)
+    merger.run()
 
 
-    testdata.run()
+    #testdata.run()
 
     #convert_to_geojson(create_engine(db_uri, echo=False), country_code)
     print("")

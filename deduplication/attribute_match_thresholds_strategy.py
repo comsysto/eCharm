@@ -12,32 +12,31 @@ def attribute_match_thresholds_duplicates(
         ) -> pd.DataFrame:
     pd.options.mode.chained_assignment = None
 
-    if (duplicate_candidates.empty):
-        return pd.DataFrame()
-
-    current_station_address = f"{current_station['street']},{current_station['town']}"
+    #print(duplicate_candidates["is_duplicate"])
+    remaining_duplicate_candidates = duplicate_candidates[~duplicate_candidates["is_duplicate"].astype(bool)]
+    if remaining_duplicate_candidates.empty:
+        return duplicate_candidates
 
     print(f"### Searching for duplicates to station {current_station.source_id}, "
           f"operator: {current_station.operator}, "
-          f"address: {current_station_address}"
+          f"address: {current_station['address']}"
           )
+    print(f"{len(remaining_duplicate_candidates)} duplicate candidates")
 
-    duplicate_candidates["operator_match"] = duplicate_candidates.operator.apply(
+    remaining_duplicate_candidates["operator_match"] = remaining_duplicate_candidates.operator.apply(
         lambda x: SequenceMatcher(None, current_station.operator, str(x)).ratio()
         if (current_station.operator is not None) & (x is not None)
         else 0.0
     )
 
-    duplicate_candidates["address"] = duplicate_candidates[
-        ["street", "town"]
-    ].apply(lambda x: f"{x['street']},{x['town']}", axis=1)
-    duplicate_candidates["address_match"] = duplicate_candidates.address.apply(
-        lambda x: SequenceMatcher(None, current_station_address, x).ratio()
-        if (current_station_address != "None,None") & (x != "None,None")
+    remaining_duplicate_candidates["address_match"] = remaining_duplicate_candidates.address.apply(
+        lambda x: SequenceMatcher(None, current_station['address'], x).ratio()
+        if (current_station['address'] != "None,None") & (x != "None,None")
         else 0.0,
     )
 
-    duplicate_candidates["distance_match"] = 1 - duplicate_candidates["distance"] / max_distance
+    # this is always the distance to the initial central charging station
+    remaining_duplicate_candidates["distance_match"] = 1 - remaining_duplicate_candidates["distance"] / max_distance
 
     def is_duplicate_by_score(duplicate_candidate):
         #print(f"Candidate: {duplicate_candidate}")
@@ -56,33 +55,28 @@ def attribute_match_thresholds_duplicates(
                   f"source id: {duplicate_candidate.source_id}, "
                   f"operator: {duplicate_candidate.operator}, "
                   f"address: {duplicate_candidate.address}, "
+                  f"row id: {duplicate_candidate.name}, "
                   f"distance: {duplicate_candidate.distance}")
         return is_duplicate
 
-    duplicate_candidates["is_duplicate"] = duplicate_candidates.apply(is_duplicate_by_score, axis=1)
+    remaining_duplicate_candidates["is_duplicate"] = remaining_duplicate_candidates.apply(is_duplicate_by_score, axis=1)
+    # update original candidates
+    duplicate_candidates.update(remaining_duplicate_candidates)
 
     # for all duplicates found via OSM, which has most of the time no address info, run the check again against all candidates
     # so e.g. if we have a duplicate with address it can be matched to other data sources via this attribute
-    duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
-    for idx in range(duplicates.shape[0]):
-        current_station: pd.Series = duplicates.iloc[idx]
-        current_station_id = current_station[station_id_name]
+    new_duplicates = remaining_duplicate_candidates[remaining_duplicate_candidates["is_duplicate"]]
+    for idx in range(new_duplicates.shape[0]):
+        current_station: pd.Series = new_duplicates.iloc[idx]
 
-        # new candidates are all existing candidates except the new current station
-        # and all stations which are already marked as duplicate
-        duplicate_candidates_new = duplicate_candidates[(duplicate_candidates[station_id_name] != current_station_id)
-                                                        & (~duplicate_candidates["is_duplicate"])]
-        # recursive call to the current method, but with reduced set of candidates and new current station
+        # recursive call to the current method, but with some candidates already marked as duplicate and new current station
         # TODO: think of changing distance threshold in this 2nd call
         #  as coordinates of other sources are not as good as OSM coordinates
-        duplicate_candidates_new = attribute_match_thresholds_duplicates(
+        duplicate_candidates = attribute_match_thresholds_duplicates(
             current_station=current_station,
-            duplicate_candidates=duplicate_candidates_new,
+            duplicate_candidates=duplicate_candidates,
             station_id_name=station_id_name
         )
-        if not duplicate_candidates_new.empty:
-            # merge with original candidates
-            duplicate_candidates.update(duplicate_candidates_new)
 
     return duplicate_candidates
 
