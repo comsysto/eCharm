@@ -16,7 +16,7 @@ from pipelines._france import FraPipeline
 from pipelines._gbgov import GbPipeline
 from settings import db_uri
 from testing import testdata
-from geojson_output import convert_to_geojson
+from stations_data_export import stations_data_export
 
 if __name__ == "__main__":
     country_code = "GB"
@@ -77,5 +77,5 @@ if __name__ == "__main__":
 
     #testdata.run()
 
-    #convert_to_geojson(create_engine(db_uri, echo=False), country_code)
+    stations_data_export(create_engine(db_uri, echo=False), country_code, csv=True, all=True)
     print("")
