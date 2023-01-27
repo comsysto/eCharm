@@ -20,6 +20,8 @@ class StationMerger:
             self.gov_source = "BNA"
         elif self.country_code == "FR":
             self.gov_source = "FRGOV"
+        elif self.country_code == "GB":
+            self.gov_source = "GBGOV"
         else:
             raise Exception("Unknown country code in merger")
 

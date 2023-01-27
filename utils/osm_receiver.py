@@ -9,6 +9,8 @@ def get_osm_data(country_code: str, tmp_data_path):
         area_name = "Deutschland"
     elif country_code == "FR":
         area_name = "France métropolitaine"
+    elif country_code == "GB":
+        area_name = "United Kingdom"
     else:
         raise Exception(f"country code '{country_code}' unknown for OSM")
 
