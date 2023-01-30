@@ -1,5 +1,5 @@
-from geoalchemy2.types import Geometry
-from sqlalchemy import Column, Date, Integer, String, Boolean, ForeignKey
+from geoalchemy2.types import Geometry, Geography
+from sqlalchemy import Column, Date, Integer, String, Boolean, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
 from models import Base
@@ -13,7 +13,7 @@ class Station(Base):
     operator = Column(String)
     payment = Column(String)
     authentication = Column(String)
-    coordinates = Column(Geometry("POINT")) # TODO change to Geography column for exact distance measurement
+    point = Column(Geography(geometry_type='POINT', srid=4326))
     date_created = Column(Date)
     date_updated = Column(Date)
     raw_data = Column(String)
@@ -25,6 +25,13 @@ class Station(Base):
 
     def __repr__(self):
         return "<stations with id: {}>".format(self.id)
+
+
+Index(
+    "stations_point_geom_idx",
+    Station.__table__.c.point,
+    postgresql_using='gist',
+)
 
 """
 class MergeRelation(Base):

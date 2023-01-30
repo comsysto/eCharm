@@ -174,12 +174,12 @@ class StationMerger:
                 s.data_source, s.coordinates, s.operator,
                 c.capacity,
                 a.street, a.town,
-                ST_DISTANCE(ST_PointFromWkb(s.coordinates, 4326)::geography, 
+                ST_DISTANCE(s.point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography) as distance
             FROM stations s
             LEFT JOIN charging c ON s.id = c.station_id
             LEFT JOIN address a ON s.id = a.station_id 
-            WHERE ST_Dwithin(ST_PointFromWkb(s.coordinates, 4326)::geography, 
+            WHERE ST_Dwithin(s.point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
                               {radius_m}) AND NOT is_merged AND country_code='{country_code}';
         """
