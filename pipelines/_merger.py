@@ -16,6 +16,9 @@ class StationMerger:
         self.con = con
         self.is_test = is_test
 
+        if self.is_test:
+            self.country_code = "DE"
+
         if self.country_code == "DE":
             self.gov_source = "BNA"
         elif self.country_code == "FR":
@@ -60,20 +63,25 @@ class StationMerger:
     def _merge_duplicates(self, stations_to_merge) -> Station:
         """
         Input DataFrame has columns
-                station_id, source_id, data_source, coordinates, operator, capacity, street, town, distance
+                station_id, source_id, data_source, point, operator, capacity, street, town, distance
 
         :param stations_to_merge: pd.DataFrame containing all stations which should be merged.
         :return:
         """
 
         def get_attribute_by_priority(column_name, priority_list=None):
+            attribute = None
             if priority_list is None:
                 priority_list = [self.gov_source, 'OCM', 'OSM']
             for source in priority_list:
                 # get stations of source with attribute not empty, and return only attribute column
                 stations_by_source = stations_to_merge[stations_to_merge['data_source'] == source][column_name].dropna()
                 if len(stations_by_source) > 0:
-                    return stations_by_source.iloc[0]
+                    attribute = stations_by_source.iloc[0]
+                    break
+            if not attribute:
+                print(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
+            return attribute
 
         merged_station = Station()
         merged_station.country_code = self.country_code
@@ -81,7 +89,7 @@ class StationMerger:
 
         if isinstance(stations_to_merge, pd.Series):
             merged_station.data_source = stations_to_merge['data_source']
-            merged_station.coordinates = stations_to_merge['coordinates'].wkt
+            merged_station.point = stations_to_merge['point'].wkt
             merged_station.operator = stations_to_merge['operator']
             merged_station.source_id = f"MERGED_{stations_to_merge['source_id']}"
         else:
@@ -92,8 +100,8 @@ class StationMerger:
 
             # get other attributes by priority:
             # coordinates in dataframe are WKB ? maybe convert to WKT?
-            coordinates = get_attribute_by_priority('coordinates', priority_list=['OSM', 'OCM', self.gov_source])
-            merged_station.coordinates = coordinates.wkt
+            point = get_attribute_by_priority('point', priority_list=['OSM', 'OCM', self.gov_source])
+            merged_station.point = point.wkt
             merged_station.operator = get_attribute_by_priority('operator')
 
         return merged_station
@@ -113,20 +121,20 @@ class StationMerger:
 
         # First get list of stations esp. their coordinates
         get_stations_list_sql = """
-            SELECT id as station_id, coordinates FROM stations WHERE NOT is_merged AND country_code='{country_code}'
+            SELECT id as station_id, point FROM stations WHERE NOT is_merged AND country_code='{country_code}'
         """.format(country_code=self.country_code)
 
         if self.is_test:
             munich_center_coordinates = "POINT (11.4717 48.1548)"
             get_stations_list_sql = """
-                SELECT id as station_id, coordinates FROM stations 
-                WHERE ST_Dwithin(ST_PointFromWkb(coordinates, 4326)::geography, 
+                SELECT id as station_id, point FROM stations 
+                WHERE ST_Dwithin(point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
                               {radius_m}) AND NOT is_merged; 
             """.format(center_coordinates=munich_center_coordinates, radius_m=5000)
 
         gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
-                                                 con=self.con, geom_col="coordinates")
+                                                 con=self.con, geom_col="point")
 
         gdf.sort_values(by=['station_id'], inplace=True, ignore_index=True)
 
@@ -147,7 +155,7 @@ class StationMerger:
             #print(f"{current_station}")
 
             # find real duplicates to current station
-            duplicates, current_station_full = self.find_duplicates(current_station['station_id'], current_station['coordinates'], radius_m)
+            duplicates, current_station_full = self.find_duplicates(current_station['station_id'], current_station['point'], radius_m)
             #print(duplicates)
             if not duplicates.empty:
                 stations_to_merge = duplicates.append(current_station_full)
@@ -171,7 +179,7 @@ class StationMerger:
             SELECT 
                 s.id as station_id,
                 s.source_id as source_id,
-                s.data_source, s.coordinates, s.operator,
+                s.data_source, s.point, s.operator,
                 c.capacity,
                 a.street, a.town,
                 ST_DISTANCE(s.point, 
@@ -189,8 +197,10 @@ class StationMerger:
                                                    radius_m=radius_m,
                                                    country_code=self.country_code)
         #print(sql)
-        nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="coordinates")
+        nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="point")
 
+        print(f"coordinates of current station: {current_station_coordinates}, ID: {current_station_id}")
+        print(f"# nearby stations incl current: {len(nearby_stations)}")
         # copy station id to new column otherwise it's not addressable as column after setting index
         station_id_col = 'station_id_col'
         nearby_stations[station_id_col] = nearby_stations['station_id']
@@ -206,6 +216,7 @@ class StationMerger:
         current_station_full: pd.Series = \
             nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
 
+        print(current_station_full)
 
         pd.set_option('display.max_columns', None)
         #print(f"All stations in radius: {nearby_stations}")
