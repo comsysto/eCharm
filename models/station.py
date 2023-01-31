@@ -21,6 +21,7 @@ class Station(Base):
     address = relationship("Address", back_populates="station", uselist=False)
     charging = relationship("Charging", back_populates="station", uselist=False)
     is_merged = Column(Boolean, default=False)
+    merge_status = Column(String)
 
 
     def __repr__(self):

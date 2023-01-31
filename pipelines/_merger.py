@@ -159,18 +159,22 @@ class StationMerger:
             #print(duplicates)
             if not duplicates.empty:
                 stations_to_merge = duplicates.append(current_station_full)
+                station_ids = stations_to_merge['station_id_col'].tolist()
             else:
-                #print(f"Only current station, no duplicates: {current_station_full['data_source']}")
+                print(f"Only current station, no duplicates")
                 stations_to_merge = current_station_full #.to_frame()
+                station_ids = [current_station['station_id'].item()]
 
-            # merge attributes of duplicates into one station
-            merged_station: Station = self._merge_duplicates(stations_to_merge)
-            session.add(merged_station)
-
-            if idx % 100 == 0:
+            if not stations_to_merge.empty:
+                # merge attributes of duplicates into one station
+                print(station_ids)
+                session.query(Station).filter(Station.id.in_(station_ids))\
+                    .update({Station.merge_status: "is_duplicate"}, synchronize_session='fetch')
+                merged_station: Station = self._merge_duplicates(stations_to_merge)
+                session.add(merged_station)
                 write_session(session)
 
-        write_session(session)
+        #write_session(session)
 
     def find_duplicates(self, current_station_id, current_station_coordinates, radius_m,
                         filter_by_source_id: bool = False) -> (gpd.GeoDataFrame, gpd.GeoSeries):
@@ -189,7 +193,10 @@ class StationMerger:
             LEFT JOIN address a ON s.id = a.station_id 
             WHERE ST_Dwithin(s.point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
-                              {radius_m}) AND NOT is_merged AND country_code='{country_code}';
+                              {radius_m}) 
+                              AND NOT is_merged
+                              AND (merge_status <> 'is_duplicate' OR merge_status is null) 
+                              AND country_code='{country_code}';
         """
 
         sql = find_surrounding_stations_sql.format(station_id=current_station_id,
@@ -198,6 +205,10 @@ class StationMerger:
                                                    country_code=self.country_code)
         #print(sql)
         nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="point")
+
+        if nearby_stations.empty:
+            print(f"##### Already merged, id {current_station_id} #####")
+            return gpd.GeoDataFrame(), gpd.GeoSeries()
 
         print(f"coordinates of current station: {current_station_coordinates}, ID: {current_station_id}")
         print(f"# nearby stations incl current: {len(nearby_stations)}")
