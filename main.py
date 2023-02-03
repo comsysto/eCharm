@@ -77,5 +77,5 @@ if __name__ == "__main__":
 
     #testdata.run()
 
-    stations_data_export(create_engine(db_uri, echo=False), country_code, csv=True, all=True)
+    stations_data_export(create_engine(db_uri, echo=False), country_code, is_merged=False, csv=True, all_countries=False)
     print("")
