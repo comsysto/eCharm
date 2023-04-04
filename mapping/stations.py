@@ -10,6 +10,7 @@ from models.address import Address
 from models.station import Station
 from utils.bna_functions import check_coordinates
 from utils.logging_utils import log
+from geoalchemy2.shape import from_shape
 
 
 def lat_long_hash(lat_row, long_row, data_source):
@@ -57,8 +58,7 @@ def map_station_bna(row):
     new_station.source_id = lat_long_hash(lat, long, datasource)
     new_station.operator = row["Betreiber"]
     new_station.data_source = datasource
-    coordinates = Point(float(long), float(lat))
-    new_station.coordinates = coordinates.wkt
+    new_station.point = from_shape(Point(float(long), float(lat)))
     new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)
     return new_station
 
@@ -73,8 +73,7 @@ def map_station_ocm(row, country_code: str):
     new_station.source_id = row["ID"]
     new_station.operator = operator
     new_station.data_source = datasource
-    coordinates = Point(float(long), float(lat))
-    new_station.coordinates = coordinates.wkt
+    new_station.point = from_shape(Point(float(long), float(lat)))
     new_station.date_created = parse_date(row.get("DateCreated"))
     new_station.date_updated = parse_date(row.get("DateUpdated"))
     return new_station
@@ -98,7 +97,7 @@ def map_station_osm(entry: Dict, country_code: str):
     new_station.source_id = entry["id"]
     new_station.operator = operator
     new_station.data_source = datasource
-    new_station.coordinates = Point(float(lon), float(lat)).wkt
+    new_station.point = from_shape(Point(float(lon), float(lat)))
     new_station.date_created = entry.get("timestamp", datetime.now())
     return new_station
 
@@ -185,8 +184,7 @@ def map_station_fra(row):
     new_station.source_id = row["id_station_itinerance"]
     new_station.operator = row["nom_operateur"]
     new_station.data_source = datasource
-    coordinates = Point(float(long), float(lat))
-    new_station.coordinates = coordinates.wkt
+    new_station.point = from_shape(Point(float(long), float(lat)))
     #new_station.date_created = (row["date_mise_en_service"].strptime("%Y-%m-%d"),)
     #new_station.date_updated = (row["date_maj"].strptime("%Y-%m-%d"),)
     #print(row["date_mise_en_service"])
@@ -211,8 +209,7 @@ def map_station_gb(entry, country_code: str):
     new_station.source_id = entry.get("ChargeDeviceId")
     new_station.operator = operator
     new_station.data_source = datasource
-    coordinates = Point(float(long), float(lat))
-    new_station.coordinates = coordinates.wkt
+    new_station.point = from_shape(Point(float(long), float(lat)))
     new_station.date_created = entry.get("DateCreated")
     new_station.date_updated = entry.get("DateUpdated")
     # TODO: find way to parse date into desired format
