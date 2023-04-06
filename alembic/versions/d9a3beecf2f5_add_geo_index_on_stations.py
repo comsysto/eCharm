@@ -19,11 +19,11 @@ depends_on = None
 def upgrade():
     conn = op.get_bind()
     conn.execute("""
-    CREATE INDEX stations_coordinates_geom_idx
-        ON stations 
-        USING GIST (coordinates);
+    CREATE INDEX stations_point_geom_idx
+    ON stations 
+    USING GIST (point);
     """)
 
 def downgrade():
     conn = op.get_bind()
-    conn.execute("DROP INDEX stations_coordinates_geom_idx;")
+    conn.execute("DROP INDEX stations_point_geom_idx;")
