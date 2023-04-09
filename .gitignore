@@ -3,3 +3,7 @@ venv/
 .idea/
 .env
 data/
+.python-version
+stations_*.csv
+testdata_merge.csv
+token_deepatlas.json
