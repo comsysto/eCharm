@@ -4,6 +4,7 @@
 * [General info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
+* [Testing](#testing)
 
 ## General info
 This project is a refactoring project of da-charging.
@@ -91,15 +92,18 @@ If you change the data model, you can create new revision by
 alembic revision --autogenerate -m "your revision comment"
 ```
 
-# Testing
+## Testing
 
-## Testdata import
+### Execute tests
+Before you run the tests you need to install test dependencies by 
+```bash
+pip install -r test/requirements.txt
+```
+You can run all tests under `/test` by running the following command:
+```bash
+python -m unittest
+```
+
+### Testdata import
 For running the script `testdata_import.py` you need to be added as user to the API in Google Cloud 
 and the Spreadsheet needs to be shared with the same user.
-
-## Metrics on test data
-Version 1 (weighted score):
-
-
-
-
