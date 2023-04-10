@@ -4,11 +4,11 @@ import sys
 
 from dotenv import load_dotenv
 
-parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), "../.."))
 sys.path.append(parent_dir)
 
 logging_conf_path = os.path.normpath(
-    os.path.join(os.path.dirname(__file__), "logging.conf")
+    os.path.join(os.path.dirname(__file__), "../logging.conf")
 )
 logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__package__)

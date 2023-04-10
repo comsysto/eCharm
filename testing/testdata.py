@@ -4,11 +4,12 @@ import os
 import pathlib
 
 from sqlalchemy import create_engine
-from settings import db_uri
+
+from charging_stations_pipelines.pipelines._merger import StationMerger
+from charging_stations_pipelines.settings import db_uri
 import pandas as pd
 
 import testdata_import
-from src.pipelines._merger import StationMerger
 
 @dataclass
 class TestData:

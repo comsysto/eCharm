@@ -8,7 +8,7 @@ from sqlalchemy import engine_from_config, pool
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from settings import db_uri
+from charging_stations_pipelines.settings import db_uri
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
