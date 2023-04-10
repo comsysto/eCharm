@@ -7,9 +7,9 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
-from models import Base
-from models.station import Station
-from pipelines._merger import StationMerger
+from charging_stations_pipelines.models import Base
+from charging_stations_pipelines.models.station import Station
+from charging_stations_pipelines.pipelines._merger import StationMerger
 from test.shared import get_config, create_station
 
 

@@ -6,11 +6,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from mapping.charging import map_charging_bna
-from mapping.stations import map_address_bna, map_station_bna
-from services.excel_file_loader_service import ExcelFileLoaderService
-from utils.bna_crawler import get_bna_data
-from utils.logging_utils import log
+from charging_stations_pipelines.mapping.charging import map_charging_bna
+from charging_stations_pipelines.mapping.stations import map_address_bna, map_station_bna
+from charging_stations_pipelines.services.excel_file_loader_service import ExcelFileLoaderService
+from charging_stations_pipelines.utils.bna_crawler import get_bna_data
+from charging_stations_pipelines.utils.logging_utils import log
 
 
 class BnaPipeline:
@@ -18,7 +18,7 @@ class BnaPipeline:
         self.config = config
         self.session = session
         self.offline: bool = offline
-        relative_dir = os.path.join("..", "data")
+        relative_dir = os.path.join("../..", "data")
         self.data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
 
     def _retrieve_data(self):

@@ -8,7 +8,7 @@ from settings import db_uri
 import pandas as pd
 
 import testdata_import
-from pipelines._merger import StationMerger
+from src.pipelines._merger import StationMerger
 
 @dataclass
 class TestData:
