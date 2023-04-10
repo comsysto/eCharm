@@ -1,6 +1,6 @@
 from numbers import Number
 
-from utils.logging_utils import log
+from charging_stations_pipelines.utils.logging_utils import log
 
 
 def check_coordinates(coords: float) -> float:

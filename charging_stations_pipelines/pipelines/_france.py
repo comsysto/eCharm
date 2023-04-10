@@ -7,11 +7,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from mapping.charging import map_charging_fra
-from mapping.stations import map_address_fra, map_station_fra
-from services.excel_file_loader_service import ExcelFileLoaderService
-from utils.bna_crawler import get_bna_data
-from utils.logging_utils import log
+from charging_stations_pipelines.mapping.charging import map_charging_fra
+from charging_stations_pipelines.mapping.stations import map_address_fra, map_station_fra
 
 
 class FraPipeline:
@@ -22,7 +19,7 @@ class FraPipeline:
 
     def _retrieve_data(self):
         data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "..", "data"
+            pathlib.Path(__file__).parent.resolve(), "../..", "data"
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(data_dir, self.config["FRGOV"]["filename"])

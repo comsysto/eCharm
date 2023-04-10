@@ -1,8 +1,8 @@
-from geoalchemy2.types import Geometry, Geography
-from sqlalchemy import Column, Date, Integer, String, Boolean, ForeignKey, Index
+from geoalchemy2.types import Geography
+from sqlalchemy import Column, Date, Integer, String, Boolean, Index
 from sqlalchemy.orm import relationship
 
-from models import Base
+from charging_stations_pipelines.models import Base
 
 
 class Station(Base):

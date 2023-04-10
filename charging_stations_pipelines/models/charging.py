@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
-from models import Base
+from charging_stations_pipelines.models import Base
 
 
 class Charging(Base):

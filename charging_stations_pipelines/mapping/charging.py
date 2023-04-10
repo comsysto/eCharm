@@ -4,8 +4,8 @@ from typing import List, Optional
 
 import pandas as pd
 
-from models.charging import Charging
-from utils.logging_utils import log
+from charging_stations_pipelines.models.charging import Charging
+from charging_stations_pipelines.utils.logging_utils import log
 
 # max sockets/charging points per charging station
 MAX_CAPACITY = 4

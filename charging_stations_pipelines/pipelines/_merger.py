@@ -1,13 +1,13 @@
 import configparser
-from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
-from tqdm import tqdm
 from sqlalchemy.orm import sessionmaker
+from tqdm import tqdm
 
-from models.station import Station
-from deduplication import attribute_match_thresholds_strategy
+from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
+from charging_stations_pipelines.models.station import Station
+
 
 class StationMerger:
     def __init__(self, country_code: str, config: configparser, con, is_test: bool = False):
@@ -19,14 +19,15 @@ class StationMerger:
         if self.is_test:
             self.country_code = "DE"
 
-        if self.country_code == "DE":
-            self.gov_source = "BNA"
-        elif self.country_code == "FR":
-            self.gov_source = "FRGOV"
-        elif self.country_code == "GB":
-            self.gov_source = "GBGOV"
-        else:
-            raise Exception("Unknown country code in merger")
+        country_code_to_gov_source = {
+            "DE": "BNA",
+            "FR": "FRGOV",
+            "GB": "GBGOV",
+            "IT": ""  # No gov source for Italy so far (5.4.2023)
+        }
+        if country_code not in country_code_to_gov_source:
+            raise Exception(f"country code '{country_code}' unknown in merger")
+        self.gov_source = country_code_to_gov_source[country_code]
 
     def merge_attributes(self, station: pd.Series, duplicates_to_merge: pd.DataFrame):
         """
@@ -106,7 +107,6 @@ class StationMerger:
 
         return merged_station
 
-
     def run(self):
         '''
             Note: We should use geography types as it's much more accurate than projection from WSG-84 to Mercator
@@ -139,6 +139,7 @@ class StationMerger:
         gdf.sort_values(by=['station_id'], inplace=True, ignore_index=True)
 
         session = sessionmaker(bind=(self.con))()
+
         def write_session(session):
             try:
                 session.commit()
@@ -152,29 +153,30 @@ class StationMerger:
         radius_m = 100
         for idx in tqdm(range(gdf.shape[0])):
             current_station: gpd.GeoSeries = gdf.iloc[idx]
-            #print(f"{current_station}")
+            # print(f"{current_station}")
 
             # find real duplicates to current station
-            duplicates, current_station_full = self.find_duplicates(current_station['station_id'], current_station['point'], radius_m)
-            #print(duplicates)
+            duplicates, current_station_full = self.find_duplicates(current_station['station_id'],
+                                                                    current_station['point'], radius_m)
+            # print(duplicates)
             if not duplicates.empty:
                 stations_to_merge = duplicates.append(current_station_full)
                 station_ids = stations_to_merge['station_id_col'].tolist()
             else:
                 print(f"Only current station, no duplicates")
-                stations_to_merge = current_station_full #.to_frame()
+                stations_to_merge = current_station_full  # .to_frame()
                 station_ids = [current_station['station_id'].item()]
 
             if not stations_to_merge.empty:
                 # merge attributes of duplicates into one station
                 print(station_ids)
-                session.query(Station).filter(Station.id.in_(station_ids))\
+                session.query(Station).filter(Station.id.in_(station_ids)) \
                     .update({Station.merge_status: "is_duplicate"}, synchronize_session='fetch')
                 merged_station: Station = self._merge_duplicates(stations_to_merge)
                 session.add(merged_station)
                 write_session(session)
 
-        #write_session(session)
+        # write_session(session)
 
     def find_duplicates(self, current_station_id, current_station_coordinates, radius_m,
                         filter_by_source_id: bool = False) -> (gpd.GeoDataFrame, gpd.GeoSeries):
@@ -203,7 +205,7 @@ class StationMerger:
                                                    center_coordinates=current_station_coordinates,
                                                    radius_m=radius_m,
                                                    country_code=self.country_code)
-        #print(sql)
+        # print(sql)
         nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="point")
 
         if nearby_stations.empty:
@@ -230,8 +232,8 @@ class StationMerger:
         print(current_station_full)
 
         pd.set_option('display.max_columns', None)
-        #print(f"All stations in radius: {nearby_stations}")
-        #print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
+        # print(f"All stations in radius: {nearby_stations}")
+        # print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
         # skip if only center station itself was found
         if len(nearby_stations) >= 2:
 
@@ -239,7 +241,7 @@ class StationMerger:
                 duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
                 duplicate_candidates["is_duplicate"] = False
                 current_station_full["is_duplicate"] = True
-                duplicate_candidates["address"] = duplicate_candidates[["street", "town"]].\
+                duplicate_candidates["address"] = duplicate_candidates[["street", "town"]]. \
                     apply(lambda x: f"{x['street']},{x['town']}", axis=1)
                 current_station_full['address'] = f"{current_station_full['street']},{current_station_full['town']}"
                 duplicate_candidates = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
@@ -252,8 +254,3 @@ class StationMerger:
                 return duplicates, current_station_full
 
         return gpd.GeoDataFrame(), current_station_full
-
-
-
-
-
