@@ -50,7 +50,7 @@ if __name__ == "__main__":
         country_code=country_code,
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
+        offline=False,
     )
     osm.run()
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         country_code=country_code,
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
+        offline=False,
     )
     ocm.run()
 
