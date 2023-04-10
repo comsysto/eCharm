@@ -10,8 +10,8 @@ from charging_stations_pipelines.pipelines._osm import OsmPipeline
 from charging_stations_pipelines.pipelines._bna import BnaPipeline
 from charging_stations_pipelines.pipelines._france import FraPipeline
 from charging_stations_pipelines.pipelines._gbgov import GbPipeline
-from settings import db_uri
-from stations_data_export import stations_data_export
+from charging_stations_pipelines.settings import db_uri
+from charging_stations_pipelines.stations_data_export import stations_data_export
 
 if __name__ == "__main__":
     country_code = "IT"

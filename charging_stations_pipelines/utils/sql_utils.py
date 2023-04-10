@@ -9,7 +9,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 ENV = os.getenv("ENV", "LOCAL").upper()
 
-from settings import db_uri
+from charging_stations_pipelines.settings import db_uri
 
 print(f"Database URI: {db_uri}")
 
