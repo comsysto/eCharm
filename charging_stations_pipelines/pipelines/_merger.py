@@ -2,10 +2,11 @@ import configparser
 
 import geopandas as gpd
 import pandas as pd
-from deduplication import attribute_match_thresholds_strategy
-from models.station import Station
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
+
+from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
+from charging_stations_pipelines.models.station import Station
 
 
 class StationMerger:
