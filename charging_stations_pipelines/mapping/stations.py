@@ -163,7 +163,6 @@ def map_address_fra(row, station_id):
     postcode: str = str(row["consolidated_code_postal"])
     town: str = row["consolidated_commune"]
     country: str
-    #print(town)
     #if not pd.isna(town):
         #log.warning(f"Failed to process town {town}! Will set town to None!")
        # town = None
@@ -187,7 +186,6 @@ def map_station_fra(row):
     new_station.point = from_shape(Point(float(long), float(lat)))
     #new_station.date_created = (row["date_mise_en_service"].strptime("%Y-%m-%d"),)
     #new_station.date_updated = (row["date_maj"].strptime("%Y-%m-%d"),)
-    #print(row["date_mise_en_service"])
     if not pd.isna(row["date_mise_en_service"]):
         new_station.date_created = datetime.strptime(row["date_mise_en_service"], "%Y-%m-%d")
     if not pd.isna(row["date_maj"]):

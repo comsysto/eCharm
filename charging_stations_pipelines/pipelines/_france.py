@@ -1,14 +1,15 @@
 import configparser
 import os
 import pathlib
-import pandas as pd
 
+import pandas as pd
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from charging_stations_pipelines.mapping.charging import map_charging_fra
 from charging_stations_pipelines.mapping.stations import map_address_fra, map_station_fra
+from charging_stations_pipelines.utils.logging_utils import log
 
 
 class FraPipeline:
@@ -23,9 +24,10 @@ class FraPipeline:
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(data_dir, self.config["FRGOV"]["filename"])
-        #if not self.offline:
-            #get_bna_data(tmp_data_path)
-        self.data = pd.read_csv(os.path.join(data_dir, "france_stations.csv"), delimiter= ",", encoding= "utf-8", encoding_errors= "replace")
+        # if not self.offline:
+        # get_bna_data(tmp_data_path)
+        self.data = pd.read_csv(os.path.join(data_dir, "france_stations.csv"), delimiter=",", encoding="utf-8",
+                                encoding_errors="replace")
 
     def run(self):
         self._retrieve_data()
@@ -43,10 +45,8 @@ class FraPipeline:
                 self.session.flush()
             except IntegrityError as e:
                 log.error(f"FRA-Entry exists already! Error: {e}")
-                print(e)
                 self.session.rollback()
                 continue
             except Exception as e:
                 log.error(f"FRA-Pipeline failed to run! Error: {e}")
-                print(e)
                 self.session.rollback()

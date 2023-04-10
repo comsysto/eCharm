@@ -1,13 +1,15 @@
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
-import re
 from typing import Dict, List
 
 import pandas as pd
 from packaging import version
+
+from charging_stations_pipelines.utils.logging_utils import log
 
 
 def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
@@ -83,7 +85,7 @@ def ocm_extractor(tmp_file_path: str, country_code:str):
         raise RuntimeError(f"Could not parse git version! {e}")
     else:
         if git_version < version.parse("2.25.0"):
-            print(f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
+            log.wan(f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
             raise RuntimeError("Git version must be >= 2.25.0!")
 
     if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:

@@ -51,5 +51,4 @@ class OcmPipeline:
                 continue
             except Exception as e:
                 log.error(f"OCM-Pipeline failed to run! Error: {e}")
-                print(e)
                 self.session.rollback()

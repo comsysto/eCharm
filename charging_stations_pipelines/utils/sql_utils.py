@@ -7,11 +7,13 @@ import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from charging_stations_pipelines.utils.logging_utils import log
+
 ENV = os.getenv("ENV", "LOCAL").upper()
 
 from charging_stations_pipelines.settings import db_uri
 
-print(f"Database URI: {db_uri}")
+log.info(f"Database URI: {db_uri}")
 
 engine = create_engine(db_uri, pool_pre_ping=True)
 Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
@@ -96,7 +98,7 @@ def build_values(entry):
 
 
 def insert_on_conflict_do_update(
-    df: pd.DataFrame, table_name, schema="public", check_cols=None, batch=10
+        df: pd.DataFrame, table_name, schema="public", check_cols=None, batch=10
 ):
     df = df.replace({np.nan: "null"})
     insert_dict = df.values.tolist()
@@ -141,7 +143,7 @@ def insert_on_conflict_do_update(
 
 
 def insert_return_ids(
-    df: pd.DataFrame, table_name, schema="public", sequencial_key="id"
+        df: pd.DataFrame, table_name, schema="public", sequencial_key="id"
 ):
     df = df.replace({np.nan: "null"})
     insert_dict = df.values.tolist()
@@ -175,4 +177,4 @@ def insert_return_ids(
 def chunks(list_obj, batch_size):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(list_obj), batch_size):
-        yield list_obj[i : i + batch_size]
+        yield list_obj[i: i + batch_size]
