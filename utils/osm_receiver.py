@@ -5,14 +5,17 @@ from requests import Response
 
 
 def get_osm_data(country_code: str, tmp_data_path):
-    if country_code == "DE":
-        area_name = "Deutschland"
-    elif country_code == "FR":
-        area_name = "France métropolitaine"
-    elif country_code == "GB":
-        area_name = "United Kingdom"
-    else:
+    country_code_to_area = {
+        "DE": "Deutschland",
+        "FR": "France métropolitaine",
+        "GB": "United Kingdom",
+        "IT": "Italia"
+    }
+
+    if country_code not in country_code_to_area:
         raise Exception(f"country code '{country_code}' unknown for OSM")
+
+    area_name = country_code_to_area[country_code]
 
     query_params = {
         "data": """
@@ -37,6 +40,7 @@ def get_osm_data(country_code: str, tmp_data_path):
         raise RuntimeError(f"Failed to get OSM-Data! Status-Code: {status_code}")
     with open(tmp_data_path, "w") as f:
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)
+
 
 if __name__ == "__main__":
     get_osm_data(tmp_data_path="./osm_france.json")
