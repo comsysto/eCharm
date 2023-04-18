@@ -10,6 +10,7 @@ from testcontainers.postgres import PostgresContainer
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines._merger import StationMerger
+
 from test.shared import get_config, create_station
 
 
