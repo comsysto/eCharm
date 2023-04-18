@@ -8,10 +8,10 @@ from shapely.geometry import Point
 from sqlalchemy.engine import Engine, create_engine
 from testcontainers.postgres import PostgresContainer
 
-from models import Base
-from models.address import Address
-from models.charging import Charging
-from models.station import Station
+from charging_stations_pipelines.models import Base
+from charging_stations_pipelines.models.address import Address
+from charging_stations_pipelines.models.charging import Charging
+from charging_stations_pipelines.models.station import Station
 
 SOURCE_ID_COUNTER = 0
 

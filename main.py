@@ -5,21 +5,16 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from mapping.charging import map_charging_ocm
-from mapping.stations import map_address_ocm, map_station_ocm
-from models.station import Station
-from pipelines._merger import StationMerger
-from pipelines._ocm import OcmPipeline
-from pipelines._osm import OsmPipeline
-from pipelines._bna import BnaPipeline
-from pipelines._france import FraPipeline
-from pipelines._gbgov import GbPipeline
-from settings import db_uri
-from testing import testdata
-from stations_data_export import stations_data_export
+from charging_stations_pipelines.pipelines._ocm import OcmPipeline
+from charging_stations_pipelines.pipelines._osm import OsmPipeline
+from charging_stations_pipelines.pipelines._bna import BnaPipeline
+from charging_stations_pipelines.pipelines._france import FraPipeline
+from charging_stations_pipelines.pipelines._gbgov import GbPipeline
+from charging_stations_pipelines.settings import db_uri
+from charging_stations_pipelines.stations_data_export import stations_data_export
 
 if __name__ == "__main__":
-    country_code = "GB"
+    country_code = "IT"
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
 
@@ -32,7 +27,7 @@ if __name__ == "__main__":
             session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
             offline=True,
         )
-        #bna.run()
+        bna.run()
 
     elif country_code == "FR":
         fra: FraPipeline = FraPipeline(
@@ -40,7 +35,7 @@ if __name__ == "__main__":
             session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
             offline=True,
         )
-        #fra.run()
+        fra.run()
 
     elif country_code == "GB":
         gb: GbPipeline = GbPipeline(
@@ -55,24 +50,24 @@ if __name__ == "__main__":
         country_code=country_code,
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
+        offline=False,
     )
-    #osm.run()
+    osm.run()
 
     ocm: OcmPipeline = OcmPipeline(
         country_code=country_code,
         config=config,
         session=sessionmaker(bind=(create_engine(db_uri, echo=True)))(),
-        offline=True,
+        offline=False,
     )
-    #ocm.run()
+    ocm.run()
 
 
-    from pipelines._merger import StationMerger
-    is_test = True
+    from charging_stations_pipelines.pipelines._merger import StationMerger
+    is_test = False
     logging.disable(logging.INFO) #only way to disable SQL Alchemy printing SQL statements, tried a lot
     merger: StationMerger = StationMerger(country_code=country_code, config=config, con=create_engine(db_uri, echo=False, pool_pre_ping=True), is_test=is_test)
-    #merger.run()
+    merger.run()
 
 
     #testdata.run()

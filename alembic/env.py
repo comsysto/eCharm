@@ -2,14 +2,13 @@ import os
 import sys
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from alembic import context
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from models import Base, address, charging, station
-from settings import db_uri
+from charging_stations_pipelines.settings import db_uri
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,9 +20,8 @@ fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = Base.metadata
+from charging_stations_pipelines import models
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -37,6 +35,7 @@ def exclude_tables_from_config(config_):
     if tables_ is not None:
         tables = tables_.split(",")
     return tables
+
 
 # Excluded tables are defined in alembic.ini in section [alembic:exclude], here for PostGIS table spatial_ref_sys
 exclude_tables = exclude_tables_from_config(config.get_section('alembic:exclude'))
