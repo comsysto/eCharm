@@ -1,14 +1,16 @@
 import json
+import logging
 import os
 import pathlib
+import re
 import shutil
 import subprocess
-import re
 from typing import Dict, List
 
 import pandas as pd
 from packaging import version
 
+logger = logging.getLogger(__name__)
 
 def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
     frame: pd.DataFrame = pd.DataFrame(data)
@@ -18,7 +20,7 @@ def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
 
 
 def merge_connection_types(
-    connection: pd.DataFrame, reference_data: pd.DataFrame
+        connection: pd.DataFrame, reference_data: pd.DataFrame
 ) -> pd.DataFrame:
     connection_ids: pd.Series = (
         connection["ConnectionTypeID"].dropna().drop_duplicates()
@@ -32,16 +34,16 @@ def merge_connection_types(
 
 
 def merge_address_infos(
-    address_info: pd.Series, reference_data: pd.DataFrame
+        address_info: pd.Series, reference_data: pd.DataFrame
 ) -> pd.DataFrame:
     return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
 
 
 def merge_with_reference_data(
-    row: pd.Series,
-    connection_types: pd.DataFrame,
-    address_info: pd.DataFrame,
-    operators: pd.DataFrame,
+        row: pd.Series,
+        connection_types: pd.DataFrame,
+        address_info: pd.DataFrame,
+        operators: pd.DataFrame,
 ):
     row["Connections"] = merge_connection_types(
         connection=pd.json_normalize(row["Connections"]),
@@ -67,7 +69,7 @@ def testSth(x):
     return x.to_frame()
 
 
-def ocm_extractor(tmp_file_path: str, country_code:str):
+def ocm_extractor(tmp_file_path: str, country_code: str):
     project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
     data_root_dir: str = os.path.join(project_data_dir, "ocm-export")
     data_dir: str = os.path.join(data_root_dir, f"data/{country_code}")
@@ -83,7 +85,8 @@ def ocm_extractor(tmp_file_path: str, country_code:str):
         raise RuntimeError(f"Could not parse git version! {e}")
     else:
         if git_version < version.parse("2.25.0"):
-            print(f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
+            logger.warning(
+                f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
             raise RuntimeError("Git version must be >= 2.25.0!")
 
     if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:
