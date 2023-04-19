@@ -1,4 +1,5 @@
 import configparser
+import logging
 import os
 import pathlib
 
@@ -9,8 +10,8 @@ from tqdm import tqdm
 
 from charging_stations_pipelines.mapping.charging import map_charging_fra
 from charging_stations_pipelines.mapping.stations import map_address_fra, map_station_fra
-from charging_stations_pipelines.utils.logging_utils import log
 
+logger = logging.getLogger(__name__)
 
 class FraPipeline:
     def __init__(self, config: configparser, session: Session, offline: bool = False):
@@ -44,9 +45,9 @@ class FraPipeline:
                 self.session.commit()
                 self.session.flush()
             except IntegrityError as e:
-                log.error(f"FRA-Entry exists already! Error: {e}")
+                logger.error(f"FRA-Entry exists already! Error: {e}")
                 self.session.rollback()
                 continue
             except Exception as e:
-                log.error(f"FRA-Pipeline failed to run! Error: {e}")
+                logger.error(f"FRA-Pipeline failed to run! Error: {e}")
                 self.session.rollback()

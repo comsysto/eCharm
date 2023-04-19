@@ -1,5 +1,6 @@
 import configparser
 import json
+import logging
 import os
 import pathlib
 from typing import Dict, Optional
@@ -10,8 +11,9 @@ from sqlalchemy.orm import Session
 from charging_stations_pipelines.mapping.charging import map_charging_gb
 from charging_stations_pipelines.mapping.stations import map_address_gb, map_station_gb
 from charging_stations_pipelines.utils.gb_receiver import get_gb_data
-from charging_stations_pipelines.utils.logging_utils import log
 
+
+logger = logging.getLogger(__name__)
 
 class GbPipeline:
     def __init__(self, country_code:str, config: configparser, session: Session, offline: bool = False):
@@ -33,6 +35,9 @@ class GbPipeline:
             self.data = json.load(f)
 
     def run(self):
+
+        logger.debug("Running GB Pipeline...")
+
         self._retrieve_data()
         entry: Dict
         for entry in self.data.get("ChargeDevice", []):
@@ -46,10 +51,10 @@ class GbPipeline:
                 self.session.commit()
                 self.session.flush()
             except IntegrityError as e:
-                log.error(f"GBGOV-Entry exists already! Error: {e}")
+                logger.error(f"GBGOV-Entry exists already! Error: {e}")
                 self.session.rollback()
                 continue
             except Exception as e:
-                log.error(f"GB-Pipeline failed to run! Error: {e}")
+                logger.error(f"GB-Pipeline failed to run! Error: {e}")
                 self.session.rollback()
 

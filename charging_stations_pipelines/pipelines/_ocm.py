@@ -1,5 +1,6 @@
 import configparser
 import json
+import logging
 import os
 import pathlib
 from typing import Dict, Optional
@@ -9,9 +10,10 @@ from sqlalchemy.orm import Session
 
 from charging_stations_pipelines.mapping.charging import map_charging_ocm
 from charging_stations_pipelines.mapping.stations import map_address_ocm, map_station_ocm
-from charging_stations_pipelines.utils.logging_utils import log
 from charging_stations_pipelines.utils.ocm_extractor import ocm_extractor
 
+
+logger = logging.getLogger(__name__)
 
 class OcmPipeline:
     def __init__(self, country_code:str, config: configparser, session: Session, offline: bool = False):
@@ -46,9 +48,9 @@ class OcmPipeline:
                 self.session.commit()
                 self.session.flush()
             except IntegrityError as e:
-                log.error(f"OCM-Entry exists already! Error: {e}")
+                logger.error(f"OCM-Entry exists already! Error: {e}")
                 self.session.rollback()
                 continue
             except Exception as e:
-                log.error(f"OCM-Pipeline failed to run! Error: {e}")
+                logger.error(f"OCM-Pipeline failed to run! Error: {e}")
                 self.session.rollback()

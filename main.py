@@ -1,3 +1,4 @@
+import logging
 import os
 import pathlib
 
@@ -12,13 +13,17 @@ from charging_stations_pipelines.pipelines._osm import OsmPipeline
 from charging_stations_pipelines.settings import db_uri
 from charging_stations_pipelines.stations_data_export import stations_data_export
 
+logger = logging.getLogger("charging_stations_pipelines.main")
+
 if __name__ == "__main__":
-    country_code = "IT"
+    country_code = "GB"
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
 
     config: configparser = configparser.RawConfigParser()
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
+
+    logger.debug("Selected country code: " + country_code)
 
     if country_code == "DE":
         bna: BnaPipeline = BnaPipeline(

@@ -1,7 +1,8 @@
-from charging_stations_pipelines.utils.logging_utils import log
+import logging
 
 import geopandas as gpd
 
+logger = logging.getLogger(__name__)
 
 def stations_data_export(db_connection, country_code: str, is_merged: bool=False, all_countries: bool=False, csv: bool=False):
 
@@ -24,7 +25,7 @@ def stations_data_export(db_connection, country_code: str, is_merged: bool=False
 
     gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
                                              con=db_connection, geom_col="point")
-    log.info(len(gdf))
+    logger.info(len(gdf))
 
     if csv:
         suffix = "csv"
@@ -36,7 +37,7 @@ def stations_data_export(db_connection, country_code: str, is_merged: bool=False
         json_data = gdf.to_json()
 
     filename = f"stations_{country_code}_{file_suffix_merged}.{suffix}"
-    log.debug(f"writing to {filename}")
+    logger.debug(f"writing to {filename}")
     with open(filename, "w") as outfile:
         outfile.write(json_data)
 

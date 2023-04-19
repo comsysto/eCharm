@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 import hashlib
 from typing import Dict, Optional
@@ -9,9 +10,9 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.utils.bna_functions import check_coordinates
-from charging_stations_pipelines.utils.logging_utils import log
 from geoalchemy2.shape import from_shape
 
+logger = logging.getLogger(__name__)
 
 def lat_long_hash(lat_row, long_row, data_source):
     id_hash: hashlib._Hash = hashlib.sha256(
@@ -31,12 +32,12 @@ def map_address_bna(row, station_id) -> Address:
     if len(postcode) == 4:
         postcode = "0" + postcode
     if len(postcode) != 5:
-        log.warning(
+        logger.warning(
             f"Failed to process postcode {postcode}! Will set postcode to None!"
         )
         postcode = None
     if len(town) < 2:
-        log.warning(f"Failed to process town {town}! Will set town to None!")
+        logger.warning(f"Failed to process town {town}! Will set town to None!")
         town = None
     map_address = Address()
     map_address.street = (street,)
@@ -83,7 +84,7 @@ def parse_date(date):
     try:
         return parser.parse(date)
     except TypeError as e:
-        log.debug(f"Could not parse DateCreated! {e}")
+        logger.debug(f"Could not parse DateCreated! {e}")
         return None
 
 
@@ -164,7 +165,7 @@ def map_address_fra(row, station_id):
     town: str = row["consolidated_commune"]
     country: str
     #if not pd.isna(town):
-        #log.warning(f"Failed to process town {town}! Will set town to None!")
+        #logger.warning(f"Failed to process town {town}! Will set town to None!")
        # town = None
     map_address = Address()
     map_address.street = (street,)

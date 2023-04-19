@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import contextmanager
 
@@ -7,13 +8,13 @@ import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from charging_stations_pipelines.utils.logging_utils import log
 
 ENV = os.getenv("ENV", "LOCAL").upper()
 
 from charging_stations_pipelines.settings import db_uri
 
-log.info(f"Database URI: {db_uri}")
+logger = logging.getLogger(__name__)
+logger.info(f"Database URI: {db_uri}")
 
 engine = create_engine(db_uri, pool_pre_ping=True)
 Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
