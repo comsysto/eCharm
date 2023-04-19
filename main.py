@@ -16,7 +16,7 @@ from charging_stations_pipelines.stations_data_export import stations_data_expor
 logger = logging.getLogger("charging_stations_pipelines.main")
 
 if __name__ == "__main__":
-    country_code = "GB"
+    country_code = "IT"
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
 
