@@ -7,8 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
 from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
-from charging_stations_pipelines.models.station import Station
-
+from charging_stations_pipelines.models.station import Station, MergedStationSource
 
 logger = logging.getLogger(__name__)
 
@@ -90,17 +89,16 @@ class StationMerger:
         merged_station = Station()
         merged_station.country_code = self.country_code
         merged_station.is_merged = True
+        for source_id in stations_to_merge['source_id']:
+            source = MergedStationSource(duplicate_source_id=source_id)
+            merged_station.source_stations.append(source)
 
         if isinstance(stations_to_merge, pd.Series):
             merged_station.data_source = stations_to_merge['data_source']
             merged_station.point = stations_to_merge['point'].wkt
             merged_station.operator = stations_to_merge['operator']
-            merged_station.source_id = f"MERGED_{stations_to_merge['source_id']}"
         else:
             merged_station.data_source = ",".join(stations_to_merge['data_source'].unique())
-            merged_station.source_id = f"MERGED_{','.join(stations_to_merge['source_id'].tolist())}"
-            # TODO: implement SQL table mapping from merged station to source stations
-            # merged_station.relations = source ids
 
             # get other attributes by priority:
             # coordinates in dataframe are WKB ? maybe convert to WKT?

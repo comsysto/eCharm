@@ -5,7 +5,7 @@ import pathlib
 
 from sqlalchemy import create_engine
 
-from charging_stations_pipelines.pipelines._merger import StationMerger
+from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.settings import db_uri
 import pandas as pd
 

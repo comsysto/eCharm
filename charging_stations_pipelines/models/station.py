@@ -1,5 +1,5 @@
 from geoalchemy2.types import Geography
-from sqlalchemy import Column, Date, Integer, String, Boolean, Index
+from sqlalchemy import Column, Date, Integer, String, Boolean, Index, ForeignKey
 from sqlalchemy.orm import relationship
 
 from charging_stations_pipelines.models import Base
@@ -8,7 +8,7 @@ from charging_stations_pipelines.models import Base
 class Station(Base):
     __tablename__ = "stations"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    source_id = Column(String, index=True, nullable=False, unique=True)
+    source_id = Column(String, index=True, nullable=True, unique=True)
     data_source = Column(String)
     operator = Column(String)
     payment = Column(String)
@@ -22,6 +22,7 @@ class Station(Base):
     charging = relationship("Charging", back_populates="station", uselist=False)
     is_merged = Column(Boolean, default=False)
     merge_status = Column(String)
+    source_stations = relationship("MergedStationSource")
 
 
     def __repr__(self):
@@ -34,23 +35,9 @@ Index(
     postgresql_using='gist',
 )
 
-"""
-class MergeRelation(Base):
-    __tablename__ = "merge_relations"
+
+class MergedStationSource(Base):
+    __tablename__ = 'merged_station_source'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    stations_id = Column(Integer, ForeignKey("stations.id"))
-
-
-class StationMerged(Station):
-    __tablename__ = "merged_stations"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    # every merged station should have mapping to sources,
-    # i.e. merge_relations 1:n mapping, maybe also with is_selected, is_duplicate otherwise extra columns for that in table?
-    merge_relations = relationship("MergeRelation")
-
-    __mapper_args__ = {
-        "polymorphic_identity": "merged_stations",
-        "concrete": True,
-    }
-
-"""
+    merged_station_id = Column(Integer, ForeignKey('stations.id'))
+    duplicate_source_id = Column(String)
