@@ -30,9 +30,9 @@ if __name__ == "__main__":
         bna: BnaPipeline = BnaPipeline(
             config=config,
             session=sessionmaker(bind=(create_engine(db_uri)))(),
-            offline=True,
+            offline=False,
         )
-        #bna.run()
+        bna.run()
 
     elif country_code == "FR":
         fra: FraPipeline = FraPipeline(
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         session=sessionmaker(bind=(create_engine(db_uri)))(),
         offline=False,
     )
-    #osm.run()
+    osm.run()
 
     ocm: OcmPipeline = OcmPipeline(
         country_code=country_code,
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         session=sessionmaker(bind=(create_engine(db_uri)))(),
         offline=False,
     )
-    #ocm.run()
+    ocm.run()
 
 
     is_test = False
@@ -75,4 +75,4 @@ if __name__ == "__main__":
 
     #testdata.run()
 
-    stations_data_export(create_engine(db_uri), country_code, is_merged=False, csv=True, all_countries=False)
+    #stations_data_export(create_engine(db_uri), country_code, is_merged=False, csv=True, all_countries=False)
