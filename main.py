@@ -5,6 +5,7 @@ import pathlib
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.pipelines._bna import BnaPipeline
 from charging_stations_pipelines.pipelines._france import FraPipeline
 from charging_stations_pipelines.pipelines._gbgov import GbPipeline
@@ -16,7 +17,7 @@ from charging_stations_pipelines.stations_data_export import stations_data_expor
 logger = logging.getLogger("charging_stations_pipelines.main")
 
 if __name__ == "__main__":
-    country_code = "IT"
+    country_code = "DE"
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     import configparser
 
@@ -31,7 +32,7 @@ if __name__ == "__main__":
             session=sessionmaker(bind=(create_engine(db_uri)))(),
             offline=True,
         )
-        bna.run()
+        #bna.run()
 
     elif country_code == "FR":
         fra: FraPipeline = FraPipeline(
@@ -56,7 +57,7 @@ if __name__ == "__main__":
         session=sessionmaker(bind=(create_engine(db_uri)))(),
         offline=False,
     )
-    osm.run()
+    #osm.run()
 
     ocm: OcmPipeline = OcmPipeline(
         country_code=country_code,
@@ -64,10 +65,9 @@ if __name__ == "__main__":
         session=sessionmaker(bind=(create_engine(db_uri)))(),
         offline=False,
     )
-    ocm.run()
+    #ocm.run()
 
 
-    from charging_stations_pipelines.pipelines._merger import StationMerger
     is_test = False
     merger: StationMerger = StationMerger(country_code=country_code, config=config, con=create_engine(db_uri, pool_pre_ping=True), is_test=is_test)
     merger.run()

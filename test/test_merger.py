@@ -9,7 +9,7 @@ from testcontainers.postgres import PostgresContainer
 
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines._merger import StationMerger
+from charging_stations_pipelines.deduplication.merger import StationMerger
 from test.shared import get_config, create_station
 
 
@@ -33,8 +33,10 @@ class TestStationMerger(TestCase):
 
         station_one = create_station()
         station_one.data_source = "BNA"
+        station_one.source_id = "BNA_ID1"
         station_duplicate = create_station()
         station_duplicate.data_source = "OSM"
+        station_duplicate.source_id = "OSM_ID1"
 
         session.add(station_one)
         session.add(station_duplicate)
@@ -46,7 +48,6 @@ class TestStationMerger(TestCase):
 
         # then: the two duplicates are merged
         stations = session.query(Station).all()
-        session.close()
         self.assertEqual(3, len(stations))
         self.assertEqual("is_duplicate", station_one.merge_status)
         self.assertEqual("is_duplicate", station_duplicate.merge_status)
@@ -54,6 +55,11 @@ class TestStationMerger(TestCase):
         self.assertFalse(station_duplicate.is_merged)
         merged_stations = list(filter(lambda s: s.is_merged is True, stations))
         self.assertEqual(1, len(merged_stations))
+        merged_station: Station = merged_stations[0]
+        self.assertEqual(2, len(merged_station.source_stations))
+        self.assertEqual("OSM_ID1", merged_station.source_stations[0].duplicate_source_id)
+        self.assertEqual("BNA_ID1", merged_station.source_stations[1].duplicate_source_id)
+        session.close()
 
     def test_OCM_should_have_higher_prio_than_BNA(self):
         # given: setup db with two duplicated station entries
