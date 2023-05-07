@@ -89,14 +89,13 @@ class StationMerger:
         merged_station = Station()
         merged_station.country_code = self.country_code
         merged_station.is_merged = True
-        for source_id in stations_to_merge['source_id']:
-            source = MergedStationSource(duplicate_source_id=source_id)
-            merged_station.source_stations.append(source)
 
         if isinstance(stations_to_merge, pd.Series):
             merged_station.data_source = stations_to_merge['data_source']
             merged_station.point = stations_to_merge['point'].wkt
             merged_station.operator = stations_to_merge['operator']
+            source = MergedStationSource(duplicate_source_id=stations_to_merge['source_id'])
+            merged_station.source_stations.append(source)
         else:
             merged_station.data_source = ",".join(stations_to_merge['data_source'].unique())
 
@@ -105,6 +104,9 @@ class StationMerger:
             point = get_attribute_by_priority('point', priority_list=['OSM', 'OCM', self.gov_source])
             merged_station.point = point.wkt
             merged_station.operator = get_attribute_by_priority('operator')
+            for source_id in stations_to_merge['source_id']:
+                source = MergedStationSource(duplicate_source_id=source_id)
+                merged_station.source_stations.append(source)
 
         return merged_station
 
