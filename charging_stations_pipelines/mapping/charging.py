@@ -1,3 +1,4 @@
+import logging
 import math
 from numbers import Number
 from typing import List, Optional
@@ -5,7 +6,6 @@ from typing import List, Optional
 import pandas as pd
 
 from charging_stations_pipelines.models.charging import Charging
-from charging_stations_pipelines.utils.logging_utils import log
 
 # max sockets/charging points per charging station
 MAX_CAPACITY = 4
@@ -16,6 +16,7 @@ AVG_CAPACITY = 2
 # min electrical power (in kW) per charging station
 MIN_KW = 5
 
+logger = logging.getLogger(__name__)
 
 def _clean_attributes(charging: Charging):
     if charging.capacity and charging.capacity > MAX_CAPACITY:
@@ -29,18 +30,18 @@ def map_charging_bna(row, station_id):
     if isinstance(total_kw, str):
         try:
             total_kw = float(total_kw.replace(",", "."))
-            log.debug(f"Converting total_kw from string {total_kw} to int!")
+            logger.debug(f"Converting total_kw from string {total_kw} to int!")
         except Exception as conversionErr:
-            log.warning(
+            logger.warning(
                 f"Failed to convert string {total_kw} to Number! Will set total_kw to None! {conversionErr}"
             )
             total_kw = None
     if isinstance(total_kw, Number):
         if math.isnan(total_kw):
-            # log.warn("Found nan in total_kw! Will set total_kw to None!")
+            # logger.warn("Found nan in total_kw! Will set total_kw to None!")
             total_kw = None
     if not isinstance(total_kw, Number):
-        log.warn(
+        logger.warn(
             f"Cannot process total_kw {total_kw} with type {type(total_kw)}! Will set total_kw to None!"
         )
         total_kw = None
@@ -55,14 +56,14 @@ def map_charging_bna(row, station_id):
         if isinstance(v, str):
             if "," in v:
                 v: str = v.replace(",", ".")
-                log.debug(
+                logger.debug(
                     "Replaced coma with point for string to float conversion of kw!"
                 )
             try:
                 float_kw: float = float(v)
                 kw_list += [float_kw]
             except:
-                log.warn(
+                logger.warn(
                     f"Failed to convert kw string {v} to float! Will not add this kw entry to list!"
                 )
         if isinstance(v, Number):
@@ -70,7 +71,7 @@ def map_charging_bna(row, station_id):
 
     capacity: Optional[int] = row["Anzahl Ladepunkte"]
     if len(kw_list) != row["Anzahl Ladepunkte"]:
-        log.warning(f"kw_list {kw_list} length does not equal capacity {capacity}!")
+        logger.warning(f"kw_list {kw_list} length does not equal capacity {capacity}!")
 
     # Stations with only Schuko-Steckern are no charging stations for cars.
     # if kw_list and max(kw_list) < MIN_KW:
@@ -94,7 +95,7 @@ def map_charging_bna(row, station_id):
         socket_type_list += socket_types_info.split(",")
     kw_list_len: int = len(kw_list)
     if len(kw_list) != capacity:
-        log.warning(
+        logger.warning(
             f"Difference between length of kw_list {kw_list_len} and capacity {capacity}!"
         )
 

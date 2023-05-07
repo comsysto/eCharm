@@ -1,4 +1,5 @@
 import configparser
+import logging
 
 import geopandas as gpd
 import pandas as pd
@@ -8,6 +9,8 @@ from tqdm import tqdm
 from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
 from charging_stations_pipelines.models.station import Station
 
+
+logger = logging.getLogger(__name__)
 
 class StationMerger:
     def __init__(self, country_code: str, config: configparser, con, is_test: bool = False):
@@ -81,7 +84,7 @@ class StationMerger:
                     attribute = stations_by_source.iloc[0]
                     break
             if not attribute:
-                print(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
+                logger.debug(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
             return attribute
 
         merged_station = Station()
@@ -145,31 +148,28 @@ class StationMerger:
                 session.commit()
                 session.flush()
             except Exception as e:
-                print(f"Writing merged stations failed! Error: {e}")
-                print(e)
+                logger.error(f"Writing merged stations failed! Error: {e}")
                 session.rollback()
 
         # For each station's coordinate find all surrounding stations within a certain radius (including itself)
         radius_m = 100
         for idx in tqdm(range(gdf.shape[0])):
             current_station: gpd.GeoSeries = gdf.iloc[idx]
-            # print(f"{current_station}")
 
             # find real duplicates to current station
             duplicates, current_station_full = self.find_duplicates(current_station['station_id'],
                                                                     current_station['point'], radius_m)
-            # print(duplicates)
             if not duplicates.empty:
                 stations_to_merge = duplicates.append(current_station_full)
                 station_ids = stations_to_merge['station_id_col'].tolist()
             else:
-                print(f"Only current station, no duplicates")
+                logger.debug(f"Only current station, no duplicates")
                 stations_to_merge = current_station_full  # .to_frame()
                 station_ids = [current_station['station_id'].item()]
 
             if not stations_to_merge.empty:
                 # merge attributes of duplicates into one station
-                print(station_ids)
+                logger.debug(station_ids)
                 session.query(Station).filter(Station.id.in_(station_ids)) \
                     .update({Station.merge_status: "is_duplicate"}, synchronize_session='fetch')
                 merged_station: Station = self._merge_duplicates(stations_to_merge)
@@ -205,15 +205,14 @@ class StationMerger:
                                                    center_coordinates=current_station_coordinates,
                                                    radius_m=radius_m,
                                                    country_code=self.country_code)
-        # print(sql)
         nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="point")
 
         if nearby_stations.empty:
-            print(f"##### Already merged, id {current_station_id} #####")
+            logger.debug(f"##### Already merged, id {current_station_id} #####")
             return gpd.GeoDataFrame(), gpd.GeoSeries()
 
-        print(f"coordinates of current station: {current_station_coordinates}, ID: {current_station_id}")
-        print(f"# nearby stations incl current: {len(nearby_stations)}")
+        logger.debug(f"coordinates of current station: {current_station_coordinates}, ID: {current_station_id}")
+        logger.debug(f"# nearby stations incl current: {len(nearby_stations)}")
         # copy station id to new column otherwise it's not addressable as column after setting index
         station_id_col = 'station_id_col'
         nearby_stations[station_id_col] = nearby_stations['station_id']
@@ -229,11 +228,9 @@ class StationMerger:
         current_station_full: pd.Series = \
             nearby_stations[nearby_stations[station_id_name] == current_station_id].squeeze()
 
-        print(current_station_full)
+        logger.debug(current_station_full)
 
         pd.set_option('display.max_columns', None)
-        # print(f"All stations in radius: {nearby_stations}")
-        # print(f"Current station: {nearby_stations[nearby_stations[station_id_name] == current_station_id]}")
         # skip if only center station itself was found
         if len(nearby_stations) >= 2:
 
