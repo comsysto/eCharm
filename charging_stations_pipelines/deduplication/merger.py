@@ -1,5 +1,6 @@
 import configparser
 import logging
+from typing import Tuple
 
 import geopandas as gpd
 import pandas as pd
@@ -159,17 +160,16 @@ class StationMerger:
             # find real duplicates to current station
             duplicates, current_station_full = self.find_duplicates(current_station['station_id'],
                                                                     current_station['point'], radius_m)
-            if not duplicates.empty:
-                stations_to_merge = duplicates.append(current_station_full)
-                station_ids = stations_to_merge['station_id_col'].tolist()
-            else:
+            if duplicates.empty:
                 logger.debug(f"Only current station, no duplicates")
                 stations_to_merge = current_station_full  # .to_frame()
                 station_ids = [current_station['station_id'].item()]
+            else:
+                stations_to_merge = pd.concat([duplicates, current_station_full.to_frame().T])
+                station_ids = stations_to_merge['station_id_col'].values.astype(int).tolist()
 
             if not stations_to_merge.empty:
                 # merge attributes of duplicates into one station
-                logger.debug(station_ids)
                 session.query(Station).filter(Station.id.in_(station_ids)) \
                     .update({Station.merge_status: "is_duplicate"}, synchronize_session='fetch')
                 merged_station: Station = self._merge_duplicates(stations_to_merge)
@@ -179,7 +179,7 @@ class StationMerger:
         # write_session(session)
 
     def find_duplicates(self, current_station_id, current_station_coordinates, radius_m,
-                        filter_by_source_id: bool = False) -> (gpd.GeoDataFrame, gpd.GeoSeries):
+                        filter_by_source_id: bool = False) -> Tuple[gpd.GeoDataFrame, gpd.GeoSeries]:
 
         find_surrounding_stations_sql = """ 
             SELECT 
