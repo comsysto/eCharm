@@ -72,6 +72,31 @@ class CommandLineArguments:
 def run_import(countries, online):
     db_session = sessionmaker(bind=(create_engine(db_uri)))()
     if "DE" in countries:
+    def __init__(self, argv) -> None:
+        super().__init__()
+        arg_help = "{0} --tasks=<task1,task2> --countries=<country1,country2> --online=<online>".format(argv[0])
+
+        try:
+            opts, args = getopt.getopt(argv[1:], "ht:c:o:", ["help", "tasks=", "countries=", "online="])
+        except:
+            logger.exception("Could not parse arguments")
+            raise
+
+        for opt, arg in opts:
+            if opt in ("-h", "--help"):
+                print(arg_help)  # print the help message
+                sys.exit(2)
+            elif opt in ("-t", "--tasks"):
+                self.tasks = arg.split(",")
+            elif opt in ("-c", "--countries"):
+                self.countries = arg.split(",")
+            elif opt in ("-o", "--online"):
+                self.online = bool(arg)
+
+
+def run_import(countries, online):
+    db_session = sessionmaker(bind=(create_engine(db_uri)))()
+    if "DE" in countries:
         bna: BnaPipeline = BnaPipeline(
             config=config,
             session=db_session,
