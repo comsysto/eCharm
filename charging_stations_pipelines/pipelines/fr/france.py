@@ -14,14 +14,14 @@ from charging_stations_pipelines.mapping.stations import map_address_fra, map_st
 logger = logging.getLogger(__name__)
 
 class FraPipeline:
-    def __init__(self, config: configparser, session: Session, offline: bool = False):
+    def __init__(self, config: configparser, session: Session, online: bool = False):
         self.config = config
         self.session = session
-        self.offline: bool = offline
+        self.online: bool = online
 
     def _retrieve_data(self):
         data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../..", "data"
+            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(data_dir, self.config["FRGOV"]["filename"])
