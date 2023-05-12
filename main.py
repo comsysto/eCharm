@@ -1,29 +1,20 @@
-import configparser
 import getopt
 import logging
-import os
-import pathlib
 import sys
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from charging_stations_pipelines.deduplication.merger import StationMerger
-from charging_stations_pipelines.pipelines.bna import BnaPipeline
-from charging_stations_pipelines.pipelines.france import FraPipeline
-from charging_stations_pipelines.pipelines.gbgov import GbPipeline
 from charging_stations_pipelines.pipelines.ocm import OcmPipeline
 from charging_stations_pipelines.pipelines.osm import OsmPipeline
+from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_factory
 from charging_stations_pipelines.settings import db_uri
-from charging_stations_pipelines.shared import reject_if
+from charging_stations_pipelines.shared import reject_if, config
 from charging_stations_pipelines.stations_data_export import stations_data_export
 from testing import testdata
 
 logger = logging.getLogger("charging_stations_pipelines.main")
-
-current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
-config: configparser = configparser.RawConfigParser()
-config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
 
 
 class CommandLineArguments:
@@ -112,45 +103,15 @@ def run_import(countries, online):
 
 def run_import(countries, online):
     db_session = sessionmaker(bind=(create_engine(db_uri)))()
-    if "DE" in countries:
-        bna: BnaPipeline = BnaPipeline(
-            config=config,
-            session=db_session,
-            offline=online,
-        )
-        bna.run()
-    elif "FR" in countries:
-        fra: FraPipeline = FraPipeline(
-            config=config,
-            session=db_session,
-            offline=online,
-        )
-        fra.run()
-
-    elif "GB" in countries:
-        gb: GbPipeline = GbPipeline(
-            country_code="GB",
-            config=config,
-            session=db_session,
-            offline=online,
-        )
-        gb.run()
 
     for country in countries:
-        osm: OsmPipeline = OsmPipeline(
-            country_code=country,
-            config=config,
-            session=db_session,
-            offline=online,
-        )
+        gov_pipeline = pipeline_factory(country, online)
+        gov_pipeline.run()
+
+        osm: OsmPipeline = OsmPipeline(country, config, db_session, online)
         osm.run()
 
-        ocm: OcmPipeline = OcmPipeline(
-            country_code=country,
-            config=config,
-            session=db_session,
-            offline=online,
-        )
+        ocm: OcmPipeline = OcmPipeline(country, config, db_session, online)
         ocm.run()
 
 
@@ -167,7 +128,6 @@ def run_export(countries):
 
 
 if __name__ == "__main__":
-
     command_line_arguments = CommandLineArguments(sys.argv)
 
     for task in command_line_arguments.tasks:
