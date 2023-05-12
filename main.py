@@ -9,12 +9,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from charging_stations_pipelines.deduplication.merger import StationMerger
-from charging_stations_pipelines.pipelines._bna import BnaPipeline
-from charging_stations_pipelines.pipelines._france import FraPipeline
-from charging_stations_pipelines.pipelines._gbgov import GbPipeline
-from charging_stations_pipelines.pipelines._ocm import OcmPipeline
-from charging_stations_pipelines.pipelines._osm import OsmPipeline
+from charging_stations_pipelines.pipelines.bna import BnaPipeline
+from charging_stations_pipelines.pipelines.france import FraPipeline
+from charging_stations_pipelines.pipelines.gbgov import GbPipeline
+from charging_stations_pipelines.pipelines.ocm import OcmPipeline
+from charging_stations_pipelines.pipelines.osm import OsmPipeline
 from charging_stations_pipelines.settings import db_uri
+from charging_stations_pipelines.shared import reject_if
 from charging_stations_pipelines.stations_data_export import stations_data_export
 from testing import testdata
 
@@ -32,24 +33,40 @@ class CommandLineArguments:
 
     def __init__(self, argv) -> None:
         super().__init__()
-        arg_help = "{0} --tasks=<task1,task2> --countries=<country1,country2> --online=<online>".format(argv[0])
+        self.argv = argv
 
         try:
             opts, args = getopt.getopt(argv[1:], "ht:c:o:", ["help", "tasks=", "countries=", "online="])
-        except:
+        except Exception:
             logger.exception("Could not parse arguments")
             raise
 
         for opt, arg in opts:
             if opt in ("-h", "--help"):
-                print(arg_help)  # print the help message
-                sys.exit(2)
+                self.print_help()
             elif opt in ("-t", "--tasks"):
                 self.tasks = arg.split(",")
             elif opt in ("-c", "--countries"):
-                self.countries = arg.split(",")
+                self.countries = [c.upper() for c in arg.split(",")]
             elif opt in ("-o", "--online"):
                 self.online = bool(arg)
+        self.validate()
+
+    def print_help(self):
+        arg_help = "{0} --tasks=<task1,task2> --countries=<country1,country2> --online=<online>".format(self.argv[0])
+        print(arg_help)
+        print("Example: python main.py --countries=de,it --tasks=import --online=true")
+        sys.exit(2)
+
+    def validate(self):
+        if not self.tasks or not self.countries:
+            self.print_help()
+
+        accepted_tasks = ["import", "merge", "testdata", "export"]
+        reject_if(not all(t in accepted_tasks for t in self.tasks), "Invalid task")
+
+        accepted_countries = ["DE", "FR", "GB", "IT"]
+        reject_if(not all(t in accepted_countries for t in self.countries), "Invalid country")
 
 
 def run_import(countries, online):
