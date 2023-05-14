@@ -6,11 +6,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from charging_stations_pipelines.deduplication.merger import StationMerger
-from charging_stations_pipelines.pipelines.ocm import OcmPipeline
-from charging_stations_pipelines.pipelines.osm import OsmPipeline
+from charging_stations_pipelines.pipelines.ocm.ocm import OcmPipeline
+from charging_stations_pipelines.pipelines.osm.osm import OsmPipeline
 from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_factory
 from charging_stations_pipelines.settings import db_uri
-from charging_stations_pipelines.shared import reject_if, config
+from charging_stations_pipelines.shared import reject_if, config, string_to_bool
 from charging_stations_pipelines.stations_data_export import stations_data_export
 from testing import testdata
 
@@ -40,7 +40,7 @@ class CommandLineArguments:
             elif opt in ("-c", "--countries"):
                 self.countries = [c.upper() for c in arg.split(",")]
             elif opt in ("-o", "--online"):
-                self.online = bool(arg)
+                self.online = string_to_bool(arg)
         self.validate()
 
     def print_help(self):
