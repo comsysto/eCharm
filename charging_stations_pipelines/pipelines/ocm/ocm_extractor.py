@@ -124,7 +124,7 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
                 records += [(json.load(f))]
     data: pd.DataFrame = pd.json_normalize(records)
 
-    with open(os.path.join(data_dir, "../..", "referencedata.json"), "r+") as f:
+    with open(os.path.join(data_dir, "..", "referencedata.json"), "r+") as f:
         data_ref: Dict = json.load(f)
 
     connection_types: pd.DataFrame = pd.json_normalize(data_ref["ConnectionTypes"])
