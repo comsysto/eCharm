@@ -4,14 +4,18 @@ import os
 import pathlib
 
 import pandas as pd
+import requests as requests
+from bs4 import BeautifulSoup
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from charging_stations_pipelines.mapping.charging import map_charging_fra
 from charging_stations_pipelines.mapping.stations import map_address_fra, map_station_fra
+from charging_stations_pipelines.shared import reject_if, download_file
 
 logger = logging.getLogger(__name__)
+
 
 class FraPipeline:
     def __init__(self, config: configparser, session: Session, online: bool = False):
@@ -25,8 +29,8 @@ class FraPipeline:
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(data_dir, self.config["FRGOV"]["filename"])
-        # if not self.offline:
-        # get_bna_data(tmp_data_path)
+        if self.online:
+            self.download_france_gov_file(tmp_data_path)
         self.data = pd.read_csv(os.path.join(data_dir, "france_stations.csv"), delimiter=",", encoding="utf-8",
                                 encoding_errors="replace")
 
@@ -51,3 +55,17 @@ class FraPipeline:
             except Exception as e:
                 logger.error(f"FRA-Pipeline failed to run! Error: {e}")
                 self.session.rollback()
+
+    @staticmethod
+    def download_france_gov_file(target_file):
+        base_url = "https://transport.data.gouv.fr/resources/79624"
+
+        r = requests.get(base_url, headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(r.content, "html.parser")
+
+        all_links_on_gov_page = soup.findAll('a')
+
+        link_to_dataset = list(
+            filter(lambda a: a["href"].startswith("https://www.data.gouv.fr/fr/datasets"), all_links_on_gov_page))
+        reject_if(len(link_to_dataset) != 1, "Could not determine source for french government data")
+        download_file(link_to_dataset[0]["href"], target_file)
