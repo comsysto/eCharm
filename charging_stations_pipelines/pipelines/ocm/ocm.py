@@ -10,26 +10,26 @@ from sqlalchemy.orm import Session
 
 from charging_stations_pipelines.mapping.charging import map_charging_ocm
 from charging_stations_pipelines.mapping.stations import map_address_ocm, map_station_ocm
-from charging_stations_pipelines.utils.ocm_extractor import ocm_extractor
+from charging_stations_pipelines.pipelines.ocm.ocm_extractor import ocm_extractor
 
 
 logger = logging.getLogger(__name__)
 
 class OcmPipeline:
-    def __init__(self, country_code:str, config: configparser, session: Session, offline: bool = False):
+    def __init__(self, country_code:str, config: configparser, session: Session, online: bool = False):
         self.country_code = country_code
         self.config = config
         self.session = session
-        self.offline: bool = offline
+        self.online: bool = online
         self.data: Optional[Dict] = None
 
     def _retrieve_data(self):
         data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../..", "data"
+            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OCM"]["filename"])
-        if not self.offline:
+        if self.online:
             ocm_extractor(tmp_file_path, self.country_code)
         with open(tmp_file_path, "r") as f:
             self.data = json.load(f)

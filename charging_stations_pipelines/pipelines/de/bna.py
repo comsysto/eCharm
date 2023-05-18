@@ -9,25 +9,26 @@ from tqdm import tqdm
 
 from charging_stations_pipelines.mapping.charging import map_charging_bna
 from charging_stations_pipelines.mapping.stations import map_address_bna, map_station_bna
-from charging_stations_pipelines.services.excel_file_loader_service import ExcelFileLoaderService
-from charging_stations_pipelines.utils.bna_crawler import get_bna_data
+from charging_stations_pipelines.pipelines.de.bna_crawler import get_bna_data
+from charging_stations_pipelines.shared import load_excel_file
 
 logger = logging.getLogger(__name__)
 
+
 class BnaPipeline:
-    def __init__(self, config: configparser, session: Session, offline: bool = False):
+    def __init__(self, config: configparser, session: Session, online: bool = False):
         self.config = config
         self.session = session
-        self.offline: bool = offline
-        relative_dir = os.path.join("../..", "data")
+        self.online: bool = online
+        relative_dir = os.path.join("../../..", "data")
         self.data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
 
     def _retrieve_data(self):
         pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(self.data_dir, self.config["BNA"]["filename"])
-        if not self.offline:
+        if self.online:
             get_bna_data(tmp_data_path)
-        self.data = ExcelFileLoaderService().load(tmp_data_path)
+        self.data = load_excel_file(tmp_data_path)
 
     def run(self):
         self._retrieve_data()

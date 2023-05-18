@@ -9,7 +9,7 @@ from shapely.geometry import Point
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.utils.bna_functions import check_coordinates
+from charging_stations_pipelines.pipelines.de.bna_functions import check_coordinates
 from geoalchemy2.shape import from_shape
 
 logger = logging.getLogger(__name__)

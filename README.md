@@ -101,7 +101,7 @@ pip install -r test/requirements.txt
 ```
 You can run all tests under `/test` by running the following command:
 ```bash
-python -m unittest
+python -m unittest discover test
 ```
 
 ### Testdata import

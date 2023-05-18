@@ -1,5 +1,7 @@
-import requests
+import requests as requests
 from bs4 import BeautifulSoup
+
+from charging_stations_pipelines.shared import download_file
 
 
 def get_bna_data(tmp_data_path: str):
@@ -15,9 +17,5 @@ def get_bna_data(tmp_data_path: str):
     path_to_file = download_link.get("href")
     full_download_link = "https://www.bundesnetzagentur.de" + path_to_file
 
-    resp = requests.get(full_download_link)
+    download_file(full_download_link, tmp_data_path)
 
-    # save excel file
-    output = open(tmp_data_path, "wb")
-    output.write(resp.content)
-    output.close()
