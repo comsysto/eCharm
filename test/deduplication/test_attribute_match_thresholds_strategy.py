@@ -62,5 +62,7 @@ class Test(TestCase):
 
         actual = attribute_match_thresholds_duplicates(station_to_check, duplicate_candidates, "unused")
 
-        print(actual)
-        print(actual.iloc[0])
+        self.assertTrue(actual.iloc[0].is_duplicate)
+        self.assertTrue(actual.iloc[1].is_duplicate)
+        self.assertTrue(actual.iloc[2].is_duplicate)
+        self.assertFalse(actual.iloc[3].is_duplicate)
