@@ -52,8 +52,8 @@ class Test(TestCase):
             "is_duplicate": False,
             "source_id": "9063198709",
             "data_source": "OSM",
-            "operator": "xxx",
-            "address": "xxx",
+            "operator": "Stefan und Mo",
+            "address": "Riesstraße in München",
             "distance": 90.0
         }
 
