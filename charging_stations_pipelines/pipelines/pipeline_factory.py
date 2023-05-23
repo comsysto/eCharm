@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from charging_stations_pipelines.pipelines.de.bna import BnaPipeline
 from charging_stations_pipelines.pipelines.fr.france import FraPipeline
 from charging_stations_pipelines.pipelines.gb.gbgov import GbPipeline
+from charging_stations_pipelines.pipelines.nor.NorPipeline import NorPipeline
 from charging_stations_pipelines.settings import db_uri
 from charging_stations_pipelines.shared import config
 
@@ -19,6 +20,7 @@ def pipeline_factory(country="DE", online: bool = True):
         "DE": BnaPipeline(config, db_session, online),
         "FR": FraPipeline(config, db_session, online),
         "GB": GbPipeline(config, db_session, online),
+        "NOR": NorPipeline(config, db_session, online),
     }
     if country in pipelines:
         return pipelines[country]
