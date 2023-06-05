@@ -1,11 +1,19 @@
+import hashlib
 import logging
 import math
 from numbers import Number
-from typing import List, Optional
+from typing import Optional, List
 
 import pandas as pd
+from geoalchemy2.shape import from_shape
+from shapely.geometry import Point
 
+from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
+from charging_stations_pipelines.models.station import Station
+from charging_stations_pipelines.pipelines.shared import check_coordinates
+
+logger = logging.getLogger(__name__)
 
 # max sockets/charging points per charging station
 MAX_CAPACITY = 4
@@ -13,15 +21,61 @@ MAX_CAPACITY = 4
 # average capacity across all charging stations is set when capacity>MAX_CAPACITY
 AVG_CAPACITY = 2
 
-# min electrical power (in kW) per charging station
-MIN_KW = 5
 
-logger = logging.getLogger(__name__)
+def lat_long_hash(lat_row, long_row, data_source):
+    id_hash: hashlib._Hash = hashlib.sha256(
+        f"{lat_row}{long_row}{data_source}".encode("utf8")
+    )
+    identifier: str = id_hash.hexdigest()
+    return identifier
+
 
 def _clean_attributes(charging: Charging):
     if charging.capacity and charging.capacity > MAX_CAPACITY:
         charging.charging = AVG_CAPACITY
     return charging
+
+
+def map_station_bna(row):
+    lat = check_coordinates(row["Breitengrad"])
+    long = check_coordinates(row["Längengrad"])
+
+    new_station = Station()
+    datasource = "BNA"
+    new_station.country_code = "DE"
+    new_station.source_id = lat_long_hash(lat, long, datasource)
+    new_station.operator = row["Betreiber"]
+    new_station.data_source = datasource
+    new_station.point = from_shape(Point(float(long), float(lat)))
+    new_station.date_created = (row["Inbetriebnahmedatum"].strftime("%Y-%m-%d"),)
+    return new_station
+
+
+def map_address_bna(row, station_id) -> Address:
+    street: str = row["Straße"] + " " + str(row["Hausnummer"])
+    postcode: str = str(row["Postleitzahl"])
+    town: str = row["Ort"]
+    state_old: str
+    country: str
+    # workaround to keep leading zero in postcode
+    if len(postcode) == 4:
+        postcode = "0" + postcode
+    if len(postcode) != 5:
+        logger.warning(
+            f"Failed to process postcode {postcode}! Will set postcode to None!"
+        )
+        postcode = None
+    if len(town) < 2:
+        logger.warning(f"Failed to process town {town}! Will set town to None!")
+        town = None
+    map_address = Address()
+    map_address.street = (street,)
+    map_address.town = (town,)
+    map_address.postcode = (postcode,)
+    map_address.district_old = (row["Kreis/kreisfreie Stadt"],)
+    map_address.state_old = (row["Bundesland"],)
+    map_address.country = ("DE",)
+    return map_address
 
 
 def map_charging_bna(row, station_id):
@@ -89,7 +143,7 @@ def map_charging_bna(row, station_id):
     for socket_types_info in socket_types_infos:
         tmp_socket_info: List[str] = socket_types_info.split(",")
         if (not dc_support) & (
-            any(["DC" in s for s in tmp_socket_info])
+                any(["DC" in s for s in tmp_socket_info])
         ):  # TODO: find more reliable way!
             dc_support = True
         socket_type_list += socket_types_info.split(",")
@@ -111,61 +165,3 @@ def map_charging_bna(row, station_id):
     charging.max_kw = max(kw_list) if kw_list else None
     charging = _clean_attributes(charging)
     return charging
-
-
-def map_charging_ocm(row, station_id):
-    connections: pd.DataFrame = pd.DataFrame(row.get("Connections", [])).transpose()
-
-    mapped_charging_ocm = Charging()
-    mapped_charging_ocm.station_id = station_id
-    mapped_charging_ocm.capacity = row.get("NumberOfPoints")
-    mapped_charging_ocm.kw_list = None
-    mapped_charging_ocm.ampere_list = (
-        connections["Amps"].to_list() if "Amps" in connections.columns else None
-    )
-    mapped_charging_ocm.volt_list = (
-        connections["Voltage"].to_list() if "Voltage" in connections.columns else None
-    )
-    mapped_charging_ocm.socket_type_list = (
-        connections["Title"].str.cat(sep=",")
-        if "Title" in connections.columns
-        else None
-    )
-    mapped_charging_ocm.dc_support = None
-    mapped_charging_ocm.total_kw = (
-        connections["PowerKW"].dropna().sum()
-        if "PowerKW" in connections.columns
-        else None
-    )
-    mapped_charging_ocm.max_kw = (
-        connections["PowerKW"].dropna().max()
-        if "PowerKW" in connections.columns
-        else None
-    )
-
-    return mapped_charging_ocm
-
-
-def map_charging_osm(entry, station_id):
-    charging = Charging()
-    charging.station_id = station_id
-    # TODO: read charging info
-    return charging
-
-
-def map_charging_fra(row, station_id):
-
-    mapped_charging_fra:Charging = Charging()
-    mapped_charging_fra.capacity = row["nbre_pdc"]
-    
-    return mapped_charging_fra
-
-
-def map_charging_gb(entry, station_id):
-    mapped_charging_gb:Charging = Charging()
-    mapped_charging_gb.capacity = entry.get("RatedOutputCurrent")
-    #above is not correct information (just there for testing purposes)
-    # TODO:find way to count the points of charge for each station
-    #since this information is not available in the json
-
-    return mapped_charging_gb

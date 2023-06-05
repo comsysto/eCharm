@@ -10,8 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from charging_stations_pipelines.mapping.charging import map_charging_fra
-from charging_stations_pipelines.mapping.stations import map_address_fra, map_station_fra
+from charging_stations_pipelines.pipelines.fr.france_mapper import map_address_fra, map_charging_fra, map_station_fra
 from charging_stations_pipelines.shared import reject_if, download_file
 
 logger = logging.getLogger(__name__)

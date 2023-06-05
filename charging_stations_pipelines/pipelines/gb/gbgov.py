@@ -8,8 +8,7 @@ from typing import Dict, Optional
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from charging_stations_pipelines.mapping.charging import map_charging_gb
-from charging_stations_pipelines.mapping.stations import map_address_gb, map_station_gb
+from charging_stations_pipelines.pipelines.gb.gb_mapper import map_address_gb, map_charging_gb, map_station_gb
 from charging_stations_pipelines.pipelines.gb.gb_receiver import get_gb_data
 
 logger = logging.getLogger(__name__)
@@ -41,7 +40,7 @@ class GbPipeline:
         entry: Dict
         for entry in self.data.get("ChargeDevice", []):
             mapped_address = map_address_gb(entry, None)
-            mapped_charging = map_charging_gb(entry, None)
+            mapped_charging = map_charging_gb(entry)
             mapped_station = map_station_gb(entry, "GB")
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
