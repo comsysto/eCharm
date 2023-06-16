@@ -1,4 +1,4 @@
-# charging-stations-pipelines
+# eCharm: Electric Vehicle Charging Map
 
 ## Table of contents
 * [General info](#general-info)
@@ -6,7 +6,7 @@
 * [Contributing](#contributing)
 
 ## General info
-`charging-stations-pipelines` can best be described as an electronic vehicle charging stations data integrator. 
+`eCharm` stands for Electric Vehicle Charging Map and can best be described as an electronic vehicle charging stations data integrator. 
 It downloads data from different publicly available sources, converts it into a common format, 
 searches for duplicates in the different sources and merges the data (e.g. the attributes). 
 All steps are decoupled, so it's easy to integrate your own data source.
