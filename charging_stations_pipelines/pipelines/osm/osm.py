@@ -8,8 +8,7 @@ from typing import Dict, Optional
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from charging_stations_pipelines.mapping.charging import map_charging_osm
-from charging_stations_pipelines.mapping.stations import map_address_osm, map_station_osm
+from charging_stations_pipelines.pipelines.osm.osm_mapper import map_address_osm, map_charging_osm, map_station_osm
 from charging_stations_pipelines.pipelines.osm.osm_receiver import get_osm_data
 
 logger = logging.getLogger(__name__)
@@ -39,7 +38,7 @@ class OsmPipeline:
         entry: Dict
         for entry in self.data.get("elements", []):
             mapped_address = map_address_osm(entry, None)
-            mapped_charging = map_charging_osm(entry, None)
+            mapped_charging = map_charging_osm(entry)
             mapped_station = map_station_osm(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
