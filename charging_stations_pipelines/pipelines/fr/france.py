@@ -37,8 +37,8 @@ class FraPipeline:
         self._retrieve_data()
         self.data.drop_duplicates(subset=["id_station_itinerance"], inplace=True)
         for _, row in tqdm(self.data.iterrows()):
-            mapped_address = map_address_fra(row, None)
-            mapped_charging = map_charging_fra(row, None)
+            mapped_address = map_address_fra(row)
+            mapped_charging = map_charging_fra(row)
             mapped_station = map_station_fra(row)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
