@@ -52,7 +52,7 @@ def _map_station_to_domain(nobil_station: NobilStation, country_code: str) -> St
     new_station.source_id = str(nobil_station.id)
     new_station.data_source = "NOBIL"
     new_station.operator = nobil_station.operator
-    long, lat = _extract_lon_lat_from_position(nobil_station.position)
+    lat, long = _extract_lon_lat_from_position(nobil_station.position)
     new_station.point = from_shape(Point(float(long), float(lat)))
     new_station.date_created = nobil_station.created
     new_station.date_updated = nobil_station.updated
@@ -86,8 +86,8 @@ class NobilPipeline:
         self.session = session
 
         accepted_country_codes = ["NOR", "SWE"]
-        reject_if(country_code not in accepted_country_codes, "Invalid country code ")
-        self.country_code = country_code
+        reject_if(country_code.upper() not in accepted_country_codes, "Invalid country code ")
+        self.country_code = country_code.upper()
         self.online: bool = online
 
     def run(self):
