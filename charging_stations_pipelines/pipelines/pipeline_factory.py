@@ -20,7 +20,8 @@ def pipeline_factory(country="DE", online: bool = True):
         "DE": BnaPipeline(config, db_session, online),
         "FR": FraPipeline(config, db_session, online),
         "GB": GbPipeline(config, db_session, online),
-        "NOR": NobilPipeline(config, db_session, online),
+        "NOR": NobilPipeline(db_session, "NOR", online),
+        "SWE": NobilPipeline(db_session, "SWE", online),
     }
     if country in pipelines:
         return pipelines[country]

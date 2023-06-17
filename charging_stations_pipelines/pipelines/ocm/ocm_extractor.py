@@ -74,6 +74,8 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
     # OCM export contains norwegian data under country code "NO" and that's why we need to rename it to "NO"
     if country_code == "NOR":
         country_code = "NO"
+    if country_code == "SWE":
+        country_code = "SE"
 
 
     project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
