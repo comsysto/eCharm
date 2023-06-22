@@ -26,7 +26,9 @@ class StationMerger:
             "DE": "BNA",
             "FR": "FRGOV",
             "GB": "GBGOV",
-            "IT": ""  # No gov source for Italy so far (5.4.2023)
+            "IT": "",  # No gov source for Italy so far (5.4.2023)
+            "NOR": "NOBIL",
+            "SWE": "NOBIL",
         }
         if country_code not in country_code_to_gov_source:
             raise Exception(f"country code '{country_code}' unknown in merger")

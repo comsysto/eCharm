@@ -10,8 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from charging_stations_pipelines.mapping.charging import map_charging_fra
-from charging_stations_pipelines.mapping.stations import map_address_fra, map_station_fra
+from charging_stations_pipelines.pipelines.fr.france_mapper import map_address_fra, map_charging_fra, map_station_fra
 from charging_stations_pipelines.shared import reject_if, download_file
 
 logger = logging.getLogger(__name__)
@@ -38,8 +37,8 @@ class FraPipeline:
         self._retrieve_data()
         self.data.drop_duplicates(subset=["id_station_itinerance"], inplace=True)
         for _, row in tqdm(self.data.iterrows()):
-            mapped_address = map_address_fra(row, None)
-            mapped_charging = map_charging_fra(row, None)
+            mapped_address = map_address_fra(row)
+            mapped_charging = map_charging_fra(row)
             mapped_station = map_station_fra(row)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging

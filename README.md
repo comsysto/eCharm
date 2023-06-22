@@ -92,7 +92,7 @@ alembic upgrade head
 python main.py --countries=de,it --tasks=import,merge,export --online=true
 ```
 Feel free to adjust the command line arguments to your needs:
-* `countries` Currently we support `de`,`gb`,`fr` and `it`
+* `countries` Currently we support `de`,`gb`,`fr`, `it`, `nor` and `swe`
 * `tasks`
   * `import` fetches and stores the data from the original sources, i.e. OSM, OCM and potential government data sources
   * `merge` searches for duplicates and merges attributes of duplicate stations

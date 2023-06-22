@@ -56,7 +56,7 @@ class CommandLineArguments:
         accepted_tasks = ["import", "merge", "testdata", "export"]
         reject_if(not all(t in accepted_tasks for t in self.tasks), "Invalid task")
 
-        accepted_countries = ["DE", "FR", "GB", "IT"]
+        accepted_countries = ["DE", "FR", "GB", "IT", "NOR", "SWE"]
         reject_if(not all(t in accepted_countries for t in self.countries), "Invalid country")
 
 

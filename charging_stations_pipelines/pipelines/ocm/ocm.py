@@ -8,15 +8,14 @@ from typing import Dict, Optional
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from charging_stations_pipelines.mapping.charging import map_charging_ocm
-from charging_stations_pipelines.mapping.stations import map_address_ocm, map_station_ocm
 from charging_stations_pipelines.pipelines.ocm.ocm_extractor import ocm_extractor
-
+from charging_stations_pipelines.pipelines.ocm.ocm_mapper import map_address_ocm, map_station_ocm, map_charging_ocm
 
 logger = logging.getLogger(__name__)
 
+
 class OcmPipeline:
-    def __init__(self, country_code:str, config: configparser, session: Session, online: bool = False):
+    def __init__(self, country_code: str, config: configparser, session: Session, online: bool = False):
         self.country_code = country_code
         self.config = config
         self.session = session

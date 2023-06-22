@@ -7,9 +7,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from charging_stations_pipelines.mapping.charging import map_charging_bna
-from charging_stations_pipelines.mapping.stations import map_address_bna, map_station_bna
 from charging_stations_pipelines.pipelines.de.bna_crawler import get_bna_data
+from charging_stations_pipelines.pipelines.de.bna_mapper import map_address_bna, map_charging_bna, map_station_bna
 from charging_stations_pipelines.shared import load_excel_file
 
 logger = logging.getLogger(__name__)

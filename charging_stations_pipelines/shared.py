@@ -1,4 +1,5 @@
 import configparser
+import json
 import os
 import pathlib
 
@@ -16,6 +17,10 @@ def init_config():
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
     return config
 
+def load_json_file(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
 
 def load_excel_file(path):
     # Read excel file as pandas dataframe

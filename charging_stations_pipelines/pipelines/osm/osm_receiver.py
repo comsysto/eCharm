@@ -9,7 +9,9 @@ def get_osm_data(country_code: str, tmp_data_path):
         "DE": "Deutschland",
         "FR": "France métropolitaine",
         "GB": "United Kingdom",
-        "IT": "Italia"
+        "IT": "Italia",
+        "NOR": "Norge",
+        "SWE": "Sverige"
     }
 
     if country_code not in country_code_to_area:
