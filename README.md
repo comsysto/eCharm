@@ -19,7 +19,7 @@ For each country, we then integrate the official government data source (where a
 Just to name a few examples, the government data source we use for Germany is Bundesnetzagentur (BNA), 
 or the National Chargepoint Registry (NCR) for the UK.
 
-	
+
 ### Technologies
 We use (among others) the following technologies. Some basic familiarity is needed to set up and run the scripts. 
 * Python 3.9
@@ -54,7 +54,7 @@ Check local version
 
     python --version
 
-#### Create enviroment and activate:
+#### Create environment and activate:
 ```
 python -m venv venv
 source venv/bin/activate  
@@ -65,17 +65,26 @@ source venv/bin/activate
 pip install -r requirements.txt  
 ```
 
-### Set environment variables
+#### Set environment variables
+The following configuration parameters need to be set when using eCharm:
 
-Add
+* DB_NAME: Specifies the name of the database to connect to.
+* DB_HOST: Specifies the hostname or IP address of the database server.
+* DB_PORT: Specifies the port number on which the database server is listening.
+* DB_USER: Specifies the username to use when authenticating with the database server.
+* DB_PASSWORD: Specifies the password to use when authenticating with the database server.
+* NOBIL_APIKEY: Specifies the API key required for accessing the NOBIL API. The NOBIL API is used to retrieve data from Sweden and Norway
+
+##### Example
+Put the following content to `.env` file in the root directory:
 
     DB_NAME=gis
     DB_HOST=localhost
     DB_PORT=54322
     DB_USER=docker
     DB_PASSWORD=docker
+    NOBIL_APIKEY=<MY_NOBIL_API_KEY>
 
-to `.env` file in the root directory
 
 ### Start docker containers
 ```bash
