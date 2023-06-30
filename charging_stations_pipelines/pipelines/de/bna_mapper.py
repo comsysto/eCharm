@@ -79,7 +79,7 @@ def map_address_bna(row, station_id) -> Address:
 
 
 def map_charging_bna(row, station_id):
-    total_kw: Optional[float] = row["Anschlussleistung"]
+    total_kw: Optional[float] = row["Nennleistung Ladeeinrichtung [kW]"]
     station_raw = dict(row)
     if isinstance(total_kw, str):
         try:
@@ -92,10 +92,9 @@ def map_charging_bna(row, station_id):
             total_kw = None
     if isinstance(total_kw, Number):
         if math.isnan(total_kw):
-            # logger.warn("Found nan in total_kw! Will set total_kw to None!")
             total_kw = None
     if not isinstance(total_kw, Number):
-        logger.warn(
+        logger.warning(
             f"Cannot process total_kw {total_kw} with type {type(total_kw)}! Will set total_kw to None!"
         )
         total_kw = None
@@ -117,7 +116,7 @@ def map_charging_bna(row, station_id):
                 float_kw: float = float(v)
                 kw_list += [float_kw]
             except:
-                logger.warn(
+                logger.warning(
                     f"Failed to convert kw string {v} to float! Will not add this kw entry to list!"
                 )
         if isinstance(v, Number):
