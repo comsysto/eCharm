@@ -7,6 +7,7 @@ Create Date: 2023-01-30 10:37:32.971267
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import text
 
 
 # revision identifiers, used by Alembic.
@@ -18,15 +19,15 @@ depends_on = None
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute("""
+    conn.execute(text("""
     UPDATE stations 
     SET point = ST_PointFromWkb(coordinates, 4326)::geography;
-    """)
+    """))
 
-    conn.execute("""
+    conn.execute(text("""
         ALTER TABLE stations 
         DROP COLUMN coordinates;
-    """)
+    """))
 
 def downgrade():
     pass

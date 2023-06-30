@@ -7,6 +7,7 @@ Create Date: 2023-01-30 10:36:48.353947
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import text
 
 
 # revision identifiers, used by Alembic.
@@ -18,11 +19,11 @@ depends_on = None
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute("""
+    conn.execute(text("""
     CREATE INDEX stations_point_geom_idx
     ON stations 
     USING GIST (point);
-    """)
+    """))
 
 def downgrade():
     conn = op.get_bind()

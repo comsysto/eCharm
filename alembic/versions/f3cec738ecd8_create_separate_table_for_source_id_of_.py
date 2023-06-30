@@ -7,6 +7,7 @@ Create Date: 2023-04-28 21:57:36.583128
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = 'f3cec738ecd8'
@@ -26,9 +27,9 @@ def upgrade():
         sa.PrimaryKeyConstraint("id")
     )
     conn = op.get_bind()
-    conn.execute("""
+    conn.execute(text("""
     ALTER TABLE stations ALTER COLUMN source_id DROP NOT NULL;
-    """)
+    """))
     # ### end Alembic commands ###
 
 
