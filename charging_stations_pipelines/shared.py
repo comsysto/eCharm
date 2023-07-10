@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -17,10 +18,12 @@ def init_config():
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
     return config
 
+
 def load_json_file(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
     return data
+
 
 def load_excel_file(path):
     # Read excel file as pandas dataframe
@@ -40,6 +43,12 @@ def download_file(url, target_file):
     output = open(target_file, "wb")
     output.write(resp.content)
     output.close()
+
+
+def possible_int64_to_int(possible_int64) -> int:
+    if isinstance(possible_int64, np.int64):
+        return possible_int64.tolist()
+    return possible_int64
 
 
 current_dir = os.path.join(pathlib.Path(__file__).parent.parent.resolve())

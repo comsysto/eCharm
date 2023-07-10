@@ -58,7 +58,9 @@ class TestStationMerger(TestCase):
         merged_station: Station = merged_stations[0]
         self.assertEqual(2, len(merged_station.source_stations))
         self.assertEqual("OSM_ID1", merged_station.source_stations[0].duplicate_source_id)
+        self.assertEqual(station_duplicate.id, merged_station.source_stations[0].duplicate_station_id)
         self.assertEqual("BNA_ID1", merged_station.source_stations[1].duplicate_source_id)
+        self.assertEqual(station_one.id, merged_station.source_stations[1].duplicate_station_id)
         session.close()
 
     def test_OCM_should_have_higher_prio_than_BNA(self):

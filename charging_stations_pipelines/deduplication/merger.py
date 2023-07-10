@@ -9,8 +9,10 @@ from tqdm import tqdm
 
 from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
 from charging_stations_pipelines.models.station import Station, MergedStationSource
+from charging_stations_pipelines.shared import possible_int64_to_int
 
 logger = logging.getLogger(__name__)
+
 
 class StationMerger:
     def __init__(self, country_code: str, config: configparser, con, is_test: bool = False):
@@ -97,7 +99,8 @@ class StationMerger:
             merged_station.data_source = stations_to_merge['data_source']
             merged_station.point = stations_to_merge['point'].wkt
             merged_station.operator = stations_to_merge['operator']
-            source = MergedStationSource(duplicate_source_id=stations_to_merge['source_id'])
+            source = MergedStationSource(duplicate_source_id=stations_to_merge['source_id'],
+                                         duplicate_station_id=possible_int64_to_int(stations_to_merge['station_id_col']))
             merged_station.source_stations.append(source)
         else:
             merged_station.data_source = ",".join(stations_to_merge['data_source'].unique())
@@ -107,8 +110,9 @@ class StationMerger:
             point = get_attribute_by_priority('point', priority_list=['OSM', 'OCM', self.gov_source])
             merged_station.point = point.wkt
             merged_station.operator = get_attribute_by_priority('operator')
-            for source_id in stations_to_merge['source_id']:
-                source = MergedStationSource(duplicate_source_id=source_id)
+            for index, station_to_merge in stations_to_merge.iterrows():
+                source = MergedStationSource(duplicate_source_id=station_to_merge['source_id'],
+                                             duplicate_station_id=possible_int64_to_int(station_to_merge['station_id_col']))
                 merged_station.source_stations.append(source)
 
         return merged_station
