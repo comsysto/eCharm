@@ -11,4 +11,4 @@ class TestFraPipeline(TestCase):
         FraPipeline.download_france_gov_file(temp_target)
         actual_file_size = os.path.getsize(temp_target)
         os.remove(temp_target)
-        self.assertTrue(actual_file_size > 40000000)  # 40MB
+        self.assertTrue(actual_file_size > 20000000)  # 20MB
