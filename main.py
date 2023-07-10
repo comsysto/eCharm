@@ -11,7 +11,7 @@ from charging_stations_pipelines.pipelines.osm.osm import OsmPipeline
 from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_factory
 from charging_stations_pipelines.settings import db_uri
 from charging_stations_pipelines.shared import reject_if, config, string_to_bool
-from charging_stations_pipelines.stations_data_export import stations_data_export
+from charging_stations_pipelines.export.stations_data_export import stations_data_export
 from testing import testdata
 
 logger = logging.getLogger("charging_stations_pipelines.main")

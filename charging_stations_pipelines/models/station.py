@@ -41,3 +41,4 @@ class MergedStationSource(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     merged_station_id = Column(Integer, ForeignKey('stations.id'))
     duplicate_source_id = Column(String)
+    duplicate_station_id = Column(Integer, nullable=False)
