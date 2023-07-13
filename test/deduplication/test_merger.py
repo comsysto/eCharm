@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
 from charging_stations_pipelines.models import Base
+from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.deduplication.merger import StationMerger
 from test.shared import get_config, create_station
@@ -57,6 +58,7 @@ class TestStationMerger(TestCase):
         self.assertEqual(1, len(merged_stations))
         merged_station: Station = merged_stations[0]
         self.assertEqual(2, len(merged_station.source_stations))
+        self.assertIsNotNone(merged_station.address)
         self.assertEqual("OSM_ID1", merged_station.source_stations[0].duplicate_source_id)
         self.assertEqual("BNA_ID1", merged_station.source_stations[1].duplicate_source_id)
         session.close()
@@ -91,3 +93,7 @@ class TestStationMerger(TestCase):
         point = wkb.loads(bytes(merged_station.point.data))
         self.assertEqual(expected_x, point.x)
         self.assertEqual(expected_y, point.y)
+
+        address: Address = merged_station.address
+        self.assertIsNotNone(address)
+        self.assertEqual(address.street, station_ocm.address.street)
