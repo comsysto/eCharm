@@ -100,7 +100,9 @@ class StationMerger:
             source = MergedStationSource(duplicate_source_id=stations_to_merge['source_id'])
             merged_station.source_stations.append(source)
         else:
-            merged_station.data_source = ",".join(stations_to_merge['data_source'].unique())
+            data_sources = stations_to_merge['data_source'].unique()
+            data_sources.sort()
+            merged_station.data_source = ",".join(data_sources)
 
             # get other attributes by priority:
             # coordinates in dataframe are WKB ? maybe convert to WKT?
