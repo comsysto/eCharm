@@ -8,7 +8,8 @@ from sqlalchemy import engine_from_config, pool
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from charging_stations_pipelines.settings import db_uri
+from charging_stations_pipelines import settings
+from charging_stations_pipelines.models import address, charging, station
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -27,7 +28,7 @@ target_metadata = models.Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-config.set_main_option("sqlalchemy.url", db_uri)
+config.set_main_option("sqlalchemy.url", settings.db_uri)
 
 
 def exclude_tables_from_config(config_):
@@ -40,9 +41,16 @@ def exclude_tables_from_config(config_):
 # Excluded tables are defined in alembic.ini in section [alembic:exclude], here for PostGIS table spatial_ref_sys
 exclude_tables = exclude_tables_from_config(config.get_section('alembic:exclude'))
 
+restrict_tables = [address.Address.__tablename__,
+                 charging.Charging.__tablename__,
+                 station.Station.__tablename__,
+                 station.MergedStationSource.__tablename__]
+
 
 def include_object(object, name, type_, reflected, compare_to):
     if type_ == "table" and name in exclude_tables:
+        return False
+    elif settings.restrict_tables and name not in restrict_tables:
         return False
     else:
         return True
@@ -81,7 +89,7 @@ def run_migrations_online():
 
     """
     alembic_config = config.get_section(config.config_ini_section)
-    alembic_config["sqlalchemy.url"] = db_uri
+    alembic_config["sqlalchemy.url"] = settings.db_uri
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
@@ -94,9 +102,12 @@ def run_migrations_online():
             target_metadata=target_metadata,
             compare_type=True,
             include_object=include_object,
+            version_table_schema=target_metadata.schema,
+            include_schemas=True,
         )
 
         with context.begin_transaction():
+            context.execute(f'set search_path to {target_metadata.schema},public')
             context.run_migrations()
 
 

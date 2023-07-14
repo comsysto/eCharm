@@ -5,18 +5,20 @@ from typing import Tuple
 import geopandas as gpd
 import pandas as pd
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.engine.base import Engine
 from tqdm import tqdm
 
 from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
 from charging_stations_pipelines.models.station import Station, MergedStationSource
+from charging_stations_pipelines import settings
 
 logger = logging.getLogger(__name__)
 
 class StationMerger:
-    def __init__(self, country_code: str, config: configparser, con, is_test: bool = False):
+    def __init__(self, country_code: str, config: configparser, db_engine, is_test: bool = False):
         self.country_code = country_code
         self.config = config
-        self.con = con
+        self.db_engine: Engine = db_engine
         self.is_test = is_test
 
         if self.is_test:
@@ -129,24 +131,26 @@ class StationMerger:
 
         # First get list of stations esp. their coordinates
         get_stations_list_sql = """
-            SELECT id as station_id, point FROM stations WHERE NOT is_merged AND country_code='{country_code}'
-        """.format(country_code=self.country_code)
+            SELECT id as station_id, point FROM {prefix}stations WHERE NOT is_merged AND country_code='{country_code}'
+        """.format(country_code=self.country_code, prefix=settings.db_table_prefix)
 
         if self.is_test:
             munich_center_coordinates = "POINT (11.4717 48.1548)"
             get_stations_list_sql = """
-                SELECT id as station_id, point FROM stations 
+                SELECT id as station_id, point FROM {prefix}stations 
                 WHERE ST_Dwithin(point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
                               {radius_m}) AND NOT is_merged; 
-            """.format(center_coordinates=munich_center_coordinates, radius_m=5000)
+            """.format(center_coordinates=munich_center_coordinates, radius_m=5000,
+                       prefix=settings.db_table_prefix)
 
-        gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
-                                                 con=self.con, geom_col="point")
+        with self.db_engine.connect() as con:
+            gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
+                                                     con=con, geom_col="point")
 
         gdf.sort_values(by=['station_id'], inplace=True, ignore_index=True)
 
-        session = sessionmaker(bind=(self.con))()
+        session = sessionmaker(bind=(self.db_engine))()
 
         def write_session(session):
             try:
@@ -194,9 +198,9 @@ class StationMerger:
                 a.street, a.town,
                 ST_DISTANCE(s.point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography) as distance
-            FROM stations s
-            LEFT JOIN charging c ON s.id = c.station_id
-            LEFT JOIN address a ON s.id = a.station_id 
+            FROM {prefix}stations s
+            LEFT JOIN {prefix}charging c ON s.id = c.station_id
+            LEFT JOIN {prefix}address a ON s.id = a.station_id 
             WHERE ST_Dwithin(s.point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
                               {radius_m}) 
@@ -208,8 +212,10 @@ class StationMerger:
         sql = find_surrounding_stations_sql.format(station_id=current_station_id,
                                                    center_coordinates=current_station_coordinates,
                                                    radius_m=radius_m,
-                                                   country_code=self.country_code)
-        nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=self.con, geom_col="point")
+                                                   country_code=self.country_code,
+                                                   prefix=settings.db_table_prefix)
+        with self.db_engine.connect() as con:
+            nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=con, geom_col="point")
 
         if nearby_stations.empty:
             logger.debug(f"##### Already merged, id {current_station_id} #####")
