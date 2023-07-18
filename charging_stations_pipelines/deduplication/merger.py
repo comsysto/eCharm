@@ -1,6 +1,6 @@
 import configparser
 import logging
-from typing import Tuple
+from typing import Tuple, Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -90,16 +90,25 @@ class StationMerger:
             return attribute
 
         def get_station_with_address_and_charging_by_priority(session):
+            merged_station: Optional[Station] = None
             for source in [self.gov_source, 'OCM', 'OSM']:
                 station_id = stations_to_merge[stations_to_merge['data_source'] == source]['station_id_col']
                 if len(station_id) > 0:
                     station_id = int(station_id.iloc[0])
-                    return self.get_station_with_address_and_charging(session, station_id)
+                    station, address, charging = self.get_station_with_address_and_charging(session, station_id)
+                    if not merged_station and station:
+                        merged_station = station
+                    if merged_station and address and not merged_station.address:
+                        merged_station.address = address
+                    if merged_station and charging and not merged_station.charging :
+                        merged_station.charging = charging
 
 
         if isinstance(stations_to_merge, pd.Series):
             station_id = int(stations_to_merge['station_id_col'])
-            merged_station = self.get_station_with_address_and_charging(session, station_id)
+            merged_station, address, charging = self.get_station_with_address_and_charging(session, station_id)
+            merged_station.address = address
+            merged_station.charging = charging
 
             merged_station.data_source = stations_to_merge['data_source']
             merged_station.point = stations_to_merge['point'].wkt
@@ -141,9 +150,11 @@ class StationMerger:
         session.expunge(merged_station)  # expunge the object from session
         make_transient(merged_station)
         merged_station.id = None
-        merged_station.address = self.create_merged(address)
-        merged_station.charging = self.create_merged(charging)
-        return merged_station
+        if address:
+            address = self.create_merged(address)
+        if charging:
+            charging = self.create_merged(charging)
+        return merged_station, address, charging
 
     def create_merged(self, address_or_charging):
         make_transient(address_or_charging)
