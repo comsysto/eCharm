@@ -102,6 +102,7 @@ class StationMerger:
                         merged_station.address = address
                     if merged_station and charging and not merged_station.charging :
                         merged_station.charging = charging
+            return merged_station
 
 
         if isinstance(stations_to_merge, pd.Series):
