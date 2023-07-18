@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
@@ -19,7 +19,8 @@ class Address(Base):
     country = Column(String)
     gmaps_latitude = Column(Float(precision=32))
     gmaps_longitude = Column(Float(precision=32))
+    is_merged = Column(Boolean, default=False)
     station = relationship("Station", back_populates="address")
 
     def __repr__(self):
-        return "<stations with id: {}>".format(self.id)
+        return f"<address: id {self.id}, station_id {self.station_id}, street: {self.street}, town: {self.town}>"

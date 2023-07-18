@@ -27,6 +27,7 @@ class Charging(Base):
     dc_support = Column(Boolean)
     total_kw = Column(Float)
     max_kw = Column(Float)
+    is_merged = Column(Boolean, default=False)
     station = relationship("Station", back_populates="charging")
 
     def __repr__(self):
