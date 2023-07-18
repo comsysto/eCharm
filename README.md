@@ -112,6 +112,7 @@ Feel free to adjust the command line arguments to your needs:
 Before re-running merge w/o re-import, delete corresponding DB entries
 
     delete from echarm_merged_station_source ;
+    delete from echarm_charging a where a.is_merged=true;
     delete from echarm_address a where a.is_merged=true;
     delete from echarm_stations es where es.is_merged=true ;
     update echarm_stations SET merge_status = null;
