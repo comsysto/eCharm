@@ -56,8 +56,8 @@ def map_address_ocm(row, station_id):
     return map_address
 
 
-def map_charging_ocm(row, station_id):
-    connections: pd.DataFrame = pd.DataFrame(row.get("Connections", [])).transpose()
+def map_charging_ocm(row, station_id) -> Charging:
+    connections: pd.DataFrame = pd.DataFrame(row.get("Connections", []))
 
     mapped_charging_ocm = Charging()
     mapped_charging_ocm.station_id = station_id
@@ -76,12 +76,12 @@ def map_charging_ocm(row, station_id):
     )
     mapped_charging_ocm.dc_support = None
     mapped_charging_ocm.total_kw = (
-        connections["PowerKW"].dropna().sum()
+        float(round(connections["PowerKW"].dropna().sum(), 2))
         if "PowerKW" in connections.columns
         else None
     )
     mapped_charging_ocm.max_kw = (
-        connections["PowerKW"].dropna().max()
+        float(connections["PowerKW"].dropna().max())
         if "PowerKW" in connections.columns
         else None
     )
