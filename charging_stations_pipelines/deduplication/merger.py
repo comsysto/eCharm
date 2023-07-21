@@ -1,10 +1,10 @@
 import configparser
 import logging
-from typing import Tuple
+from typing import Tuple, Optional
 
 import geopandas as gpd
 import pandas as pd
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
 from tqdm import tqdm
 
@@ -68,7 +68,7 @@ class StationMerger:
         station.at["merged_attributes"] = True
         return
 
-    def _merge_duplicates(self, stations_to_merge) -> Station:
+    def _merge_duplicates(self, stations_to_merge, session) -> Station:
         """
         Input DataFrame has columns
                 station_id, source_id, data_source, point, operator, capacity, street, town, distance
@@ -91,17 +91,38 @@ class StationMerger:
                 logger.debug(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
             return attribute
 
-        merged_station = Station()
-        merged_station.country_code = self.country_code
-        merged_station.is_merged = True
+        def get_station_with_address_and_charging_by_priority(session):
+            merged_station: Optional[Station] = None
+            for source in [self.gov_source, 'OCM', 'OSM']:
+                station_id = stations_to_merge[stations_to_merge['data_source'] == source]['station_id_col']
+                if len(station_id) > 0:
+                    station_id = int(station_id.iloc[0])
+                    station, address, charging = self.get_station_with_address_and_charging(session, station_id)
+                    if not merged_station and station:
+                        merged_station = station
+                    if merged_station and address and not merged_station.address:
+                        merged_station.address = address
+                    if merged_station and charging and not merged_station.charging :
+                        merged_station.charging = charging
+            return merged_station
+
 
         if isinstance(stations_to_merge, pd.Series):
+            station_id = int(stations_to_merge['station_id_col'])
+            merged_station, address, charging = self.get_station_with_address_and_charging(session, station_id)
+            merged_station.address = address
+            merged_station.charging = charging
+
             merged_station.data_source = stations_to_merge['data_source']
             merged_station.point = stations_to_merge['point'].wkt
             merged_station.operator = stations_to_merge['operator']
+
             source = MergedStationSource(duplicate_source_id=stations_to_merge['source_id'])
             merged_station.source_stations.append(source)
         else:
+
+            merged_station = get_station_with_address_and_charging_by_priority(session)
+
             data_sources = stations_to_merge['data_source'].unique()
             data_sources.sort()
             merged_station.data_source = ",".join(data_sources)
@@ -111,11 +132,39 @@ class StationMerger:
             point = get_attribute_by_priority('point', priority_list=['OSM', 'OCM', self.gov_source])
             merged_station.point = point.wkt
             merged_station.operator = get_attribute_by_priority('operator')
+
             for source_id in stations_to_merge['source_id']:
                 source = MergedStationSource(duplicate_source_id=source_id)
                 merged_station.source_stations.append(source)
 
+        merged_station.country_code = self.country_code
+        merged_station.is_merged = True
+
         return merged_station
+
+    def get_station_with_address_and_charging(self, session, station_id):
+        # get station from DB and create new object
+        merged_station: Station = \
+            session.query(Station). \
+                filter(Station.id == station_id). \
+                first()
+        address = merged_station.address
+        charging = merged_station.charging
+        session.expunge(merged_station)  # expunge the object from session
+        make_transient(merged_station)
+        merged_station.id = None
+        if address:
+            address = self.create_merged(address)
+        if charging:
+            charging = self.create_merged(charging)
+        return merged_station, address, charging
+
+    def create_merged(self, address_or_charging):
+        make_transient(address_or_charging)
+        address_or_charging.id = None
+        address_or_charging.station_id = None
+        address_or_charging.is_merged = True
+        return address_or_charging
 
     def run(self):
         '''
@@ -180,7 +229,7 @@ class StationMerger:
                 # merge attributes of duplicates into one station
                 session.query(Station).filter(Station.id.in_(station_ids)) \
                     .update({Station.merge_status: "is_duplicate"}, synchronize_session='fetch')
-                merged_station: Station = self._merge_duplicates(stations_to_merge)
+                merged_station: Station = self._merge_duplicates(stations_to_merge, session)
                 session.add(merged_station)
                 write_session(session)
 
@@ -204,7 +253,7 @@ class StationMerger:
             WHERE ST_Dwithin(s.point, 
                               ST_PointFromText('{center_coordinates}', 4326)::geography, 
                               {radius_m}) 
-                              AND NOT is_merged
+                              AND NOT s.is_merged
                               AND (merge_status <> 'is_duplicate' OR merge_status is null) 
                               AND country_code='{country_code}';
         """
