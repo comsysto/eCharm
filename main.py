@@ -5,7 +5,7 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from charging_stations_pipelines.deduplication.merger import StationMerger
+from charging_stations_pipelines.deduplication.v2.merger import ChargingStationMerger
 from charging_stations_pipelines.pipelines.ocm.ocm import OcmPipeline
 from charging_stations_pipelines.pipelines.osm.osm import OsmPipeline
 from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_factory
@@ -75,9 +75,12 @@ def run_import(countries, online):
 
 
 def run_merge(countries):
-    engine = create_engine(db_uri, pool_pre_ping=True)
+    engine = create_engine(db_uri)
+    db_session = sessionmaker(bind=engine)()
+
     for country in countries:
-        merger: StationMerger = StationMerger(country_code=country, config=config, con=engine)
+        # merger: StationMerger = StationMerger(country_code=country, config=config, con=engine)
+        merger: ChargingStationMerger = ChargingStationMerger(country_code=country, db_session=db_session)
         merger.run()
 
 
