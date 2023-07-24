@@ -76,7 +76,7 @@ def run_migrations_offline():
         dialect_opts={"paramstyle": "named"},
         include_object=include_object,
         version_table_schema=target_metadata.schema,
-        include_schemas=True,
+        #include_schemas=True,
     )
 
     with context.begin_transaction():
@@ -105,7 +105,7 @@ def run_migrations_online():
             compare_type=True,
             include_object=include_object,
             version_table_schema=target_metadata.schema,
-            include_schemas=True,
+            #include_schemas=True,
         )
 
         with context.begin_transaction():
