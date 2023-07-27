@@ -12,6 +12,7 @@ from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_fact
 from charging_stations_pipelines.settings import db_uri
 from charging_stations_pipelines.shared import reject_if, config, string_to_bool
 from charging_stations_pipelines.stations_data_export import stations_data_export
+from charging_stations_pipelines import settings
 from testing import testdata
 
 logger = logging.getLogger("charging_stations_pipelines.main")
@@ -60,11 +61,16 @@ class CommandLineArguments:
         reject_if(not all(t in accepted_countries for t in self.countries), "Invalid country")
 
 
+def get_db_engine(**kwargs):
+    connect_args = {"options": f"-csearch_path={settings.db_schema},public"}
+    return create_engine(name_or_url=db_uri, connect_args=connect_args, **kwargs)
+
 def run_import(countries, online):
-    db_session = sessionmaker(bind=(create_engine(db_uri)))()
+
+    db_session = sessionmaker(bind=get_db_engine())()
 
     for country in countries:
-        gov_pipeline = pipeline_factory(country, online)
+        gov_pipeline = pipeline_factory(db_session, country, online)
         gov_pipeline.run()
 
         osm: OsmPipeline = OsmPipeline(country, config, db_session, online)
@@ -75,9 +81,9 @@ def run_import(countries, online):
 
 
 def run_merge(countries):
-    engine = create_engine(db_uri, pool_pre_ping=True)
+    engine = get_db_engine(pool_pre_ping=True)
     for country in countries:
-        merger: StationMerger = StationMerger(country_code=country, config=config, con=engine)
+        merger: StationMerger = StationMerger(country_code=country, config=config, db_engine=engine)
         merger.run()
 
 
