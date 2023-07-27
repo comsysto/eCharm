@@ -43,7 +43,7 @@ class TestStationMerger(TestCase):
         session.commit()
 
         # when: run the merger
-        station_merger = StationMerger(country_code='DE', config=(get_config()), con=self.engine, is_test=False)
+        station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=self.engine, is_test=False)
         station_merger.run()
 
         # then: the two duplicates are merged
@@ -79,7 +79,7 @@ class TestStationMerger(TestCase):
         session.commit()
 
         # when: run the merger
-        station_merger = StationMerger(country_code='DE', config=(get_config()), con=self.engine, is_test=False)
+        station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=self.engine, is_test=False)
         station_merger.run()
 
         # then: the two duplicates are merged

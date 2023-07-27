@@ -83,6 +83,11 @@ Put the following content to `.env` file in the root directory:
     DB_PORT=54322
     DB_USER=docker
     DB_PASSWORD=docker
+    # optional for DB:
+    DB_SCHEMA=friendly_fox
+    DB_TABLE_PREFIX=echarm_
+    DB_ALEMBIC_RESTRICT_TABLES=true
+    # for Nobil access:
     NOBIL_APIKEY=<MY_NOBIL_API_KEY>
 
 
@@ -92,9 +97,20 @@ docker compose up
 ```
 
 ### Initialize DB
-```bash
-alembic upgrade head
-```
+
+Run
+    
+    alembic revision --autogenerate -m "create initial echarm tables"
+
+Manually adapt generated db migration file in alembic/versions folder and add
+
+    from geoalchemy2.types import Geometry, Geography
+
+and remove prefix `geoalchemy2.types.` anywhere else in file
+
+Then run migration
+
+    alembic upgrade head
 
 ### Run your import/merge/export
 ```bash
