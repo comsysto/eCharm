@@ -1,20 +1,30 @@
+import logging
 import os
+from _decimal import Decimal
 from pathlib import Path
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 from sqlalchemy.orm import Session
+from tqdm import tqdm
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.shared import download_file, load_json_file, reject_if
 
+logger = logging.getLogger(__name__)
+
 
 # Nobil is the name of the data provider for norwegian and swedish data
+class NobilConnector:
+    def __init__(self, power_in_kw: Decimal):
+        self.power_in_kw = power_in_kw
+
+
 class NobilStation:
     def __init__(self, id, operator, position, created, updated, street, house_number, zipcode, city,
-                 number_charging_points):
+                 number_charging_points, connectors: list[NobilConnector]):
         self.id = id
         self.operator = operator
         self.position = position
@@ -25,20 +35,34 @@ class NobilStation:
         self.zipcode = zipcode
         self.city = city
         self.number_charging_points = number_charging_points
-
-    def __repr__(self):
-        return f"NobilStation(id={self.id}, operator={self.operator}, position={self.position}, created={self.created}, updated={self.updated}, street={self.street}, house_number={self.house_number}, zipcode={self.zipcode}, city={self.city})"
+        self.connectors = connectors
 
 
 def _parse_json_data(json_data) -> list[NobilStation]:
     all_nobil_stations: list[NobilStation] = []
     for s in json_data['chargerstations']:
         csmd = s['csmd']
+        parsed_connectors = parse_nobil_connectors(s['attr']['conn'])
+
         nobil_station = NobilStation(csmd['id'], csmd['Operator'], csmd['Position'], csmd['Created'],
                                      csmd['Updated'], csmd['Street'], csmd['House_number'], csmd['Zipcode'],
-                                     csmd['City'], csmd['Number_charging_points'])
+                                     csmd['City'], csmd['Number_charging_points'], parsed_connectors)
         all_nobil_stations.append(nobil_station)
     return all_nobil_stations
+
+
+def parse_nobil_connectors(connectors: dict):
+    parsed_connectors: list[NobilConnector] = []
+    # iterate over all connectors and add them to the station
+    for k, v in connectors.items():
+        charging_capacity = v['5']['trans']  # contains a string like "7,4 kW - 230V 1-phase max 32A" or "75 kW DC"
+
+        # extract the power in kW from the charging capacity string
+        power_in_kw = Decimal(charging_capacity.split(" kW")[0].replace(",", ".")) \
+            if " kW" in charging_capacity else None
+
+        parsed_connectors.append(NobilConnector(power_in_kw))
+    return parsed_connectors
 
 
 def _extract_lon_lat_from_position(position: str) -> tuple[float, float]:
@@ -72,6 +96,11 @@ def _map_address_to_domain(nobil_station: NobilStation) -> Address:
 def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
     new_charging: Charging = Charging()
     new_charging.capacity = nobil_station.number_charging_points
+    new_charging.kw_list = [connector.power_in_kw for connector in nobil_station.connectors
+                            if connector.power_in_kw is not None]
+    if len(new_charging.kw_list) > 0:
+        new_charging.max_kw = max(new_charging.kw_list)
+        new_charging.total_kw = sum(new_charging.kw_list)
     return new_charging
 
 
@@ -91,14 +120,16 @@ class NobilPipeline:
         self.online: bool = online
 
     def run(self):
+        logger.info("Running NOR/SWE GOV Pipeline...")
         path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
         if self.online:
+            logger.info("Retrieving Online Data")
             _load_datadump_and_write_to_target(path_to_target, self.country_code)
 
         nobil_stations_as_json = load_json_file(path_to_target)
         all_nobil_stations = _parse_json_data(nobil_stations_as_json)
 
-        for nobil_station in all_nobil_stations:
+        for nobil_station in tqdm(iterable=all_nobil_stations, total=len(all_nobil_stations)):
             station: Station = _map_station_to_domain(nobil_station, self.country_code)
             address: Address = _map_address_to_domain(nobil_station)
             charging: Charging = _map_charging_to_domain(nobil_station)

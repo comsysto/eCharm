@@ -3,10 +3,11 @@ from sqlalchemy import Column, Date, Integer, String, Boolean, Index, ForeignKey
 from sqlalchemy.orm import relationship
 
 from charging_stations_pipelines.models import Base
+from charging_stations_pipelines import settings
 
 
 class Station(Base):
-    __tablename__ = "stations"
+    __tablename__ = f"{settings.db_table_prefix}stations"
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, index=True, nullable=True, unique=True)
     data_source = Column(String)
@@ -37,7 +38,7 @@ Index(
 
 
 class MergedStationSource(Base):
-    __tablename__ = 'merged_station_source'
+    __tablename__ = f"{settings.db_table_prefix}merged_station_source"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    merged_station_id = Column(Integer, ForeignKey('stations.id'))
+    merged_station_id = Column(Integer, ForeignKey(f'{Station.__tablename__}.id'))
     duplicate_source_id = Column(String)
