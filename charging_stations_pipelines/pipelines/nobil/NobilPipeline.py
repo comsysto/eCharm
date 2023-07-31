@@ -1,3 +1,4 @@
+import logging
 import os
 from _decimal import Decimal
 from pathlib import Path
@@ -5,11 +6,14 @@ from pathlib import Path
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 from sqlalchemy.orm import Session
+from tqdm import tqdm
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.shared import download_file, load_json_file, reject_if
+
+logger = logging.getLogger(__name__)
 
 
 # Nobil is the name of the data provider for norwegian and swedish data
@@ -116,14 +120,16 @@ class NobilPipeline:
         self.online: bool = online
 
     def run(self):
+        logger.info("Running NOR/SWE GOV Pipeline...")
         path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
         if self.online:
+            logger.info("Retrieving Online Data")
             _load_datadump_and_write_to_target(path_to_target, self.country_code)
 
         nobil_stations_as_json = load_json_file(path_to_target)
         all_nobil_stations = _parse_json_data(nobil_stations_as_json)
 
-        for nobil_station in all_nobil_stations:
+        for nobil_station in tqdm(iterable=all_nobil_stations, total=len(all_nobil_stations)):
             station: Station = _map_station_to_domain(nobil_station, self.country_code)
             address: Address = _map_address_to_domain(nobil_station)
             charging: Charging = _map_charging_to_domain(nobil_station)
