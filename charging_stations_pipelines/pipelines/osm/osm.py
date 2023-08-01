@@ -5,11 +5,12 @@ import os
 import pathlib
 from typing import Dict, Optional
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from tqdm import tqdm
 
 from charging_stations_pipelines.pipelines.osm.osm_mapper import map_address_osm, map_charging_osm, map_station_osm
 from charging_stations_pipelines.pipelines.osm.osm_receiver import get_osm_data
+from charging_stations_pipelines.pipelines.station_table_updater import StationTableUpdater
 
 logger = logging.getLogger(__name__)
 
@@ -29,27 +30,22 @@ class OsmPipeline:
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OSM"]["filename"])
         if self.online:
+            logger.info("Retrieving Online Data")
             get_osm_data(self.country_code, tmp_file_path)
         with open(tmp_file_path, "r") as f:
             self.data = json.load(f)
 
     def run(self):
+        logger.info(f"Running {self.country_code} OSM Pipeline...")
         self._retrieve_data()
+        station_updater = StationTableUpdater(session=self.session, logger=logger)
         entry: Dict
-        for entry in self.data.get("elements", []):
+        data = self.data.get("elements", [])
+        for entry in tqdm(iterable=iter(data), total=len(data)):
             mapped_address = map_address_osm(entry, None)
             mapped_charging = map_charging_osm(entry)
             mapped_station = map_station_osm(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
-            self.session.add(mapped_station)
-            try:
-                self.session.commit()
-                self.session.flush()
-            except IntegrityError as e:
-                logger.error(f"OSM-Entry exists already! Error: {e}")
-                self.session.rollback()
-                continue
-            except Exception as e:
-                logger.error(f"OSM-Pipeline failed to run! Error: {e}")
-                self.session.rollback()
+            station_updater.update_station(station=mapped_station, data_source_key='OSM')
+        station_updater.log_update_station_counts()
