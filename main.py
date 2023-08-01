@@ -89,7 +89,7 @@ def run_merge(countries):
 
 def run_export(countries):
     for country in countries:
-        stations_data_export(create_engine(db_uri), country, is_merged=False, csv=True, all_countries=False)
+        stations_data_export(get_db_engine(), country, is_merged=False, csv=True, all_countries=False)
 
 
 if __name__ == "__main__":
