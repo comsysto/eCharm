@@ -155,6 +155,7 @@ class StationMerger:
         session.expunge(merged_station)  # expunge the object from session
         make_transient(merged_station)
         merged_station.id = None
+        merged_station.source_id = None
         if address:
             address = self.create_merged(address)
         if charging:
