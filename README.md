@@ -126,15 +126,7 @@ Feel free to adjust the command line arguments to your needs:
   * `merge` searches for duplicates and merges attributes of duplicate stations
   * `export` create a data export for the specified countries in `csv` or `geo-json` format
 * `online` fetch data online from original data sources, if `false` use files cached on disk
-
-
-Before re-running merge w/o re-import, delete corresponding DB entries
-
-    delete from friendly_fox.echarm_merged_station_source ;
-    delete from friendly_fox.echarm_charging a where a.is_merged=true;
-    delete from friendly_fox.echarm_address a where a.is_merged=true;
-    delete from friendly_fox.echarm_stations es where es.is_merged=true ;
-    update friendly_fox.echarm_stations SET merge_status = null;
+* `delete_data` if `true`: On import it deletes all data before, for merge it deletes only merged station data and resets merge status 
 
 
 ## Contributing
