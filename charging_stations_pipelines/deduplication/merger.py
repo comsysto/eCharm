@@ -4,10 +4,8 @@ from typing import Tuple, Optional
 
 import geopandas as gpd
 import pandas as pd
-
 from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
-
 from tqdm import tqdm
 
 from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
@@ -156,6 +154,7 @@ class StationMerger:
         make_transient(merged_station)
         merged_station.id = None
         merged_station.source_id = None
+
         if address:
             address = self.create_merged(address)
         if charging:
