@@ -73,6 +73,9 @@ The following configuration parameters need to be set when using eCharm:
 * DB_PORT: Specifies the port number on which the database server is listening.
 * DB_USER: Specifies the username to use when authenticating with the database server.
 * DB_PASSWORD: Specifies the password to use when authenticating with the database server.
+* DB_SCHEMA: Optionally possible to define schema where tables should be created. If not set it defaults to public.
+* DB_TABLE_PREFIX: Optionally possible to define prefix for table names (e.g. `echarm_` would result in a table `echarm_stations`)
+* DB_ALEMBIC_RESTRICT_TABLES: Optionally possible to set to `true` (default `false`), i.e. it only considers eCharm tables when checking for DB schema changes
 * NOBIL_APIKEY: Specifies the API key required for accessing the NOBIL API. The NOBIL API is used to retrieve data from Sweden and Norway
 
 ##### Example
