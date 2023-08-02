@@ -5,11 +5,13 @@ from shapely import wkb
 from shapely.speedups._speedups import Point
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.schema import CreateSchema
 from testcontainers.postgres import PostgresContainer
 
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.deduplication.merger import StationMerger
+from charging_stations_pipelines import settings
 from test.shared import get_config, create_station
 
 
@@ -20,7 +22,10 @@ class TestStationMerger(TestCase):
         self.postgres_container = PostgresContainer("kartoza/postgis")
         self.postgres_container.start()
         sql_url = self.postgres_container.get_connection_url()
-        self.engine = create_engine(sql_url)
+        connect_args = {"options": f"-csearch_path={settings.db_schema},public"}
+        self.engine = create_engine(sql_url, connect_args=connect_args)
+        if not self.engine.dialect.has_schema(self.engine, settings.db_schema):
+            self.engine.execute(CreateSchema(settings.db_schema))
         Base.metadata.create_all(self.engine)
 
     def tearDown(self) -> None:
