@@ -14,6 +14,7 @@ from charging_stations_pipelines.shared import reject_if, config, string_to_bool
 from charging_stations_pipelines.stations_data_export import stations_data_export
 from charging_stations_pipelines import settings
 from charging_stations_pipelines import db_utils
+
 from testing import testdata
 
 logger = logging.getLogger("charging_stations_pipelines.main")
@@ -94,7 +95,7 @@ def run_merge(countries, delete_data: bool):
     engine = get_db_engine(pool_pre_ping=True)
 
     if delete_data:
-        print("deleting merged data ... ---> seems it's not writing :(")
+        print("deleting merged data ...")
         db_utils.delete_all_merged_data(sessionmaker(bind=engine)())
 
     for country in countries:

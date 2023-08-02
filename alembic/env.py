@@ -49,9 +49,20 @@ restrict_tables = [address.Address.__tablename__,
 
 def include_object(object, name, type_, reflected, compare_to):
     if type_ == "table" and name in exclude_tables:
+        print(f"Not including table {name}, because it's excluded")
+        return False
+    elif type_ == "table" and settings.restrict_tables and name not in restrict_tables:
+        print(f"Not including table {name}, because it's not in strict tables")
         return False
     elif settings.restrict_tables and name not in restrict_tables:
         return False
+    else:
+        return True
+
+
+def include_name(name, type_, parent_names):
+    if type_ == "schema":
+        return name in [settings.db_schema]
     else:
         return True
 
@@ -77,6 +88,7 @@ def run_migrations_offline():
         include_object=include_object,
         version_table_schema=target_metadata.schema,
         include_schemas=True,
+        include_name=include_name,
     )
 
     with context.begin_transaction():
@@ -106,6 +118,7 @@ def run_migrations_online():
             include_object=include_object,
             version_table_schema=target_metadata.schema,
             include_schemas=True,
+            include_name=include_name,
         )
 
         with context.begin_transaction():
