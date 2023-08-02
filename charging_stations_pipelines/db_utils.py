@@ -5,10 +5,6 @@ from charging_stations_pipelines import settings
 from charging_stations_pipelines.models import address, charging, station
 
 
-def delete_alembic_version(session: Session):
-    session.execute(text(f"DELETE FROM {settings.db_schema}.alembic_version"))
-
-
 def delete_all_data(session: Session):
     session.execute(delete(station.MergedStationSource))
     session.execute(delete(address.Address))
