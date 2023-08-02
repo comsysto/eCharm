@@ -1,24 +1,16 @@
 import logging
-from dataclasses import dataclass
-from typing import Tuple
+from concurrent.futures import ThreadPoolExecutor
 
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import joinedload
 
 from charging_stations_pipelines.deduplication.v2.ratio_calculator import RatioCalculator
-from charging_stations_pipelines.deduplication.v2.types import Station
+from charging_stations_pipelines.deduplication.v2.types import Station, StationDuplicate
 from charging_stations_pipelines.models.station import Station as StationEntity
 
 logger = logging.getLogger(__name__)
 
 THRESHOLD_OVERALL = 0.9
-
-
-@dataclass(frozen=True)
-class StationDuplicate:
-    station: Station
-    duplicate: Station
-    delta: float
 
 
 def _to_station(station_entity: StationEntity):
@@ -33,7 +25,7 @@ def _to_station(station_entity: StationEntity):
         data_source=station_entity.data_source,
         operator=station_entity.operator.lower() if station_entity.operator else None,
         point=to_shape(station_entity.point),
-        address= street + " " + town if street and town else None,
+        address=street + " " + town if street and town else None,
     )
 
 
@@ -44,19 +36,15 @@ class ChargingStationMerger:
         self.delta_calculator = RatioCalculator()
 
     def run(self):
-        # load all all_stations_in_db from the database
         all_stations_in_db: list[StationEntity] = self.db_session.query(StationEntity).filter(
             StationEntity.country_code == self.country_code).options(
             joinedload(StationEntity.address)
         ).all()
 
-        # detach all all_stations_in_db from the session
         self.db_session.expunge_all()
 
-        # map all_stations_in_db to Station objects
         all_stations: list[Station] = [_to_station(station) for station in all_stations_in_db]
 
-        # merge all_stations
         merged_stations: list[Station] = self.merge(all_stations)
 
         logger.info(f"Total: {len(all_stations_in_db)}\t merged: {len(merged_stations)}")
@@ -67,53 +55,76 @@ class ChargingStationMerger:
 
         count = 0
 
+        # use multiprocessing
+        num_threads = 8
+
+        # Divide the objects into subsets for each thread
+        stations_per_thread = len(all_stations) // num_threads
+        subsets = [all_stations[i:i+stations_per_thread] for i in range(0, len(all_stations), stations_per_thread)]
+
+        # Step 3 & 4: Create ThreadPoolExecutor and submit tasks
+        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+
+            futures = []
+
+            for i, subset in enumerate(subsets):
+                futures.append(executor.submit(self.find_duplicates, i, subset, all_stations.copy()))
+
+            # Step 5: Wait for tasks to complete and merge results
+            for future in futures:
+                station_with_duplicates.extend(future.result())
+
         # find duplicates for every station of all_stations
-        for station in all_stations:
-            if count % 10 == 0:
-                logger.info(f"Processing station {count} of {len(all_stations)}")
+        # for station in all_stations:
+        #
+        #     duplicates, ratios = self.find_duplicates(station, all_stations)
+        #
+        #     if len(duplicates) == 0:
+        #         all_stations.remove(station)
+        #
+        #     for i in range(len(duplicates)):
+        #         station_with_duplicates.append(StationDuplicate(station, duplicates[i], ratios[i]))
 
-            if count > 100:
-                break
+        # merge duplicates into station
+        # merged_station = self.merge_duplicates(station, duplicates)
 
-            duplicates, ratios = self.find_duplicates(station, all_stations)
+        # add merged_station to merged_stations
+        # merged_stations.append(merged_station)
 
-            # remove station from all_stations if it has no duplicates
-            if len(duplicates) == 0:
-                all_stations.remove(station)
-
-            for i in range(len(duplicates)):
-                station_with_duplicates.append(StationDuplicate(station, duplicates[i], ratios[i]))
-
-            # merge duplicates into station
-            # merged_station = self.merge_duplicates(station, duplicates)
-
-            # add merged_station to merged_stations
-            # merged_stations.append(merged_station)
-
-            count += 1
-
-        # export duplicates to csv
         if len(station_with_duplicates) > 0:
             self.export_duplicates(station_with_duplicates)
 
         return []
 
-    def find_duplicates(self, station, all_stations: list[Station]) -> Tuple[list[Station], list[float]]:
-        duplicates: list[Station] = []
-        ratios: list[float] = []
-        for s in all_stations:
+    def find_duplicates(self, thread_id: int, subset: list[Station], all_stations: list[Station]):
 
-            if station == s:
-                continue
+        logger.info(f"Thread {thread_id} started with {len(subset)} stations")
+        count = 0
 
-            ratio = self.delta_calculator.ratio(station, s)
-            if ratio > THRESHOLD_OVERALL:
-                duplicates.append(s)
-                ratios.append(ratio)
+        station_with_duplicates: list[StationDuplicate] = []
 
-        return duplicates, ratios
+        for station in subset:
+            count += 1
 
-    def merge_duplicates(self, station, duplicates):
+            logger.info(f"Thread {thread_id}: Processing station {count}")
+
+            for s in all_stations:
+
+                if station == s:
+                    continue
+
+                ratio = self.delta_calculator.ratio(station, s)
+                logger.debug(f"ratio: {ratio}")
+                logger.debug(f"station: {station}")
+                logger.debug(f"s: {s}")
+
+                if ratio > THRESHOLD_OVERALL:
+                    station_with_duplicates.append(StationDuplicate(station, s, ratio))
+
+        return station_with_duplicates
+
+    @staticmethod
+    def merge_duplicates(station, duplicates):
         return station
 
     @staticmethod

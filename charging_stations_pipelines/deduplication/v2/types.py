@@ -16,3 +16,13 @@ class Station:
 
     def __hash__(self):
         return hash(self.identifier)
+
+    def __str__(self):
+        return f"Station(id={self.identifier}, data_source={self.data_source}, operator={self.operator}, point={self.point}, address={self.address})"
+
+
+@dataclass(frozen=True)
+class StationDuplicate:
+    station: Station
+    duplicate: Station
+    delta: float

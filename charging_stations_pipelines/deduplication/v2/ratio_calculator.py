@@ -6,7 +6,6 @@ WEIGHT_DISTANCE = 0.2
 WEIGHT_ADDRESS = 0.5
 WEIGHT_OPERATOR = 0.3
 
-
 def weighted_average(distribution, weights):
     return sum([distribution[i] * weights[i] for i in range(len(distribution))]) / sum(weights)
 
@@ -14,7 +13,7 @@ def weighted_average(distribution, weights):
 class RatioCalculator:
 
     @staticmethod
-    def ratio(left, right) -> float:
+    def ratio(left: Station, right: Station) -> float:
         # the higher the value for ratio is the more similar are the stations
 
         ratio_address = RatioCalculator.ratio_address(left, right)
@@ -24,6 +23,7 @@ class RatioCalculator:
             return 0.1
 
         ratio_distance = RatioCalculator.ratio_distance(left, right)
+
 
         # return weighted_average([ratio_address, ratio_operator],
         #                         [WEIGHT_ADDRESS, WEIGHT_OPERATOR])
