@@ -12,6 +12,13 @@ on:
 permissions:
   contents: read
 
+env:
+  DB_NAME: gis
+  DB_HOST: localhost
+  DB_PORT: 54322
+  DB_USER: docker
+  DB_PASSWORD: docker
+
 jobs:
   build:
 
