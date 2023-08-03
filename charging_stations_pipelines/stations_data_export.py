@@ -2,6 +2,8 @@ import logging
 
 import geopandas as gpd
 
+from charging_stations_pipelines import settings
+
 logger = logging.getLogger(__name__)
 
 def stations_data_export(db_connection, country_code: str, is_merged: bool=False, all_countries: bool=False, csv: bool=False):
@@ -17,11 +19,12 @@ def stations_data_export(db_connection, country_code: str, is_merged: bool=False
         select_merged = "NOT "
         file_suffix_merged = "w_duplicates"
 
+    prefix = settings.db_table_prefix
     get_stations_list_sql = f"""
-        SELECT s.id as station_id, point, data_source, operator, a.street, a.town FROM stations s
-            LEFT JOIN address a ON s.id = a.station_id
-            WHERE {select_by_country}{select_merged}is_merged
-    """.format(select_by_country=select_by_country, select_merged=select_merged)
+        SELECT s.id as station_id, point, data_source, operator, a.street, a.town FROM {prefix}stations s
+            LEFT JOIN {prefix}address a ON s.id = a.station_id
+            WHERE {select_by_country}{select_merged}s.is_merged
+    """
 
     gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
                                              con=db_connection, geom_col="point")
