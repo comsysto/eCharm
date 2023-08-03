@@ -37,6 +37,7 @@ def get_config() -> configparser.RawConfigParser:
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
     return config
 
+
 def create_station() -> Station:
     station = Station()
     station.country_code = "DE"
@@ -50,6 +51,7 @@ def create_station() -> Station:
     station.charging = create_charging()
     return station
 
+
 def create_address() -> Address:
     state_old: str
     country: str
@@ -61,6 +63,7 @@ def create_address() -> Address:
     address.state_old = ""
     address.country = ("DE",)
     return address
+
 
 def create_charging() -> Charging:
     charging = Charging()
@@ -75,3 +78,12 @@ def create_charging() -> Charging:
     charging.max_kw = None
     return charging
 
+
+def skip_if_github(func):
+    def wrapper(*args, **kwargs):
+        if os.getenv("GITHUB_WORKFLOW") is not None:
+            print(f"Skipped test {func.__name__} because it is running on Github Actions")
+            return
+        return func(*args, **kwargs)
+
+    return wrapper
