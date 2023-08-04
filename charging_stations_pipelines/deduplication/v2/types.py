@@ -25,4 +25,4 @@ class Station:
 class StationDuplicate:
     station: Station
     duplicate: Station
-    delta: float
+    ratio: float
