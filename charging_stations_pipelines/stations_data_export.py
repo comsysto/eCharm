@@ -6,8 +6,9 @@ from charging_stations_pipelines import settings
 
 logger = logging.getLogger(__name__)
 
-def stations_data_export(db_connection, country_code: str, is_merged: bool=False, all_countries: bool=False, csv: bool=False):
 
+def stations_data_export(db_connection, country_code: str, is_merged: bool = False, all_countries: bool = False,
+                         csv: bool = False):
     select_by_country = f"country_code='{country_code}' AND "
     if all_countries:
         select_by_country = ""
@@ -28,7 +29,6 @@ def stations_data_export(db_connection, country_code: str, is_merged: bool=False
 
     gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
                                              con=db_connection, geom_col="point")
-    logger.info(len(gdf))
 
     if csv:
         suffix = "csv"
@@ -40,11 +40,6 @@ def stations_data_export(db_connection, country_code: str, is_merged: bool=False
         json_data = gdf.to_json()
 
     filename = f"stations_{country_code}_{file_suffix_merged}.{suffix}"
-    logger.debug(f"writing to {filename}")
+    logger.info(f"writing {len(gdf)} stations to {filename}")
     with open(filename, "w") as outfile:
         outfile.write(json_data)
-
-
-
-
-
