@@ -24,6 +24,7 @@ class CommandLineArguments:
     tasks = []
     countries = []
     online: bool = True
+    verbose: bool = False
 
     def __init__(self, argv) -> None:
         super().__init__()
@@ -33,7 +34,7 @@ class CommandLineArguments:
         self.online = False
 
         try:
-            opts, args = getopt.getopt(argv[1:], "ht:c:o:", ["help", "tasks=", "countries=", "online=", "delete_data="])
+            opts, args = getopt.getopt(argv[1:], "hvt:c:o:", ["help", "verbose", "tasks=", "countries=", "online=", "delete_data="])
         except Exception:
             logger.exception("Could not parse arguments")
             raise
@@ -41,6 +42,8 @@ class CommandLineArguments:
         for opt, arg in opts:
             if opt in ("-h", "--help"):
                 self.print_help()
+            elif opt in ("-v", "--verbose"):
+                self.verbose = True
             elif opt in ("-t", "--tasks"):
                 self.tasks = arg.split(",")
             elif opt in ("-c", "--countries"):
@@ -75,7 +78,6 @@ def get_db_engine(**kwargs):
 
 
 def run_import(countries, online: bool, delete_data: bool):
-
     if delete_data:
         db_utils.delete_all_data(sessionmaker(bind=get_db_engine())())
 
@@ -111,8 +113,14 @@ def run_export(countries):
 if __name__ == "__main__":
     command_line_arguments = CommandLineArguments(sys.argv)
 
+    if command_line_arguments.verbose:
+        app_logger = logging.getLogger("charging_stations_pipelines")
+        app_logger.setLevel(logging.DEBUG)
+        for handler in app_logger.handlers:
+            handler.setLevel(logging.DEBUG)
+
     for task in command_line_arguments.tasks:
-        logger.debug("Running task " + task)
+        logger.info("Running task " + task)
         if task == "import":
             run_import(command_line_arguments.countries, command_line_arguments.online,
                        command_line_arguments.delete_data)
