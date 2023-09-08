@@ -28,7 +28,7 @@ def parse_args(args):
                     'It imports data from different publicly available sources, converts it into a common format, '
                     'searches for duplicates in the different sources and merges the data (e.g. the attributes) '
                     'and exports the original or merged data to csv or geo-json.',
-        epilog='Example: python main.py import merge --countries de it --online -v ',
+        epilog='Example: python main.py import merge --countries de it -v ',
     )
 
     parser.add_argument('tasks', choices=valid_task_options, nargs='+', metavar='<task>',
@@ -42,9 +42,10 @@ def parse_args(args):
                         help='specifies the countries for which to perform the given tasks. '
                              'The country-codes must be one or several of %(choices)s (case-insensitive). '
                              'If not specified, the given tasks are run for all available countries')
-    parser.add_argument('-o', '--online', action='store_true',
-                        help='whether to retrieve station data online from all sources, '
-                             'or use data already present on disk, i.e. from previous runs of the import task.')
+    parser.add_argument('-o', '--offline', action='store_true',
+                        help='if set, use data for import that is already present on disk, '
+                             'i.e. from previous runs of the import task. '
+                             'If not set, the data will be retrieved online from the different data sources.')
     parser.add_argument('-d', '--delete_data', action='store_true',
                         help='for the import task, delete all station data before importing. '
                              'For the merge task, delete only merged station data and '
@@ -105,7 +106,7 @@ if __name__ == "__main__":
     for task in cli_args.tasks:
         logger.info("Running task " + task)
         if task == "import":
-            run_import(cli_args.countries, cli_args.online, cli_args.delete_data)
+            run_import(cli_args.countries, not cli_args.offline, cli_args.delete_data)
 
         if task == "merge":
             run_merge(cli_args.countries, cli_args.delete_data)

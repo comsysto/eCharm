@@ -117,7 +117,7 @@ Then run migration
 
 ### Run your import/merge/export
 ```bash
-python main.py import merge export --countries de it --online
+python main.py import merge export --countries de it
 ```
 
 Run `python main.py -h` to see the full list of command line options.
@@ -128,8 +128,8 @@ Feel free to adjust the command line options to your needs:
   * `merge` searches for duplicates and merges attributes of duplicate stations
   * `export` create a data export for the specified countries in `csv` or `geo-json` format
 * `countries` Currently we support `de`,`gb`,`fr`, `it`, `nor` and `swe`
-* `online` fetch data online from original data sources, if not present use files cached on disk
-* `delete_data` if present: On import it deletes all data before, for merge it deletes only merged station data and resets merge status 
+* `offline` if not present (default), fetch data online from original data sources. If present, use files cached on disk
+* `delete_data` if present: For import, delete all existing stations data before import. For merge, it delete only merged station data and reset merge status of original stations
 
 
 ## Contributing
