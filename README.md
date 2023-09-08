@@ -117,16 +117,19 @@ Then run migration
 
 ### Run your import/merge/export
 ```bash
-python main.py --countries=de,it --tasks=import,merge,export --online=true
+python main.py import merge export --countries de it --online
 ```
-Feel free to adjust the command line arguments to your needs:
-* `countries` Currently we support `de`,`gb`,`fr`, `it`, `nor` and `swe`
-* `tasks`
+
+Run `python main.py -h` to see the full list of command line options.
+
+Feel free to adjust the command line options to your needs:
+* main tasks
   * `import` fetches and stores the data from the original sources, i.e. OSM, OCM and potential government data sources
   * `merge` searches for duplicates and merges attributes of duplicate stations
   * `export` create a data export for the specified countries in `csv` or `geo-json` format
-* `online` fetch data online from original data sources, if `false` use files cached on disk
-* `delete_data` if `true`: On import it deletes all data before, for merge it deletes only merged station data and resets merge status 
+* `countries` Currently we support `de`,`gb`,`fr`, `it`, `nor` and `swe`
+* `online` fetch data online from original data sources, if not present use files cached on disk
+* `delete_data` if present: On import it deletes all data before, for merge it deletes only merged station data and resets merge status 
 
 
 ## Contributing
