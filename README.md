@@ -115,21 +115,37 @@ Then run migration
 
     alembic upgrade head
 
-### Run your import/merge/export
-```bash
-python main.py import merge export --countries de it
-```
-
+### Running eCharm
+eCharm can be run similar to a command line tool.
 Run `python main.py -h` to see the full list of command line options.
 
-Feel free to adjust the command line options to your needs:
-* main tasks
-  * `import` fetches and stores the data from the original sources, i.e. OSM, OCM and potential government data sources
-  * `merge` searches for duplicates and merges attributes of duplicate stations
-  * `export` create a data export for the specified countries in `csv` or `geo-json` format
-* `countries` Currently we support `de`,`gb`,`fr`, `it`, `nor` and `swe`
-* `offline` if not present (default), fetch data online from original data sources. If present, use files cached on disk
-* `delete_data` if present: For import, delete all existing stations data before import. For merge, it delete only merged station data and reset merge status of original stations
+Here are a few example commands for running tasks:
+
+#### Import and merge stations for all available countries:
+```bash
+python main.py import merge --delete_data
+```
+Note that you have to configure API-keys for certain data sources, as explained in the
+[set environment variables section](#set-environment-variables).
+
+We also recommend to use the `--delete_data` flag to remove old data from the database before running import or merge
+tasks, since eCharm is not (yet) clever with updating data from consecutive imports or merges.
+
+#### Import and merge stations for Germany and Italy only:
+```bash
+python main.py import merge --countries de it --delete_data
+```
+Currently, we support `de`,`gb`,`fr`, `it`, `nor` and `swe` as country codes.
+
+#### Export all original (un-merged) station data for Germany in csv format:
+```bash
+python main.py export --countries de
+```
+
+#### Export merged stations in a 10km radius around the Munich city center in GeoJSON format:
+```bash
+python main.py export --export_format GeoJSON --export_merged_stations --export_file_descriptor Munich --export_area 11.574774 48.1375526 10000.0
+```
 
 
 ## Contributing
