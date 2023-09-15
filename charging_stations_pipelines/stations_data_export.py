@@ -44,7 +44,7 @@ def stations_data_export(db_connection,
         get_stations_list_sql = f"""
             SELECT s.id as station_id, point, data_source, operator, 
                 a.street, a.town,
-                c.socket_type_list, c.dc_support, c.total_kw,  c.max_kw
+                c.capacity, c.socket_type_list, c.dc_support, c.total_kw,  c.max_kw
             FROM {prefix}stations s
             LEFT JOIN {prefix}address a ON s.id = a.station_id
             LEFT JOIN {prefix}charging c ON s.id = c.station_id
