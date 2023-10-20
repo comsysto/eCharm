@@ -1,72 +1,59 @@
-import getopt
+import argparse
 import logging
 import sys
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from charging_stations_pipelines import db_utils
+from charging_stations_pipelines import settings
 from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.pipelines.ocm.ocm import OcmPipeline
 from charging_stations_pipelines.pipelines.osm.osm import OsmPipeline
 from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_factory
 from charging_stations_pipelines.settings import db_uri
-from charging_stations_pipelines.shared import reject_if, config, string_to_bool
+from charging_stations_pipelines.shared import config
 from charging_stations_pipelines.stations_data_export import stations_data_export
-from charging_stations_pipelines import settings
-from charging_stations_pipelines import db_utils
-
 from testing import testdata
 
 logger = logging.getLogger("charging_stations_pipelines.main")
 
 
-class CommandLineArguments:
-    tasks = []
-    countries = []
-    online: bool = True
+def parse_args(args):
+    valid_task_options = ["import", "merge", "export", "testdata"]
+    valid_country_options = ["DE", "FR", "GB", "IT", "NOR", "SWE"]
 
-    def __init__(self, argv) -> None:
-        super().__init__()
-        self.argv = argv
-        # explicitly set defaults
-        self.delete_data = False
-        self.online = False
+    parser = argparse.ArgumentParser(
+        description='eCharm can best be described as an electronic vehicle charging stations data integrator. '
+                    'It imports data from different publicly available sources, converts it into a common format, '
+                    'searches for duplicates in the different sources and merges the data (e.g. the attributes) '
+                    'and exports the original or merged data to csv or geo-json.',
+        epilog='Example: python main.py import merge --countries de it -v ',
+    )
 
-        try:
-            opts, args = getopt.getopt(argv[1:], "ht:c:o:", ["help", "tasks=", "countries=", "online=", "delete_data="])
-        except Exception:
-            logger.exception("Could not parse arguments")
-            raise
+    parser.add_argument('tasks', choices=valid_task_options, nargs='+', metavar='<task>',
+                        help='one or more tasks to perform. The following tasks are available: %(choices)s. '
+                             'import retrieves data for the selected countries and stores them in the database. '
+                             'merge searches for duplicates and merges attributes of duplicate stations. '
+                             'export creates a data export for the specified countries in csv or geo-json format. '
+                             'testdata is only intended to be used for development purposes.')
+    parser.add_argument('-c', '--countries', choices=valid_country_options,
+                        default=valid_country_options, nargs='+', type=str.upper, metavar='<country-code>',
+                        help='specifies the countries for which to perform the given tasks. '
+                             'The country-codes must be one or several of %(choices)s (case-insensitive). '
+                             'If not specified, the given tasks are run for all available countries')
+    parser.add_argument('-o', '--offline', action='store_true',
+                        help='if set, use data for import that is already present on disk, '
+                             'i.e. from previous runs of the import task. '
+                             'If not set, the data will be retrieved online from the different data sources.')
+    parser.add_argument('-d', '--delete_data', action='store_true',
+                        help='for the import task, delete all station data before importing. '
+                             'For the merge task, delete only merged station data and '
+                             'reset merge status of original stations.')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='makes eCharm verbose during operations. Useful for debugging.')
 
-        for opt, arg in opts:
-            if opt in ("-h", "--help"):
-                self.print_help()
-            elif opt in ("-t", "--tasks"):
-                self.tasks = arg.split(",")
-            elif opt in ("-c", "--countries"):
-                self.countries = [c.upper() for c in arg.split(",")]
-            elif opt in ("-o", "--online"):
-                self.online = string_to_bool(arg)
-            elif opt in ("-d", "--delete_data"):
-                self.delete_data = string_to_bool(arg)
-        self.validate()
-
-    def print_help(self):
-        arg_help = "{0} --tasks=<task1,task2> --countries=<country1,country2> --online=<true/false> " \
-                   "--delete_data=<true/false>".format(self.argv[0])
-        print(arg_help)
-        print("Example: python main.py --countries=de,it --tasks=import --online=true")
-        sys.exit(2)
-
-    def validate(self):
-        if not self.tasks or not self.countries:
-            self.print_help()
-
-        accepted_tasks = ["import", "merge", "testdata", "export"]
-        reject_if(not all(t in accepted_tasks for t in self.tasks), "Invalid task")
-
-        accepted_countries = ["DE", "FR", "GB", "IT", "NOR", "SWE"]
-        reject_if(not all(t in accepted_countries for t in self.countries), "Invalid country")
+    return parser.parse_args(args)
 
 
 def get_db_engine(**kwargs):
@@ -75,7 +62,6 @@ def get_db_engine(**kwargs):
 
 
 def run_import(countries, online: bool, delete_data: bool):
-
     if delete_data:
         db_utils.delete_all_data(sessionmaker(bind=get_db_engine())())
 
@@ -109,19 +95,24 @@ def run_export(countries):
 
 
 if __name__ == "__main__":
-    command_line_arguments = CommandLineArguments(sys.argv)
+    cli_args = parse_args(sys.argv[1:])
 
-    for task in command_line_arguments.tasks:
-        logger.debug("Running task " + task)
+    if cli_args.verbose:
+        app_logger = logging.getLogger("charging_stations_pipelines")
+        app_logger.setLevel(logging.DEBUG)
+        for handler in app_logger.handlers:
+            handler.setLevel(logging.DEBUG)
+
+    for task in cli_args.tasks:
+        logger.info("Running task " + task)
         if task == "import":
-            run_import(command_line_arguments.countries, command_line_arguments.online,
-                       command_line_arguments.delete_data)
+            run_import(cli_args.countries, not cli_args.offline, cli_args.delete_data)
 
         if task == "merge":
-            run_merge(command_line_arguments.countries, command_line_arguments.delete_data)
+            run_merge(cli_args.countries, cli_args.delete_data)
 
         if task == "testdata":
             testdata.run()
 
         if task == "export":
-            run_export(command_line_arguments.countries)
+            run_export(cli_args.countries)
