@@ -65,6 +65,25 @@ source venv/bin/activate
 pip install -r requirements.txt  
 ```
 
+**Trouble Shooting:**
+
+If pip install is failing during psycopg2 install:
+
+A) Search for openssl lib path (`which openssl` may help) 
+and identify which one is needed for linking the compiler for psycopg2 correctly. 
+Then export it as the corresponding LDFLAGS environment variable before pip install, for instance:
+
+     export LDFLAGS="-L/usr/local/Cellar/openssl@3/3.1.3/lib"
+
+B) Ubuntu Users:
+
+Make sure you have the following packages installed:
+
+- build-essential
+- libgdal-dev
+- libpq5
+
+
 #### Set environment variables
 The following configuration parameters need to be set when using eCharm:
 
