@@ -65,23 +65,17 @@ source venv/bin/activate
 pip install -r requirements.txt  
 ```
 
-**Trouble Shooting:**
+##### Trouble Shooting
 
 If pip install is failing during psycopg2 install:
 
-A) Search for openssl lib path (`which openssl` may help) 
+1. Make sure you have the following packages installed on your system
+   - Ubuntu users: `build-essential`, `libgdal-dev`,`libpq5`
+   - Mac users: A postgres version needs to be installed, e.g. via `brew install postgresql`
+2. If there are still errors, search for openssl lib path (`which openssl` may help) 
 and identify which one is needed for linking the compiler for psycopg2 correctly. 
-Then export it as the corresponding LDFLAGS environment variable before pip install, for instance:
-
-     export LDFLAGS="-L/usr/local/Cellar/openssl@3/3.1.3/lib"
-
-B) Ubuntu Users:
-
-Make sure you have the following packages installed:
-
-- build-essential
-- libgdal-dev
-- libpq5
+Then export it as the corresponding LDFLAGS environment variable before pip install, for instance,
+`export LDFLAGS="-L/usr/local/Cellar/openssl@3/3.1.3/lib"`
 
 
 #### Set environment variables
