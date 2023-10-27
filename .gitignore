@@ -8,3 +8,4 @@ stations_*.csv
 stations_*.geo.json
 testdata_merge.csv
 token_deepatlas.json
+alembic/versions/*.py
