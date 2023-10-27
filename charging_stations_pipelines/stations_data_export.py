@@ -58,10 +58,10 @@ def stations_data_export(db_connection,
         suffix = "csv"
         gdf['latitude'] = gdf['point'].apply(lambda point: point.y)
         gdf['longitude'] = gdf['point'].apply(lambda point: point.x)
-        json_data = gdf.to_csv()
+        export_data = gdf.to_csv()
     else:
         suffix = "geo.json"
-        json_data = gdf.to_json()
+        export_data = gdf.to_json()
 
     file_country = "europe" if export_all_countries else country_code
     file_description = get_file_description(file_descriptor, file_country, export_area)
@@ -71,7 +71,7 @@ def stations_data_export(db_connection,
     filename = f"stations_{file_description}_{file_suffix_merged}{file_suffix_charging}.{suffix}"
     logger.info(f"Writing {len(gdf)} stations to {filename}")
     with open(filename, "w") as outfile:
-        outfile.write(json_data)
+        outfile.write(export_data)
 
 
 def get_file_description(file_descriptor: str, file_country: str, export_circle: ExportArea):
