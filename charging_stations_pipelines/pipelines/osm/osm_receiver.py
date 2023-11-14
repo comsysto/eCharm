@@ -1,3 +1,5 @@
+"""Module to retrieve OpenStreetMap (OSM) data for a specific country"""
+
 import json
 
 import requests
@@ -5,6 +7,28 @@ from requests import Response
 
 
 def get_osm_data(country_code: str, tmp_data_path):
+    """This method retrieves OpenStreetMap (OSM) data for a specific country based on its country code. The OSM data
+    includes information about charging stations in the specified country.
+
+    The `country_code` parameter is a string representing the two-letter country code. Valid country codes are "DE"
+    for Germany, "FR" for France, "GB" for United Kingdom, "IT" for Italy, "NOR" for Norway, and "SWE" for Sweden.
+
+    The `tmp_data_path parameter` is a string representing the path to save the downloaded OSM data. The OSM data will
+    be saved in JSON format.
+
+    This method uses the Overpass API to retrieve the OSM data. It sends a query to the Overpass API specifying
+    the desired country and the amenity `charging_station` to retrieve information about charging stations within
+    the country.
+
+    Example usage:
+        >>> get_osm_data("DE", "/path/to/save/osm_data.json")
+
+    :param country_code: The country code of the desired country.
+    :type country_code: str
+    :param tmp_data_path: The path to save the downloaded OSM data.
+    :type tmp_data_path: str
+    :return: None
+    """
     country_code_to_area = {
         "DE": "Deutschland",
         "FR": "France métropolitaine",
@@ -37,9 +61,7 @@ def get_osm_data(country_code: str, tmp_data_path):
         """
     }
 
-    response: Response = requests.get(
-        "http://overpass-api.de/api/interpreter", params=query_params
-    )
+    response: Response = requests.get("https://overpass-api.de/api/interpreter", query_params)
     status_code: int = response.status_code
     if status_code != 200:
         raise RuntimeError(f"Failed to get OSM-Data! Status-Code: {status_code}")
