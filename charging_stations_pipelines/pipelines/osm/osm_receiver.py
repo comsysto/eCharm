@@ -20,18 +20,21 @@ def get_osm_data(country_code: str, tmp_data_path):
     area_name = country_code_to_area[country_code]
 
     query_params = {
-        "data": """
+        "data": f"""
         [out:json];
-    area[name="{area_name}"];
-    // gather results
-    (
-      // query part for: “"charging station"”
-      node["amenity"="charging_station"](area);
-      way["amenity"="charging_station"](area);
-      rel["amenity"="charging_station"](area);
-    );
+        
+        area[name="{area_name}"];
+        
+        // gather results
+        (
+            // query part for: “"charging station"”
+            node["amenity"="charging_station"](area);
+            way["amenity"="charging_station"](area);
+            rel["amenity"="charging_station"](area);
+        );
+        
         out;
-        """.format(area_name=area_name)
+        """
     }
 
     response: Response = requests.get(
@@ -45,4 +48,4 @@ def get_osm_data(country_code: str, tmp_data_path):
 
 
 if __name__ == "__main__":
-    get_osm_data(tmp_data_path="./osm_france.json")
+    get_osm_data("FR", "./osm_france.json")
