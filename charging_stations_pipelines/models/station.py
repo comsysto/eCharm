@@ -2,8 +2,8 @@ from geoalchemy2.types import Geography
 from sqlalchemy import Column, Date, Integer, String, Boolean, Index, ForeignKey
 from sqlalchemy.orm import relationship
 
-from charging_stations_pipelines.models import Base
 from charging_stations_pipelines import settings
+from charging_stations_pipelines.models import Base
 
 
 class Station(Base):
@@ -24,10 +24,6 @@ class Station(Base):
     is_merged = Column(Boolean, default=False)
     merge_status = Column(String)
     source_stations = relationship("MergedStationSource")
-
-
-    def __repr__(self):
-        return "<stations with id: {}>".format(self.id)
 
 
 Index(

@@ -2,9 +2,9 @@ from sqlalchemy import Column, Date, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
+from charging_stations_pipelines import settings
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines import settings
 
 
 class Address(Base):
@@ -25,4 +25,4 @@ class Address(Base):
     station = relationship("Station", back_populates="address")
 
     def __repr__(self):
-        return f"<address: id {self.id}, station_id {self.station_id}, street: {self.street}, town: {self.town}>"
+        return f"<address id: {self.id}, station_id: {self.station_id}, street: {self.street}, town: {self.town}>"

@@ -45,13 +45,16 @@ def map_address_ocm(row, station_id):
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
     map_address = Address()
-    map_address.state_old = None
+    # TODO add state_old to Address
+    # map_address.state_old = None
     map_address.station_id = station_id
     map_address.street = street
     map_address.town = town
-    map_address.postcode = postcode
+    # TODO add postcode to Address
+    # map_address.postcode = postcode
     map_address.district_old = None
-    map_address.state_old = state_old
+    # TODO add state_old to Address
+    # map_address.state_old = state_old
     map_address.country = country
     return map_address
 

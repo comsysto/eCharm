@@ -2,6 +2,8 @@ import configparser
 import json
 import os
 import pathlib
+import re
+from typing import Optional, List, Any, Iterable
 
 import pandas as pd
 import requests
@@ -17,10 +19,12 @@ def init_config():
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
     return config
 
+
 def load_json_file(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file)
     return data
+
 
 def load_excel_file(path):
     # Read excel file as pandas dataframe
@@ -44,6 +48,28 @@ def download_file(url, target_file):
     output = open(target_file, "wb")
     output.write(resp.content)
     output.close()
+
+
+def try_float(s: str) -> Optional[float]:
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def filter_none(l: Iterable[Optional[Any]]) -> List[Any]:
+    return list(filter(None, l or []))
+
+
+def try_clean_str(raw_str: Optional[str], remove_pattern) -> Optional[str]:
+    return re.sub(remove_pattern, '', raw_str, flags=re.IGNORECASE).strip()
+
+
+def try_split_str(raw_str: Optional[str], split_pattern: str) -> List[str]:
+    if raw_str is None:
+        return []
+    split_list = re.split(split_pattern, raw_str)
+    return list(map(str.strip, split_list))
 
 
 current_dir = os.path.join(pathlib.Path(__file__).parent.parent.resolve())

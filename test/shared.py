@@ -58,9 +58,11 @@ def create_address() -> Address:
     address = Address()
     address.street = "Teststr."
     address.town = "Testhausen"
-    address.postcode = "12345"
+    # TODO add postcode to Address
+    # address.postcode = "12345"
     address.district_old = ""
-    address.state_old = ""
+    # TODO add state_old to Address
+    # address.state_old = ""
     address.country = ("DE",)
     return address
 

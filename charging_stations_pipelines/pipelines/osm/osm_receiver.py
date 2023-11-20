@@ -5,6 +5,8 @@ import json
 import requests
 from requests import Response
 
+from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
+
 
 def get_osm_data(country_code: str, tmp_data_path):
     """This method retrieves OpenStreetMap (OSM) data for a specific country based on its country code. The OSM data
@@ -39,7 +41,7 @@ def get_osm_data(country_code: str, tmp_data_path):
     }
 
     if country_code not in country_code_to_area:
-        raise Exception(f"country code '{country_code}' unknown for OSM")
+        raise Exception(f"country code '{country_code}' unknown for {DATA_SOURCE_KEY}")
 
     area_name = country_code_to_area[country_code]
 
@@ -64,10 +66,6 @@ def get_osm_data(country_code: str, tmp_data_path):
     response: Response = requests.get("https://overpass-api.de/api/interpreter", query_params)
     status_code: int = response.status_code
     if status_code != 200:
-        raise RuntimeError(f"Failed to get OSM-Data! Status-Code: {status_code}")
+        raise RuntimeError(f"Failed to get {DATA_SOURCE_KEY} data! Status code: {status_code}")
     with open(tmp_data_path, "w") as f:
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)
-
-
-if __name__ == "__main__":
-    get_osm_data("FR", "./osm_france.json")

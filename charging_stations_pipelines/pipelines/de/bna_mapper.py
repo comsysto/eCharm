@@ -32,7 +32,7 @@ def lat_long_hash(lat_row, long_row, data_source):
 
 def _clean_attributes(charging: Charging):
     if charging.capacity and charging.capacity > MAX_CAPACITY:
-        charging.charging = AVG_CAPACITY
+        charging.capacity = AVG_CAPACITY
     return charging
 
 
@@ -71,9 +71,11 @@ def map_address_bna(row, station_id) -> Address:
     map_address = Address()
     map_address.street = (street,)
     map_address.town = (town,)
-    map_address.postcode = (postcode,)
+    # TODO add postcode to Address
+    # map_address.postcode = (postcode,)
     map_address.district_old = (row["Kreis/kreisfreie Stadt"],)
-    map_address.state_old = (row["Bundesland"],)
+    # TODO add state_old to Address
+    # map_address.state_old = (row["Bundesland"],)
     map_address.country = ("DE",)
     return map_address
 

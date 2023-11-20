@@ -24,7 +24,8 @@ def map_address_fra(row):
     map_address = Address()
     map_address.street = (street,)
     map_address.town = (town,)
-    map_address.postcode = (postcode,)
+    # TODO add postcode to Address
+    # map_address.postcode = (postcode,)
     map_address.country = ("FR",)
     return map_address
 
@@ -40,8 +41,6 @@ def map_station_fra(row):
     new_station.operator = row["nom_operateur"]
     new_station.data_source = datasource
     new_station.point = from_shape(Point(float(long), float(lat)))
-    # new_station.date_created = (row["date_mise_en_service"].strptime("%Y-%m-%d"),)
-    # new_station.date_updated = (row["date_maj"].strptime("%Y-%m-%d"),)
     if not pd.isna(row["date_mise_en_service"]):
         new_station.date_created = datetime.strptime(row["date_mise_en_service"], "%Y-%m-%d")
     if not pd.isna(row["date_maj"]):
