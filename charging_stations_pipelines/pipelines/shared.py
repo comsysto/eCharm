@@ -12,7 +12,7 @@ def check_coordinates(coords: float) -> float:
             "".join([s for s in coords.replace(",", ".") if (s.isdigit()) | (s == ".") | (s == "-")])
         )
     if not isinstance(coords, Number):
-        raise ValueError("Coordinatess could not be read propery!")
+        raise ValueError("Coordinatess could not be read properly!")
     return coords
 
 
