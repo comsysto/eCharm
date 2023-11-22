@@ -21,7 +21,7 @@ logger = logging.getLogger("charging_stations_pipelines.main")
 
 def parse_args(args):
     valid_task_options = ["import", "merge", "export", "testdata"]
-    valid_country_options = ["DE", "FR", "GB", "IT", "NOR", "SWE"]
+    valid_country_options = ["DE", "AT", "FR", "GB", "IT", "NOR", "SWE"]
     valid_export_format_options = ["csv", "GeoJSON"]
 
     parser = argparse.ArgumentParser(

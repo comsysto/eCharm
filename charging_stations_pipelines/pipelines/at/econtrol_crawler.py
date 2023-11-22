@@ -73,7 +73,6 @@ def get_data(tmp_data_path):
 
 if __name__ == '__main__':
     from dotenv import load_dotenv
-
     load_dotenv()
 
     logger.setLevel(logging.DEBUG)

@@ -94,53 +94,23 @@ def _sanitize_charging_attributes(charging):
     pass
 
 
-def map_charging(row, station_id) -> Charging:
-    # TODO 'points'
-    # [{'evseId': 'AT*002*E200101*1',
-    #   'energyInKw': 12,
-    #   'authenticationModes': ['APP',
-    #    'SMS',
-    #    'WEBSITE'],
-    #   'connectorTypes': ['CTESLA',
-    #    'S309-1P-16A',
-    #    'CG105',
-    #    'WINDUCTIVE',
-    #    'SCEE-7-8',
-    #    'S309-1P-32A',
-    #    'CTYPE1',
-    #    'CTYPE2',
-    #    'S309-3P-16A',
-    #    'OTHER3PH',
-    #    'STYPE3',
-    #    'CCCS2',
-    #    'S309-3P-32A',
-    #    'CCCS1',
-    #    'STYPE2',
-    #    'WRESONANT',
-    #    'OTHER1PHOVER16A',
-    #    'UNKNOWN',
-    #    'OTHER1PHMAX16A',
-    #    'PAN'],
-    #   'vehicleTypes': ['CAR', 'TRUCK', 'BICYCLE', 'MOTORCYCLE', 'BOAT'],
-    #
-    #  {'evseId': 'AT*002*E2001*5',
-    #   'energyInKw': 15,
-    #   'location': {'latitude': 48.198523499134545, 'longitude': 16.325340999197394},
-    #   'priceInCentPerKwh': 12,
-    #   'priceInCentPerMin': 13,
-    #   'authenticationModes': [],
-    #   'connectorTypes': ['CTESLA', 'CG105', 'CCCS2', 'CCCS1'],
-
-    # TODO collect from 'energyInKw'
-    kw_list = []
+def _extract_kw_socket_type(row) -> ([], []):
     # TODO
-    # [connectorTypes], e.g.['CTESLA', 'CG105', 'CCCS2', 'CCCS1']
+    kw_list = []
     socket_type_list = []
+
+    return kw_list, socket_type_list
+
+
+def map_charging(row, station_id) -> Charging:
+    # kw_list from 'energyInKw'
+    # socket_type_list: [connectorTypes], e.g.['CTESLA', 'CG105', 'CCCS2', 'CCCS1']
+    kw_list, socket_type_list = _extract_kw_socket_type(row)
 
     charging = Charging()
     charging.station_id = station_id
     charging.capacity = None  # TODO number of connectors? number of charging points?
-    charging.kw_list = kw_list  # TODO [energyInKw]
+    charging.kw_list = kw_list
     charging.ampere_list = []  # NOTE: is not available
     charging.volt_list = []  # NOTE: is not available
     charging.socket_type_list = socket_type_list

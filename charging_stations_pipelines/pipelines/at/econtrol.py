@@ -31,7 +31,7 @@ class EcontrolAtPipeline:
             get_data(tmp_data_path)
         # NOTE, read data from json file in NDJSON (newline delimited JSON) format,
         #   i.e. one json object per line, thus `lines=True` is required
-        self.data = pd.read_json(tmp_data_path, lines=True)
+        self.data = pd.read_json(tmp_data_path, lines=True)  # pd.DataFrame
 
     def run(self):
         logger.info(f"Running {DATA_SOURCE_KEY} Pipeline...")
