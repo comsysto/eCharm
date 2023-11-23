@@ -156,15 +156,14 @@ if __name__ == "__main__":
         if task == "export":
             args_file_descriptor = cli_args.export_file_descriptor if cli_args.export_file_descriptor else ""
             args_export_area = ExportArea(
-                    lon=cli_args.export_area[0],
-                    lat=cli_args.export_area[1],
-                    radius_meters=cli_args.export_area[2],
-                ) if cli_args.export_area else None
+                lon=cli_args.export_area[0],
+                lat=cli_args.export_area[1],
+                radius_meters=cli_args.export_area[2],
+            ) if cli_args.export_area else None
             run_export(countries=cli_args.countries,
                        export_merged=cli_args.export_merged_stations,
                        export_charging=cli_args.export_charging,
                        export_csv=cli_args.export_format == "csv",
                        export_all_countries=cli_args.export_all_countries,
                        export_area=args_export_area,
-                       export_file_descriptor=args_file_descriptor,
-                       )
+                       export_file_descriptor=args_file_descriptor, )

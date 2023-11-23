@@ -1,3 +1,5 @@
+"""Module to extract and map the raw data from the datasource to internal DB data model."""
+
 import logging
 from typing import Final, Any, Optional
 
@@ -9,8 +11,8 @@ from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
-from charging_stations_pipelines.pipelines.shared import check_coordinates, try_strip_str, try_flatten_list, try_float, \
-    try_expand_list, try_remove_dups
+from charging_stations_pipelines.pipelines.shared import check_coordinates, try_strip_str, try_flatten_list, \
+    try_float, try_expand_list, try_remove_dups
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +35,38 @@ def _extract_auth_modes(points: list[dict]) -> list[str]:
     return auth_modes_list
 
 
-def _extract_location(row) -> WKBElement:
+def _extract_location(row) -> Optional[WKBElement]:
     location = row.get('location', {})  # type: Final[dict]
     lon = check_coordinates(location.get('longitude'))  # type: Final[float]
     lat = check_coordinates(location.get('latitude'))  # type: Final[float]
-    return from_shape(Point(lon, lat))
+    return from_shape(Point(lon, lat)) if lon and lat else None
 
 
-def map_station(row) -> Station:
-    # Note: following attributes are also available in the data source
+def map_station(row: dict[str, str]) -> Station:
+    """
+    :param row: A dictionary representing the raw datapoint of a station.
+    :return: A Station object.
+
+    This method maps the data from the given row dictionary to create a Station object. \
+    The row dictionary should have the following attributes:
+
+    - 'points': A list of dictionaries representing the charging points of the station.
+
+    The Station object will have the following attributes:
+
+    - 'country_code': A string representing the country code of the station. It should always be 'AT'.
+    - 'source_id': A string representing the source ID of the station.
+    - 'operator': A string representing the operator of the station.
+    - 'payment': The payment information for the station is not available in the data source.
+    - 'authentication': A list of authentication modes supported by the station, extracted from the 'points' \
+      attribute of the row dictionary.
+    - 'data_source': A string representing the data source key.
+    - 'point': GPS coordinates of the station.
+    - 'raw_data': The raw data of the station.
+    - 'date_created': The creation date of the station.
+    - 'date_updated': The update date of the station.
+    """
+    # TODO following attributes are also available in the data source
     #  1. status          9469 non-null
     #  2. label           9469 non-null
     #  3. description     5668 non-null
@@ -51,6 +76,7 @@ def map_station(row) -> Station:
     #  6. evseCountryId   9469 non-null
     #  7. evseStationId   9469 non-null
     #  8. evseOperatorId  9469 non-null
+    points = row.get('points', []) or []  # type: Final[list[dict]]
 
     station: Station = Station()
 
@@ -64,7 +90,7 @@ def map_station(row) -> Station:
     station.operator = try_strip_str(row.get('evseOperatorId'))  # evseOperatorId, e.g. "014"
 
     station.payment = None  # TODO check semantics
-    station.authentication = _extract_charger_details(row)  # TODO check semantics
+    station.authentication = _extract_auth_modes(points)  # TODO check semantics
     station.data_source = DATA_SOURCE_KEY
     station.point = _extract_location(row)
     station.raw_data = None
@@ -74,8 +100,14 @@ def map_station(row) -> Station:
     return station
 
 
-def map_address(row, station_id) -> Address:
-    # Note: following attributes are also available in the data source:
+def map_address(row: dict[str, str], station_id: int) -> Address:
+    """Maps the given raw datapoint to an Address object.
+
+    :param row: A dictionary representing the row data.
+    :param station_id: An integer representing the station ID.
+    :return: An Address object.
+    """
+    # TODO following attributes are also available in the data source:
     #  1. contactName     9469 non-null
     #  2. telephone       8615 non-null
     #  3. email           2358 non-null
@@ -95,7 +127,7 @@ def map_address(row, station_id) -> Address:
     return address
 
 
-def _extract_charger_details(points: list[dict]) -> ([], [], []):
+def _extract_charger_details(points: list[dict]) -> ([], []):
     # Aggregate socket types
     socket_type_list_agg = _aggregate_attribute(points, 'connectorTypes')  # type: Final[list[list[str]]]
     socket_type_list = try_flatten_list(socket_type_list_agg)  # type: Final[list[str]]
@@ -121,8 +153,15 @@ def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
     return final_charging
 
 
-def map_charging(row, station_id) -> Charging:
+def map_charging(row: dict[str, str], station_id: int) -> Charging:
+    """Maps the given raw datapoint to a Charging object.
+
+    :param row: A dictionary containing information about the charging station.
+    :param station_id: The ID of the charging station.
+    :return: An instance of the Charging class containing the mapped charging point data.
+    """
     points = row.get('points', []) or []  # type: Final[list[dict]]
+
     kw_list, socket_type_list = _extract_charger_details(points)  # type: Final[(list[float], list[str])]
 
     charging: Charging = Charging()

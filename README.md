@@ -124,7 +124,7 @@ Put the following content to `.env` file in the root directory:
 ### Start docker containers
 
 ```bash
-docker compose up  
+docker compose up # or: docker-compose up
 ```
 
 ### Initialize DB

@@ -1,4 +1,9 @@
+"""Test class for testing the functionality of the map_charging, map_station, and map_address functions."""
+
 from unittest import TestCase
+
+from geoalchemy2.shape import from_shape
+from shapely.geometry import Point
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
@@ -7,7 +12,6 @@ from charging_stations_pipelines.pipelines.at.econtrol_mapper import map_chargin
 
 
 class Test(TestCase):
-
     def test_map_charging(self):
         datapoint = {
             'points': [{'evseId': 'AT*002*E200101*1',
@@ -90,24 +94,24 @@ class Test(TestCase):
 
         s = map_station(datapoint)  # type: Station
 
-        # source_id = Column(String, index=True, nullable=True, unique=True)
-        self.assertEqual(None, s.source_id)
-        # data_source = Column(String)
+        # Column(String, index=True, nullable=True, unique=True)
+        self.assertEqual('EREI001', s.source_id)  # evseStationId
+        #  Column(String)
         self.assertEqual('AT_ECONTROL', s.data_source)
         # TODO check semantics
         # operator = Column(String)
-        self.assertEqual(None, s.operator)
+        self.assertEqual('000', s.operator)  # evseOperatorId
         # TODO check semantics
-        # payment = Column(String)
+        # Column(String)
         self.assertEqual(None, s.payment)
         # TODO check semantics
-        # authentication = Column(String)
-        self.assertEqual(sorted(['APP', 'SMS', 'WEBSITE', "DEBIT_CARD", "CASH", "CREDIT_CARD"]), s.authentication)
-        # point = Column(Geography(geometry_type='POINT', srid=4326))
-        self.assertEqual('TODO', s.point)
-        # raw_data = Column(String)
+        # Column(String)
+        self.assertEqual([], s.authentication)  # .points[] | .authenticationModes
+        # Column(Geography(geometry_type='POINT', srid=4326))
+        self.assertEqual(from_shape(Point(14.349852, 48.456161)), s.point)
+        # Column(String)
         self.assertEqual(None, s.raw_data)
-        # country_code = Column(String)
+        # Column(String)
         self.assertEqual('AT', s.country_code)
 
     def test_map_address(self):
@@ -162,27 +166,25 @@ class Test(TestCase):
 
         a = map_address(datapoint, 3)  # type: Address
 
-        # station_id = Column(Integer, ForeignKey(f"{Station.__tablename__}.id"), nullable=False, unique=True)
+        # FK to station table
         self.assertEqual(3, a.station_id)
-        # date_created = Column(Date)
+        # Column(Date)
         self.assertEqual(None, a.date_created)
-        # date_updated = Column(Date)
+        # Column(Date)
         self.assertEqual(None, a.date_updated)
-        # street = Column(String)
+        # Column(String)
         self.assertEqual('Marktplatz 2', a.street)
-        # town = Column(String)
+        # Column(String)
         self.assertEqual('Reichenau im Mühlkreis', a.town)
-        # postcode = Column(String)
+        # Column(String)
         self.assertEqual('4204', a.postcode)
-        # district_old = Column(String)
+        # Column(String)
         self.assertEqual(None, a.district_old)
-        # district = Column(String)
+        # Column(String)
         self.assertEqual(None, a.district)
-        # state_old = Column(String)
+        # Column(String)
         self.assertEqual(None, a.state_old)
-        # state = Column(String)
+        # Column(String)
         self.assertEqual(None, a.state)
-        # country = Column(String)
+        # Column(String)
         self.assertEqual('AT', a.country)
-        # station = relationship("Station", back_populates="address")
-        self.assertEqual(None, a.station)

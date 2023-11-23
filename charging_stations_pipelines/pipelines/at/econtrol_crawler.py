@@ -1,4 +1,5 @@
 """Module to download the e-control.at (ladestellen.at) data from a specified URL."""
+
 import json
 import logging
 import os
@@ -48,11 +49,18 @@ def _get_paginated_stations(url, headers):
 
 
 def get_data(tmp_data_path):
+    """Downloads data from a specified URL and saves it to a file.
+
+    :param tmp_data_path: The path to the file where the data will be saved.
+    :type tmp_data_path: str
+    :return: None
+    :rtype: None
+    """
     url = "https://api.e-control.at/charge/1.0/search/stations"  # Final[str]
 
     # HTTP header
     #
-    # TODO fix issue with api key
+    # TODO fix the issue with the api key
     # econtrol_at_apikey = os.getenv('ECONTROL_AT_APIKEY')
     # econtrol_at_domain = os.getenv('ECONTROL_AT_DOMAIN')
     headers = {'Authorization': f"Basic {os.getenv('ECONTROL_AT_AUTH')}", 'User-Agent': 'Mozilla/5.0'}
@@ -73,6 +81,7 @@ def get_data(tmp_data_path):
 
 if __name__ == '__main__':
     from dotenv import load_dotenv
+
     load_dotenv()
 
     logger.setLevel(logging.DEBUG)
