@@ -12,37 +12,8 @@ from charging_stations_pipelines.pipelines.at.econtrol_mapper import map_chargin
 
 
 class Test(TestCase):
-    def test_map_charging(self):
-        datapoint = {
-            'points': [{'evseId': 'AT*002*E200101*1',
-                        'energyInKw': 12,
-                        'authenticationModes': ['APP', 'SMS', 'WEBSITE'],
-                        'connectorTypes': ['CTESLA', 'S309-1P-16A', 'CG105', 'PAN'],
-                        'vehicleTypes': ['CAR', 'TRUCK', 'BICYCLE', 'MOTORCYCLE', 'BOAT']},
 
-                       {'evseId': 'AT*002*E2001*5',
-                        'energyInKw': 15,
-                        'location': {'latitude': 48.198523499134545, 'longitude': 16.325340999197394},
-                        'priceInCentPerKwh': 12,
-                        'priceInCentPerMin': 13,
-                        'authenticationModes': ['SMS', "DEBIT_CARD", "CASH", "CREDIT_CARD"],
-                        'connectorTypes': ['CTESLA', 'CG105', 'CCCS2', 'CCCS1']}]
-        }
-
-        c = map_charging(datapoint, 1)  # type: Charging
-
-        self.assertEqual(1, c.station_id)
-        self.assertEqual(2, c.capacity)
-        self.assertEqual([12.0, 12.0, 12.0, 12.0, 15.0, 15.0, 15.0, 15.0], c.kw_list)
-        self.assertEqual(108.0, c.total_kw)
-        self.assertEqual(15.0, c.max_kw)
-        self.assertEqual(None, c.ampere_list)
-        self.assertEqual(None, c.volt_list)
-        self.assertEqual(['CTESLA', 'S309-1P-16A', 'CG105', 'PAN', 'CTESLA', 'CG105', 'CCCS2', 'CCCS1'],
-                         c.socket_type_list)
-        self.assertEqual(None, c.dc_support)
-
-    def test_map_station(self):
+    def test_map_station__plain(self):
         datapoint = {
             "city": "Reichenau im M\u00fchlkreis ",
             "contactName": "Marktgemeindeamt Reichenau i.M.",
@@ -95,7 +66,7 @@ class Test(TestCase):
         s = map_station(datapoint)  # type: Station
 
         # Column(String, index=True, nullable=True, unique=True)
-        self.assertEqual('EREI001', s.source_id)  # evseStationId
+        self.assertEqual('AT*000*EREI001', s.source_id)  # evseStationId
         #  Column(String)
         self.assertEqual('AT_ECONTROL', s.data_source)
         # TODO check semantics
@@ -114,7 +85,7 @@ class Test(TestCase):
         # Column(String)
         self.assertEqual('AT', s.country_code)
 
-    def test_map_address(self):
+    def test_map_address__plain(self):
         datapoint = {
             "city": "Reichenau im M\u00fchlkreis ",
             "contactName": "Marktgemeindeamt Reichenau i.M.",
@@ -188,3 +159,59 @@ class Test(TestCase):
         self.assertEqual(None, a.state)
         # Column(String)
         self.assertEqual('AT', a.country)
+
+    def test_map_charging__plain(self):
+        datapoint = {
+            'points': [{'evseId': 'AT*002*E200101*1',
+                        'energyInKw': 12,
+                        'authenticationModes': ['APP', 'SMS', 'WEBSITE'],
+                        'connectorTypes': ['CTESLA', 'S309-1P-16A', 'CG105', 'PAN'],
+                        'vehicleTypes': ['CAR', 'TRUCK', 'BICYCLE', 'MOTORCYCLE', 'BOAT']},
+
+                       {'evseId': 'AT*002*E2001*5',
+                        'energyInKw': 15,
+                        'location': {'latitude': 48.198523499134545, 'longitude': 16.325340999197394},
+                        'priceInCentPerKwh': 12,
+                        'priceInCentPerMin': 13,
+                        'authenticationModes': ['SMS', "DEBIT_CARD", "CASH", "CREDIT_CARD"],
+                        'connectorTypes': ['CTESLA', 'CG105', 'CCCS2', 'CCCS1']}]
+        }
+
+        c = map_charging(datapoint, 1)  # type: Charging
+
+        self.assertEqual(1, c.station_id)
+        self.assertEqual(2, c.capacity)
+        self.assertEqual([12.0, 12.0, 12.0, 12.0, 15.0, 15.0, 15.0, 15.0], c.kw_list)
+        self.assertEqual(108.0, c.total_kw)
+        self.assertEqual(15.0, c.max_kw)
+        self.assertEqual(None, c.ampere_list)
+        self.assertEqual(None, c.volt_list)
+        self.assertEqual(['CTESLA', 'S309-1P-16A', 'CG105', 'PAN', 'CTESLA', 'CG105', 'CCCS2', 'CCCS1'],
+                         c.socket_type_list)
+        self.assertEqual(None, c.dc_support)
+
+    def test_map_charging__kw_list(self):
+        sample_data = [
+            # ([None, None], [[], None, None]),
+            ([None, []], [[], None, None]),
+            ([3.14, ['CTESLA', 'S309-1P-16A']], [[3.14, 3.14], 3.14, 3.14 + 3.14]),
+        ]
+
+        for raw, expected in sample_data:
+            json_data = {
+                'points': [
+                    {
+                        'energyInKw': raw[0],
+                        'connectorTypes': raw[1]  # ['CTESLA', 'S309-1P-16A', 'CG105', 'PAN'],
+                    },
+                    # {
+                    #     'energyInKw': 15,
+                    #     'connectorTypes': ['CTESLA', 'CG105']}
+                ]
+            }
+
+            c = map_charging(json_data, 1)  # type: Charging
+
+            self.assertEqual(expected[0], c.kw_list)
+            self.assertEqual(expected[1], c.max_kw)
+            self.assertEqual(expected[2], c.total_kw)

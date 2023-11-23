@@ -32,7 +32,7 @@ def _extract_auth_modes(points: list[dict]) -> list[str]:
     flattened_auth_modes_agg = try_flatten_list(auth_modes_agg)  # type: Final[list[str]]
     auth_modes_list = try_remove_dups(flattened_auth_modes_agg)  # type: Final[list[str]]
 
-    return auth_modes_list
+    return sorted(auth_modes_list)
 
 
 def _extract_location(row) -> Optional[WKBElement]:
@@ -81,7 +81,11 @@ def map_station(row: dict[str, str]) -> Station:
     station: Station = Station()
 
     station.country_code = try_strip_str(row.get('evseCountryId'))  # should be always 'AT'
-    station.source_id = try_strip_str(row.get('evseStationId'))
+    # Using combination of evseStationId and evseOperatorId and evseCountryId as source_id,
+    #   since evseStationId alone is not unique
+    station.source_id = (try_strip_str(row.get('evseCountryId'))
+                         + '*' + try_strip_str(row.get('evseOperatorId'))
+                         + '*' + try_strip_str(row.get('evseStationId')))
 
     # TODO there are also other attributes available in the data source,
     #  which could be useful for the `operator`, e.g.:
@@ -100,7 +104,7 @@ def map_station(row: dict[str, str]) -> Station:
     return station
 
 
-def map_address(row: dict[str, str], station_id: int) -> Address:
+def map_address(row: dict[str, str], station_id: Optional[int]) -> Address:
     """Maps the given raw datapoint to an Address object.
 
     :param row: A dictionary representing the row data.
@@ -128,10 +132,6 @@ def map_address(row: dict[str, str], station_id: int) -> Address:
 
 
 def _extract_charger_details(points: list[dict]) -> ([], []):
-    # Aggregate socket types
-    socket_type_list_agg = _aggregate_attribute(points, 'connectorTypes')  # type: Final[list[list[str]]]
-    socket_type_list = try_flatten_list(socket_type_list_agg)  # type: Final[list[str]]
-
     # Aggregate energy_in_kw
     kw_list_agg = []  # type: Final[list[tuple[float, int]]]
     for p in points:
@@ -139,7 +139,11 @@ def _extract_charger_details(points: list[dict]) -> ([], []):
         kw_list_agg.append((energy_in_kw, len(p.get('connectorTypes', []))))
     kw_list = try_expand_list(kw_list_agg)  # type: Final[list[float]]
 
-    return kw_list, socket_type_list
+    # Aggregate socket types
+    socket_type_list_agg = _aggregate_attribute(points, 'connectorTypes')  # type: Final[list[list[str]]]
+    socket_type_list = try_flatten_list(socket_type_list_agg)  # type: Final[list[str]]
+
+    return sorted(kw_list), sorted(socket_type_list)
 
 
 def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
@@ -153,7 +157,7 @@ def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
     return final_charging
 
 
-def map_charging(row: dict[str, str], station_id: int) -> Charging:
+def map_charging(row: dict[str, Any], station_id: Optional[int]) -> Charging:
     """Maps the given raw datapoint to a Charging object.
 
     :param row: A dictionary containing information about the charging station.
@@ -162,7 +166,8 @@ def map_charging(row: dict[str, str], station_id: int) -> Charging:
     """
     points = row.get('points', []) or []  # type: Final[list[dict]]
 
-    kw_list, socket_type_list = _extract_charger_details(points)  # type: Final[(list[float], list[str])]
+    kw_list, socket_type_list = _extract_charger_details(
+        points) if points else ([], [])  # type: Final[(list[float], list[str])]
 
     charging: Charging = Charging()
     charging.station_id = station_id
@@ -172,8 +177,8 @@ def map_charging(row: dict[str, str], station_id: int) -> Charging:
     charging.volt_list = None  # NOTE: is not available in the data source
     charging.socket_type_list = socket_type_list
     charging.dc_support = None  # NOTE: is not available in the data source
-    charging.total_kw = sum(kw_list)
-    charging.max_kw = max(kw_list)
+    charging.total_kw = sum(kw_list) if kw_list else None
+    charging.max_kw = max(kw_list) if kw_list else None
 
     charging = _sanitize_charging_attributes(charging)
 

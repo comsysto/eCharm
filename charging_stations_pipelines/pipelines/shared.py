@@ -33,7 +33,7 @@ def try_strip_str(s: Optional[str]) -> Optional[str]:
 def try_float(s) -> Optional[float]:
     try:
         return float(s)
-    except ValueError:
+    except TypeError:
         return None
 
 

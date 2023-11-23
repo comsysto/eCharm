@@ -4,15 +4,16 @@ from typing import Tuple, Optional
 
 import geopandas as gpd
 import pandas as pd
-from sqlalchemy.orm import sessionmaker, make_transient
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.orm import sessionmaker, make_transient
 from tqdm import tqdm
 
+from charging_stations_pipelines import settings
 from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
 from charging_stations_pipelines.models.station import Station, MergedStationSource
-from charging_stations_pipelines import settings
 
 logger = logging.getLogger(__name__)
+
 
 class StationMerger:
     def __init__(self, country_code: str, config: configparser, db_engine, is_test: bool = False):
@@ -26,6 +27,7 @@ class StationMerger:
 
         country_code_to_gov_source = {
             "DE": "BNA",
+            "AT": "AT_ECONTROL",
             "FR": "FRGOV",
             "GB": "GBGOV",
             "IT": "",  # No gov source for Italy so far (5.4.2023)
@@ -66,7 +68,6 @@ class StationMerger:
             )
             station.at[att_name] = new_value
         station.at["merged_attributes"] = True
-        return
 
     def _merge_duplicates(self, stations_to_merge, session) -> Station:
         """
@@ -102,10 +103,9 @@ class StationMerger:
                         merged_station = station
                     if merged_station and address and not merged_station.address:
                         merged_station.address = address
-                    if merged_station and charging and not merged_station.charging :
+                    if merged_station and charging and not merged_station.charging:
                         merged_station.charging = charging
             return merged_station
-
 
         if isinstance(stations_to_merge, pd.Series):
             station_id = int(stations_to_merge['station_id_col'])
@@ -169,7 +169,7 @@ class StationMerger:
         return address_or_charging
 
     def run(self):
-        '''
+        """
             Note: We should use geography types as it's much more accurate than projection from WSG-84 to Mercator
             E.g.
             select ST_Distance(ST_Transform('SRID=4326;POINT (11.5739817 48.1589335)'::geometry, 3857), 
@@ -178,26 +178,31 @@ class StationMerger:
             select ST_Distance('SRID=4326;POINT (11.5739817 48.1589335)'::geography, 
                             'SRID=4326;POINT (11.5375666 48.1532363)'::geography);
             --> 2782 meters (correct)
-        '''
+        """
 
         # First get list of stations esp. their coordinates
-        get_stations_list_sql = """
-            SELECT id as station_id, point FROM {prefix}stations WHERE NOT is_merged AND country_code='{country_code}'
-        """.format(country_code=self.country_code, prefix=settings.db_table_prefix)
+        get_stations_list_sql = f'''
+            SELECT id as station_id, point
+            FROM {settings.db_table_prefix}stations 
+            WHERE 
+                id IS NOT NULL 
+                AND point IS NOT NULL 
+                AND country_code='{self.country_code}'
+                AND NOT is_merged
+        '''
 
         if self.is_test:
             munich_center_coordinates = "POINT (11.4717 48.1548)"
-            get_stations_list_sql = """
-                SELECT id as station_id, point FROM {prefix}stations 
-                WHERE ST_Dwithin(point, 
-                              ST_PointFromText('{center_coordinates}', 4326)::geography, 
-                              {radius_m}) AND NOT is_merged; 
-            """.format(center_coordinates=munich_center_coordinates, radius_m=5000,
-                       prefix=settings.db_table_prefix)
+            get_stations_list_sql = f'''
+                SELECT id as station_id, point
+                FROM {settings.db_table_prefix}stations 
+                WHERE 
+                    ST_Dwithin(point, ST_PointFromText('{munich_center_coordinates}', 4326)::geography, {5000}) 
+                    AND NOT is_merged 
+            '''
 
         with self.db_engine.connect() as con:
-            gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql,
-                                                     con=con, geom_col="point")
+            gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql, con=con, geom_col="point")
 
         gdf.sort_values(by=['station_id'], inplace=True, ignore_index=True)
 
@@ -220,7 +225,7 @@ class StationMerger:
             duplicates, current_station_full = self.find_duplicates(current_station['station_id'],
                                                                     current_station['point'], radius_m)
             if duplicates.empty:
-                logger.debug(f"Only current station, no duplicates")
+                logger.debug("Only current station, no duplicates")
                 stations_to_merge = current_station_full  # .to_frame()
                 station_ids = [current_station['station_id'].item()]
             else:
@@ -240,33 +245,28 @@ class StationMerger:
     def find_duplicates(self, current_station_id, current_station_coordinates, radius_m,
                         filter_by_source_id: bool = False) -> Tuple[gpd.GeoDataFrame, gpd.GeoSeries]:
 
-        find_surrounding_stations_sql = """ 
+        find_surrounding_stations_sql = f''' 
             SELECT 
                 s.id as station_id,
                 s.source_id as source_id,
                 s.data_source, s.point, s.operator,
                 c.capacity,
                 a.street, a.town,
-                ST_DISTANCE(s.point, 
-                              ST_PointFromText('{center_coordinates}', 4326)::geography) as distance
-            FROM {prefix}stations s
-            LEFT JOIN {prefix}charging c ON s.id = c.station_id
-            LEFT JOIN {prefix}address a ON s.id = a.station_id 
-            WHERE ST_Dwithin(s.point, 
-                              ST_PointFromText('{center_coordinates}', 4326)::geography, 
-                              {radius_m}) 
-                              AND NOT s.is_merged
-                              AND (merge_status <> 'is_duplicate' OR merge_status is null) 
-                              AND country_code='{country_code}';
-        """
+                ST_DISTANCE(s.point, ST_PointFromText('{current_station_coordinates}', 4326)::geography) as distance
+            FROM {settings.db_table_prefix}stations s
+                LEFT JOIN {settings.db_table_prefix}charging c ON s.id = c.station_id
+                LEFT JOIN {settings.db_table_prefix}address a ON s.id = a.station_id 
+            WHERE 
+                ST_Dwithin(s.point, ST_PointFromText('{current_station_coordinates}', 4326)::geography, {radius_m}) 
+                AND NOT s.is_merged
+                AND (merge_status <> 'is_duplicate' OR merge_status is null) 
+                AND country_code='{self.country_code}'
+        '''
 
-        sql = find_surrounding_stations_sql.format(station_id=current_station_id,
-                                                   center_coordinates=current_station_coordinates,
-                                                   radius_m=radius_m,
-                                                   country_code=self.country_code,
-                                                   prefix=settings.db_table_prefix)
         with self.db_engine.connect() as con:
-            nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(sql, con=con, geom_col="point")
+            nearby_stations: gpd.GeoDataFrame = gpd.read_postgis(find_surrounding_stations_sql,
+                                                                 con=con,
+                                                                 geom_col="point")
 
         if nearby_stations.empty:
             logger.debug(f"##### Already merged, id {current_station_id} #####")
@@ -294,7 +294,6 @@ class StationMerger:
         pd.set_option('display.max_columns', None)
         # skip if only center station itself was found
         if len(nearby_stations) >= 2:
-
             if not current_station_full.empty:
                 duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
                 duplicate_candidates["is_duplicate"] = False

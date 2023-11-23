@@ -77,13 +77,3 @@ def get_data(tmp_data_path):
                 f.write('\n')
     logger.info(f"Downloaded {DATA_SOURCE_KEY} data to: {tmp_data_path}")
     logger.info(f"Downloaded file size: {os.path.getsize(tmp_data_path)} bytes")
-
-
-if __name__ == '__main__':
-    from dotenv import load_dotenv
-
-    load_dotenv()
-
-    logger.setLevel(logging.DEBUG)
-
-    get_data('/tmp/stations.ndjson')

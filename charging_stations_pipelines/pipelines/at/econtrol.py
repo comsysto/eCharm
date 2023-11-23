@@ -37,12 +37,16 @@ class EcontrolAtPipeline:
         logger.info(f"Running {DATA_SOURCE_KEY} Pipeline...")
         self._retrieve_data()
         station_updater = StationTableUpdater(session=self.session, logger=logger)
-        # TODO reshape dataframe
         for _, row in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):
             try:
                 station = map_station(row)
                 station.address = map_address(row, None)
                 station.charging = map_charging(row, None)
+                # TODO check station, address, charging for validity,
+                #  e.g. if
+                #  - station.source_id is None
+                #  - station.point is None
+                #  skip such stations from saving to db
             except Exception as e:
                 logger.error(f"{DATA_SOURCE_KEY} entry could not be mapped! Error: {e}")
                 continue

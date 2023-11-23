@@ -7,6 +7,7 @@ from requests import Response
 def get_osm_data(country_code: str, tmp_data_path):
     country_code_to_area = {
         "DE": "Deutschland",
+        "AT": "Österreich",
         "FR": "France métropolitaine",
         "GB": "United Kingdom",
         "IT": "Italia",
@@ -42,7 +43,3 @@ def get_osm_data(country_code: str, tmp_data_path):
         raise RuntimeError(f"Failed to get OSM-Data! Status-Code: {status_code}")
     with open(tmp_data_path, "w") as f:
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)
-
-
-if __name__ == "__main__":
-    get_osm_data(tmp_data_path="./osm_france.json")
