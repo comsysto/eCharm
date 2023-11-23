@@ -33,25 +33,10 @@ def _extract_auth_modes(points: list[dict]) -> list[str]:
     return auth_modes_list
 
 
-def _extract_charger_details(points: list[dict]) -> ([], [], []):
-    # Aggregate socket types
-    socket_type_list_agg = _aggregate_attribute(points, 'connectorTypes')  # type: Final[list[list[str]]]
-    socket_type_list = try_flatten_list(socket_type_list_agg)  # type: Final[list[str]]
-
-    # Aggregate energy_in_kw
-    kw_list_agg = []  # type: Final[list[tuple[float, int]]]
-    for p in points:
-        energy_in_kw = try_float(p.get('energyInKw'))  # type: Optional[float]
-        kw_list_agg.append((energy_in_kw, len(p.get('connectorTypes', []))))
-    kw_list = try_expand_list(kw_list_agg)  # type: Final[list[float]]
-
-    return kw_list, socket_type_list
-
-
 def _extract_location(row) -> WKBElement:
-    location = row.get('location', {})  # Final[dict]
-    lon = check_coordinates(location.get('longitude'))  # Final[float]
-    lat = check_coordinates(location.get('latitude'))  # Final[float]
+    location = row.get('location', {})  # type: Final[dict]
+    lon = check_coordinates(location.get('longitude'))  # type: Final[float]
+    lat = check_coordinates(location.get('latitude'))  # type: Final[float]
     return from_shape(Point(lon, lat))
 
 
@@ -82,6 +67,7 @@ def map_station(row) -> Station:
     station.authentication = _extract_charger_details(row)  # TODO check semantics
     station.data_source = DATA_SOURCE_KEY
     station.point = _extract_location(row)
+    station.raw_data = None
     station.date_created = None  # Note: is not available in the data source
     station.date_updated = None  # Note: is not available in the data source
 
@@ -98,7 +84,7 @@ def map_address(row, station_id) -> Address:
 
     address.station_id = station_id
     address.street = try_strip_str(row.get('street'))
-    address.town = try_strip_str(row.get('city')).capitalize()
+    address.town = try_strip_str(row.get('city'))
     address.postcode = try_strip_str(row.get('postCode'))
     address.district_old = None  # # Note: is not available in the data source
     address.district = None  # # Note: is not available in the data source
@@ -109,11 +95,26 @@ def map_address(row, station_id) -> Address:
     return address
 
 
+def _extract_charger_details(points: list[dict]) -> ([], [], []):
+    # Aggregate socket types
+    socket_type_list_agg = _aggregate_attribute(points, 'connectorTypes')  # type: Final[list[list[str]]]
+    socket_type_list = try_flatten_list(socket_type_list_agg)  # type: Final[list[str]]
+
+    # Aggregate energy_in_kw
+    kw_list_agg = []  # type: Final[list[tuple[float, int]]]
+    for p in points:
+        energy_in_kw = try_float(p.get('energyInKw'))  # type: Optional[float]
+        kw_list_agg.append((energy_in_kw, len(p.get('connectorTypes', []))))
+    kw_list = try_expand_list(kw_list_agg)  # type: Final[list[float]]
+
+    return kw_list, socket_type_list
+
+
 def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
     # max sockets/charging points per charging station
-    max_capacity = 4  # Final[int]
-    # # average capacity across all charging stations is set when capacity>MAX_CAPACITY
-    avg_capacity = 2  # Final[int]
+    max_capacity = 4  # type: Final[int]
+    # average capacity across all charging stations is set when capacity>MAX_CAPACITY
+    avg_capacity = 2  # type: Final[int]
     if final_charging.capacity is not None and final_charging.capacity > max_capacity:
         final_charging.capacity = avg_capacity
 
@@ -121,14 +122,15 @@ def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
 
 
 def map_charging(row, station_id) -> Charging:
-    kw_list, socket_type_list = _extract_charger_details(row)
+    points = row.get('points', []) or []  # type: Final[list[dict]]
+    kw_list, socket_type_list = _extract_charger_details(points)  # type: Final[(list[float], list[str])]
 
     charging: Charging = Charging()
     charging.station_id = station_id
-    charging.capacity = len(kw_list)  # TODO number of connectors? number of charging points? check semantics
+    charging.capacity = len(points)
     charging.kw_list = kw_list
-    charging.ampere_list = []  # NOTE: is not available in the data source
-    charging.volt_list = []  # NOTE: is not available in the data source
+    charging.ampere_list = None  # NOTE: is not available in the data source
+    charging.volt_list = None  # NOTE: is not available in the data source
     charging.socket_type_list = socket_type_list
     charging.dc_support = None  # NOTE: is not available in the data source
     charging.total_kw = sum(kw_list)

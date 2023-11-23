@@ -18,6 +18,7 @@ class Address(Base):
     postcode = Column(String)
     district_old = Column(String)
     district = Column(String)
+    state_old = Column(String)
     state = Column(String)
     country = Column(String)
     gmaps_latitude = Column(Float(precision=32))
