@@ -38,7 +38,8 @@ class StationMerger:
             raise Exception(f"country code '{country_code}' unknown in merger")
         self.gov_source = country_code_to_gov_source[country_code]
 
-    def merge_attributes(self, station: pd.Series, duplicates_to_merge: pd.DataFrame):
+    @staticmethod
+    def merge_attributes(station: pd.Series, duplicates_to_merge: pd.DataFrame):
         """
         Might be used in the future.
 
@@ -69,6 +70,35 @@ class StationMerger:
             station.at[att_name] = new_value
         station.at["merged_attributes"] = True
 
+    def _get_attribute_by_priority(self, stations_to_merge, column_name, priority_list=None):
+        attribute = None
+        if priority_list is None:
+            priority_list = [self.gov_source, 'OCM', 'OSM']
+        for source in priority_list:
+            # get stations of source with attribute not empty, and return only attribute column
+            stations_by_source = stations_to_merge[stations_to_merge['data_source'] == source][column_name].dropna()
+            if len(stations_by_source) > 0:
+                attribute = stations_by_source.iloc[0]
+                break
+        if not attribute:
+            logger.debug(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
+        return attribute
+
+    def _get_station_with_address_and_charging_by_priority(self, session, stations_to_merge):
+        merged_station: Optional[Station] = None
+        for source in [self.gov_source, 'OCM', 'OSM']:
+            station_id = stations_to_merge[stations_to_merge['data_source'] == source]['station_id_col']
+            if len(station_id) > 0:
+                station_id = int(station_id.iloc[0])
+                station, address, charging = self.get_station_with_address_and_charging(session, station_id)
+                if not merged_station and station:
+                    merged_station = station
+                if merged_station and address and not merged_station.address:
+                    merged_station.address = address
+                if merged_station and charging and not merged_station.charging:
+                    merged_station.charging = charging
+        return merged_station
+
     def _merge_duplicates(self, stations_to_merge, session) -> Station:
         """
         Input DataFrame has columns
@@ -77,36 +107,6 @@ class StationMerger:
         :param stations_to_merge: pd.DataFrame containing all stations which should be merged.
         :return:
         """
-
-        def get_attribute_by_priority(column_name, priority_list=None):
-            attribute = None
-            if priority_list is None:
-                priority_list = [self.gov_source, 'OCM', 'OSM']
-            for source in priority_list:
-                # get stations of source with attribute not empty, and return only attribute column
-                stations_by_source = stations_to_merge[stations_to_merge['data_source'] == source][column_name].dropna()
-                if len(stations_by_source) > 0:
-                    attribute = stations_by_source.iloc[0]
-                    break
-            if not attribute:
-                logger.debug(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
-            return attribute
-
-        def get_station_with_address_and_charging_by_priority(session):
-            merged_station: Optional[Station] = None
-            for source in [self.gov_source, 'OCM', 'OSM']:
-                station_id = stations_to_merge[stations_to_merge['data_source'] == source]['station_id_col']
-                if len(station_id) > 0:
-                    station_id = int(station_id.iloc[0])
-                    station, address, charging = self.get_station_with_address_and_charging(session, station_id)
-                    if not merged_station and station:
-                        merged_station = station
-                    if merged_station and address and not merged_station.address:
-                        merged_station.address = address
-                    if merged_station and charging and not merged_station.charging:
-                        merged_station.charging = charging
-            return merged_station
-
         if isinstance(stations_to_merge, pd.Series):
             station_id = int(stations_to_merge['station_id_col'])
             merged_station, address, charging = self.get_station_with_address_and_charging(session, station_id)
@@ -120,8 +120,7 @@ class StationMerger:
             source = MergedStationSource(duplicate_source_id=stations_to_merge['source_id'])
             merged_station.source_stations.append(source)
         else:
-
-            merged_station = get_station_with_address_and_charging_by_priority(session)
+            merged_station = self._get_station_with_address_and_charging_by_priority(session, stations_to_merge)
 
             data_sources = stations_to_merge['data_source'].unique()
             data_sources.sort()
@@ -129,9 +128,10 @@ class StationMerger:
 
             # get other attributes by priority:
             # coordinates in dataframe are WKB ? maybe convert to WKT?
-            point = get_attribute_by_priority('point', priority_list=['OSM', 'OCM', self.gov_source])
+            point = self._get_attribute_by_priority(stations_to_merge, 'point',
+                                                    priority_list=['OSM', 'OCM', self.gov_source])
             merged_station.point = point.wkt
-            merged_station.operator = get_attribute_by_priority('operator')
+            merged_station.operator = self._get_attribute_by_priority(stations_to_merge, 'operator')
 
             for source_id in stations_to_merge['source_id']:
                 source = MergedStationSource(duplicate_source_id=source_id)
@@ -144,10 +144,10 @@ class StationMerger:
 
     def get_station_with_address_and_charging(self, session, station_id):
         # get station from DB and create new object
-        merged_station: Station = \
-            session.query(Station). \
-                filter(Station.id == station_id). \
-                first()
+        merged_station: Station = (session
+                                   .query(Station)
+                                   .filter(Station.id == station_id)
+                                   .first())
         address = merged_station.address
         charging = merged_station.charging
         session.expunge(merged_station)  # expunge the object from session
@@ -161,12 +161,22 @@ class StationMerger:
             charging = self.create_merged(charging)
         return merged_station, address, charging
 
-    def create_merged(self, address_or_charging):
+    @staticmethod
+    def create_merged(address_or_charging):
         make_transient(address_or_charging)
         address_or_charging.id = None
         address_or_charging.station_id = None
         address_or_charging.is_merged = True
         return address_or_charging
+
+    @staticmethod
+    def _write_session(session):
+        try:
+            session.commit()
+            session.flush()
+        except Exception as e:
+            logger.error(f"Writing merged stations failed! Error: {e}")
+            session.rollback()
 
     def run(self):
         """
@@ -206,15 +216,7 @@ class StationMerger:
 
         gdf.sort_values(by=['station_id'], inplace=True, ignore_index=True)
 
-        session = sessionmaker(bind=(self.db_engine))()
-
-        def write_session(session):
-            try:
-                session.commit()
-                session.flush()
-            except Exception as e:
-                logger.error(f"Writing merged stations failed! Error: {e}")
-                session.rollback()
+        session = sessionmaker(bind=self.db_engine)()
 
         # For each station's coordinate find all surrounding stations within a certain radius (including itself)
         radius_m = 100
@@ -238,12 +240,12 @@ class StationMerger:
                     .update({Station.merge_status: "is_duplicate"}, synchronize_session='fetch')
                 merged_station: Station = self._merge_duplicates(stations_to_merge, session)
                 session.add(merged_station)
-                write_session(session)
+                self._write_session(session)
 
-        # write_session(session)
+        # self._write_session(session)
 
     def find_duplicates(self, current_station_id, current_station_coordinates, radius_m,
-                        filter_by_source_id: bool = False) -> Tuple[gpd.GeoDataFrame, gpd.GeoSeries]:
+                        filter_by_source_id: bool = False) -> Tuple[gpd.GeoDataFrame, pd.Series]:
 
         find_surrounding_stations_sql = f''' 
             SELECT 
@@ -292,22 +294,22 @@ class StationMerger:
         logger.debug(current_station_full)
 
         pd.set_option('display.max_columns', None)
-        # skip if only center station itself was found
-        if len(nearby_stations) >= 2:
-            if not current_station_full.empty:
-                duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
-                duplicate_candidates["is_duplicate"] = False
-                current_station_full["is_duplicate"] = True
-                duplicate_candidates["address"] = duplicate_candidates[["street", "town"]]. \
-                    apply(lambda x: f"{x['street']},{x['town']}", axis=1)
-                current_station_full['address'] = f"{current_station_full['street']},{current_station_full['town']}"
-                duplicate_candidates = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
-                    current_station=current_station_full,
-                    duplicate_candidates=duplicate_candidates,
-                    station_id_name=station_id_name,
-                    max_distance=radius_m
-                )
-                duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
-                return duplicates, current_station_full
 
-        return gpd.GeoDataFrame(), current_station_full
+        if len(nearby_stations) < 2 or current_station_full.empty:
+            return gpd.GeoDataFrame(), current_station_full
+
+        # skip if only center station itself was found
+        duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
+        duplicate_candidates["is_duplicate"] = False
+        current_station_full["is_duplicate"] = True
+        duplicate_candidates["address"] = duplicate_candidates[["street", "town"]]. \
+            apply(lambda x: f"{x['street']},{x['town']}", axis=1)
+        current_station_full['address'] = f"{current_station_full['street']},{current_station_full['town']}"
+        duplicate_candidates = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
+            current_station=current_station_full,
+            duplicate_candidates=duplicate_candidates,
+            station_id_name=station_id_name,
+            max_distance=radius_m
+        )
+        duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
+        return duplicates, current_station_full

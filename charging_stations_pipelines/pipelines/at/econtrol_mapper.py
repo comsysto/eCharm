@@ -143,7 +143,7 @@ def _extract_charger_details(points: list[dict]) -> ([], []):
     socket_type_list_agg = _aggregate_attribute(points, 'connectorTypes')  # type: Final[list[list[str]]]
     socket_type_list = try_flatten_list(socket_type_list_agg)  # type: Final[list[str]]
 
-    return sorted(kw_list), sorted(socket_type_list)
+    return kw_list, socket_type_list
 
 
 def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
