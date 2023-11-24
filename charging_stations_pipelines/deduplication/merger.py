@@ -295,10 +295,9 @@ class StationMerger:
 
         pd.set_option('display.max_columns', None)
 
+        # skip if only center station itself was found
         if len(nearby_stations) < 2 or current_station_full.empty:
             return gpd.GeoDataFrame(), current_station_full
-
-        # skip if only center station itself was found
         duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
         duplicate_candidates["is_duplicate"] = False
         current_station_full["is_duplicate"] = True
