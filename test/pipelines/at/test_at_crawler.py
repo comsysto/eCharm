@@ -1,7 +1,7 @@
 """Test class for testing the functionality of the map_charging, map_station, and map_address functions."""
-
 from unittest import TestCase
 
+import pandas as pd
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 
@@ -14,7 +14,7 @@ from charging_stations_pipelines.pipelines.at.econtrol_mapper import map_chargin
 class Test(TestCase):
 
     def test_map_station__plain(self):
-        datapoint = {
+        datapoint = pd.Series({
             "city": "Reichenau im M\u00fchlkreis ",
             "contactName": "Marktgemeindeamt Reichenau i.M.",
             "description": "Ortsplatz vor dem Gemeindeamt",
@@ -61,32 +61,26 @@ class Test(TestCase):
             "street": "Marktplatz 2",
             "telephone": "+43 7211 82550",
             "website": "www.reichenau-ooe.at"
-        }
+        })
 
         s = map_station(datapoint)  # type: Station
 
-        # Column(String, index=True, nullable=True, unique=True)
-        self.assertEqual('AT*000*EREI001', s.source_id)  # evseStationId
-        #  Column(String)
-        self.assertEqual('AT_ECONTROL', s.data_source)
+        # source_id == evseCountryId * evseOperatorId * evseStationId
+        self.assertEqual('AT*000*EREI001', s.source_id)  # Column(String, index=True, nullable=True, unique=True)
+        self.assertEqual('AT_ECONTROL', s.data_source)  # Column(String)
         # TODO check semantics
-        # operator = Column(String)
-        self.assertEqual('000', s.operator)  # evseOperatorId
+        self.assertEqual('000', s.operator)  # Column(String) / evseOperatorId
         # TODO check semantics
-        # Column(String)
-        self.assertEqual(None, s.payment)
+        self.assertEqual(None, s.payment)  # Column(String)
         # TODO check semantics
-        # Column(String)
-        self.assertEqual([], s.authentication)  # .points[] | .authenticationModes
-        # Column(Geography(geometry_type='POINT', srid=4326))
-        self.assertEqual(from_shape(Point(14.349852, 48.456161)), s.point)
-        # Column(String)
-        self.assertEqual(None, s.raw_data)
-        # Column(String)
-        self.assertEqual('AT', s.country_code)
+        self.assertEqual([], s.authentication)  # Column(String) / .points[] | .authenticationModes
+        self.assertEqual(from_shape(Point(14.349852, 48.456161)),
+                         s.point)  # Column(Geography(geometry_type='POINT', srid=4326))
+        self.assertEqual(datapoint.to_json(), s.raw_data)  # Note: Column(JSON)
+        self.assertEqual('AT', s.country_code)  # Column(String)
 
     def test_map_address__plain(self):
-        datapoint = {
+        datapoint = pd.Series({
             "city": "Reichenau im M\u00fchlkreis ",
             "contactName": "Marktgemeindeamt Reichenau i.M.",
             "description": "Ortsplatz vor dem Gemeindeamt",
@@ -133,35 +127,24 @@ class Test(TestCase):
             "street": "Marktplatz 2",
             "telephone": "+43 7211 82550",
             "website": "www.reichenau-ooe.at"
-        }
+        })
 
         a = map_address(datapoint, 3)  # type: Address
 
-        # FK to station table
-        self.assertEqual(3, a.station_id)
-        # Column(Date)
-        self.assertEqual(None, a.date_created)
-        # Column(Date)
-        self.assertEqual(None, a.date_updated)
-        # Column(String)
-        self.assertEqual('Marktplatz 2', a.street)
-        # Column(String)
-        self.assertEqual('Reichenau im Mühlkreis', a.town)
-        # Column(String)
-        self.assertEqual('4204', a.postcode)
-        # Column(String)
-        self.assertEqual(None, a.district_old)
-        # Column(String)
-        self.assertEqual(None, a.district)
-        # Column(String)
-        self.assertEqual(None, a.state_old)
-        # Column(String)
-        self.assertEqual(None, a.state)
-        # Column(String)
-        self.assertEqual('AT', a.country)
+        self.assertEqual(3, a.station_id)  # FK to station table
+        self.assertEqual(None, a.date_created)  # Column(Date)
+        self.assertEqual(None, a.date_updated)  # Column(Date)
+        self.assertEqual('Marktplatz 2', a.street)  # Column(String)
+        self.assertEqual('Reichenau im Mühlkreis', a.town)  # Column(String)
+        self.assertEqual('4204', a.postcode)  # Column(String)
+        self.assertEqual(None, a.district_old)  # Column(String)
+        self.assertEqual(None, a.district)  # Column(String)
+        self.assertEqual(None, a.state_old)  # Column(String)
+        self.assertEqual(None, a.state)  # Column(String)
+        self.assertEqual('AT', a.country)  # Column(String)
 
     def test_map_charging__plain(self):
-        datapoint = {
+        datapoint = pd.Series({
             'points': [{'evseId': 'AT*002*E200101*1',
                         'energyInKw': 12,
                         'authenticationModes': ['APP', 'SMS', 'WEBSITE'],
@@ -175,7 +158,7 @@ class Test(TestCase):
                         'priceInCentPerMin': 13,
                         'authenticationModes': ['SMS', "DEBIT_CARD", "CASH", "CREDIT_CARD"],
                         'connectorTypes': ['CTESLA', 'CG105', 'CCCS2', 'CCCS1']}]
-        }
+        })
 
         c = map_charging(datapoint, 1)  # type: Charging
 
@@ -198,7 +181,7 @@ class Test(TestCase):
         ]
 
         for raw, expected in sample_data:
-            json_data = {
+            raw_datapoint = pd.Series({
                 'points': [
                     {
                         'energyInKw': raw[0],
@@ -208,9 +191,9 @@ class Test(TestCase):
                     #     'energyInKw': 15,
                     #     'connectorTypes': ['CTESLA', 'CG105']}
                 ]
-            }
+            })
 
-            c = map_charging(json_data, 1)  # type: Charging
+            c = map_charging(raw_datapoint, 1)  # type: Charging
 
             self.assertEqual(expected[0], c.kw_list)
             self.assertEqual(expected[1], c.max_kw)

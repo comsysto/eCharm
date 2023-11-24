@@ -27,7 +27,7 @@ def parse_date(date):
 
 
 def try_strip_str(s: Optional[str]) -> Optional[str]:
-    return str(s).strip() if s is not None else None
+    return str(s).strip() if s else None
 
 
 def try_float(s) -> Optional[float]:
@@ -38,19 +38,13 @@ def try_float(s) -> Optional[float]:
 
 
 def try_flatten_list(nested_list: list[list[Any]]) -> list[Any]:
-    if not nested_list:
-        return []
-    return [item for sublist in nested_list for item in sublist]
+    return [item for sublist in nested_list for item in sublist] if nested_list else []
 
 
 def try_expand_list(aggregated_list: list[tuple[float, int]]) -> list[float]:
-    if not aggregated_list:
-        return []
     # [0] - float value, [1] - count, how often this value occurs
-    return [e[0] for e in aggregated_list for _ in range(e[1])]
+    return [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []
 
 
-def try_remove_dups(l: list[Any]) -> list[Any]:
-    if not l:
-        return []
-    return list(dict.fromkeys(l))
+def try_remove_dups(lst: list[Any]) -> list[Any]:
+    return list(dict.fromkeys(lst)) if lst else []

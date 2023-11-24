@@ -37,18 +37,25 @@ class EcontrolAtPipeline:
         logger.info(f"Running {DATA_SOURCE_KEY} Pipeline...")
         self._retrieve_data()
         station_updater = StationTableUpdater(session=self.session, logger=logger)
-        for _, row in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):
+        count_imported_stations, count_empty_stations, count_invalid_stations = 0, 0, 0
+        for _, datapoint in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):  # type: _, pd.Series
             try:
-                station = map_station(row)
-                station.address = map_address(row, None)
-                station.charging = map_charging(row, None)
-                # TODO check station, address, charging for validity,
-                #  e.g. if
-                #  - station.source_id is None
-                #  - station.point is None
-                #  skip such stations from saving to db
+                station = map_station(datapoint)
+                if not station or not station.source_id or not station.point:
+                    count_empty_stations += 1
+                    continue
+
+                station.address = map_address(datapoint, None)
+                station.charging = map_charging(datapoint, None)
+
+                count_imported_stations += 1
             except Exception as e:
-                logger.error(f"{DATA_SOURCE_KEY} entry could not be mapped! Error: {e}")
+                count_invalid_stations += 1
+                logger.error(
+                    f"{DATA_SOURCE_KEY} entry could not be mapped! Error:\n{e}\nRow:\n----\n{datapoint}\n----\n")
                 continue
             station_updater.update_station(station, DATA_SOURCE_KEY)
+        logger.info(f"Finished {DATA_SOURCE_KEY} Pipeline, "
+                    f"new stations imported: {count_imported_stations}, empty stations: {count_empty_stations}, "
+                    f"stations which could not be parsed: {count_invalid_stations}.")
         station_updater.log_update_station_counts()

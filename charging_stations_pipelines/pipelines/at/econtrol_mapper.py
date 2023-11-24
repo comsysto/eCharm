@@ -1,8 +1,8 @@
 """Module to extract and map the raw data from the datasource to internal DB data model."""
-
 import logging
 from typing import Final, Any, Optional
 
+import pandas as pd
 from geoalchemy2 import WKBElement
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
@@ -17,7 +17,7 @@ from charging_stations_pipelines.pipelines.shared import check_coordinates, try_
 logger = logging.getLogger(__name__)
 
 
-def _aggregate_attribute(points: list[dict], attr: str, process_func=None) -> list[Any]:
+def _aggregate_attribute(points: pd.Series, attr: str, process_func=None) -> list[Any]:
     attr_list_agg = []  # type: Final[list[Any]]
     for p in points:
         attr_vals = p.get(attr, [])  # type: list[Any]
@@ -26,7 +26,7 @@ def _aggregate_attribute(points: list[dict], attr: str, process_func=None) -> li
     return attr_list
 
 
-def _extract_auth_modes(points: list[dict]) -> list[str]:
+def _extract_auth_modes(points: pd.Series) -> list[str]:
     # Aggregate authentication modes
     auth_modes_agg = _aggregate_attribute(points, 'authenticationModes')  # type: Final[list[list[str]]]
     flattened_auth_modes_agg = try_flatten_list(auth_modes_agg)  # type: Final[list[str]]
@@ -35,16 +35,15 @@ def _extract_auth_modes(points: list[dict]) -> list[str]:
     return sorted(auth_modes_list)
 
 
-def _extract_location(row) -> Optional[WKBElement]:
-    location = row.get('location', {})  # type: Final[dict]
+def _extract_location(location: pd.Series) -> Optional[WKBElement]:
     lon = check_coordinates(location.get('longitude'))  # type: Final[float]
     lat = check_coordinates(location.get('latitude'))  # type: Final[float]
     return from_shape(Point(lon, lat)) if lon and lat else None
 
 
-def map_station(row: dict[str, str]) -> Station:
+def map_station(row: pd.Series) -> Station:
     """
-    :param row: A dictionary representing the raw datapoint of a station.
+    :param row: A pandas "row", representing the raw data of a station.
     :return: A Station object.
 
     This method maps the data from the given row dictionary to create a Station object. \
@@ -62,7 +61,7 @@ def map_station(row: dict[str, str]) -> Station:
       attribute of the row dictionary.
     - 'data_source': A string representing the data source key.
     - 'point': GPS coordinates of the station.
-    - 'raw_data': The raw data of the station.
+    - 'raw_data': The unchanged data point as it comes from the datasource, stored in DB as type 'JSON'.
     - 'date_created': The creation date of the station.
     - 'date_updated': The update date of the station.
     """
@@ -76,7 +75,6 @@ def map_station(row: dict[str, str]) -> Station:
     #  6. evseCountryId   9469 non-null
     #  7. evseStationId   9469 non-null
     #  8. evseOperatorId  9469 non-null
-    points = row.get('points', []) or []  # type: Final[list[dict]]
 
     station: Station = Station()
 
@@ -94,20 +92,20 @@ def map_station(row: dict[str, str]) -> Station:
     station.operator = try_strip_str(row.get('evseOperatorId'))  # evseOperatorId, e.g. "014"
 
     station.payment = None  # TODO check semantics
-    station.authentication = _extract_auth_modes(points)  # TODO check semantics
+    station.authentication = _extract_auth_modes(row.get('points'))  # TODO check semantics
     station.data_source = DATA_SOURCE_KEY
-    station.point = _extract_location(row)
-    station.raw_data = None
+    station.point = _extract_location(row.get('location'))
+    station.raw_data = row.to_json()  # Note: is stored in DB as type 'JSON'
     station.date_created = None  # Note: is not available in the data source
     station.date_updated = None  # Note: is not available in the data source
 
     return station
 
 
-def map_address(row: dict[str, str], station_id: Optional[int]) -> Address:
+def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
     """Maps the given raw datapoint to an Address object.
 
-    :param row: A dictionary representing the row data.
+    :param row: A datapoint representing the raw data.
     :param station_id: An integer representing the station ID.
     :return: An Address object.
     """
@@ -131,7 +129,7 @@ def map_address(row: dict[str, str], station_id: Optional[int]) -> Address:
     return address
 
 
-def _extract_charger_details(points: list[dict]) -> ([], []):
+def _extract_charger_details(points: pd.Series) -> ([], []):
     # Aggregate energy_in_kw
     kw_list_agg = []  # type: Final[list[tuple[float, int]]]
     for p in points:
@@ -157,14 +155,14 @@ def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
     return final_charging
 
 
-def map_charging(row: dict[str, Any], station_id: Optional[int]) -> Charging:
+def map_charging(row: pd.Series, station_id: Optional[int]) -> Charging:
     """Maps the given raw datapoint to a Charging object.
 
-    :param row: A dictionary containing information about the charging station.
+    :param row: A datapoint containing information about the charging station.
     :param station_id: The ID of the charging station.
     :return: An instance of the Charging class containing the mapped charging point data.
     """
-    points = row.get('points', []) or []  # type: Final[list[dict]]
+    points = row.get('points', [])  # type: Final[pd.Series]
 
     kw_list, socket_type_list = _extract_charger_details(
         points) if points else ([], [])  # type: Final[(list[float], list[str])]
