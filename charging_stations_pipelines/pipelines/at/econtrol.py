@@ -1,3 +1,11 @@
+"""
+This module handles the mapping of charging data obtained from e-control.at (also known as ladestellen.at).
+The data is structured into three main objects:
+- 'Station': Represents the charging station.
+- 'Address': Contains address information for the charging station.
+- 'Charging': Provides the charging details for a particular charging station.
+"""
+
 import configparser
 import logging
 import os
@@ -16,6 +24,20 @@ logger = logging.getLogger(__name__)
 
 
 class EcontrolAtPipeline:
+    """
+    :class:`EcontrolAtPipeline` is a class that represents a pipeline for processing data
+    from the e-control.at (aka ladestellen.at) - an official data source from the Austrian government.
+
+    :param config: A `configparser` object containing configurations for the pipeline.
+    :param session: A `Session` object representing the session used for database operations.
+    :param online: A boolean indicating whether the pipeline should retrieve data online. Default is False.
+
+    :ivar config: A `configparser` object containing configurations for the pipeline.
+    :ivar session: A `Session` object representing the session used for database operations.
+    :ivar online: A boolean indicating whether the pipeline should retrieve data online.
+    :ivar data_dir: A string representing the directory where data files will be stored.
+    """
+
     def __init__(self, config: configparser, session: Session, online: bool = False):
         self.config = config
         self.session = session
@@ -34,6 +56,11 @@ class EcontrolAtPipeline:
         self.data = pd.read_json(tmp_data_path, lines=True)  # pd.DataFrame
 
     def run(self):
+        """ Runs the pipeline for a data source.
+        Retrieves data, processes it, and updates the Station table (as well as Address and Charging tables).
+
+        :return: None
+        """
         logger.info(f"Running {DATA_SOURCE_KEY} Pipeline...")
         self._retrieve_data()
         station_updater = StationTableUpdater(session=self.session, logger=logger)

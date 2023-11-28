@@ -11,3 +11,4 @@ testdata_merge.csv
 token_deepatlas.json
 alembic/versions/*.py
 debug.ipynb
+*.log

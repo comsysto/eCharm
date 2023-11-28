@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from typing import Final
 
 import requests
 
@@ -11,11 +12,14 @@ from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
 logger = logging.getLogger(__name__)
 
 
-def _get_paginated_stations(url, headers):
+def _get_paginated_stations(url:str, headers: dict[str, str] = None) -> list[dict[str, str]]:
     session = requests.Session()
     session.headers.update(headers)
 
     first_page = session.get(url).json()
+    if not first_page:
+        # FIXME: log error
+        return {}
 
     try:
         # Sample data from returned JSON chunk: "totalResults":9454,"fromIndex":0,"endIndex":999
@@ -29,11 +33,11 @@ def _get_paginated_stations(url, headers):
         logging.fatal(f'Failed to parse response:\n{first_page}\n{e}')
         raise e
 
-    # number of datapoints (=station) per page, e.g. 1000
-    page_size = idx_end - idx_start + 1  # Final[int]
+    # Number of datapoints (=station) per page, e.g. 1000
+    page_size: Final[int] = idx_end - idx_start + 1
 
     if total_count <= page_size:
-        # no paginagion needed
+        # No pagination needed
         return
 
     num_pages = total_count // page_size + 1
@@ -56,22 +60,21 @@ def get_data(tmp_data_path):
     :return: None
     :rtype: None
     """
-    url = "https://api.e-control.at/charge/1.0/search/stations"  # Final[str]
+    url: Final[str] = 'https://api.e-control.at/charge/1.0/search/stations'
 
     # HTTP header
-    #
     # TODO fix the issue with the api key
     # econtrol_at_apikey = os.getenv('ECONTROL_AT_APIKEY')
     # econtrol_at_domain = os.getenv('ECONTROL_AT_DOMAIN')
     headers = {'Authorization': f"Basic {os.getenv('ECONTROL_AT_AUTH')}", 'User-Agent': 'Mozilla/5.0'}
-    logger.critical(f'Using HTTP headers:\n{headers}')
+    logger.debug(f'Using HTTP headers:\n{headers}')
 
     logger.info(f"Downloading {DATA_SOURCE_KEY} data from {url}...")
     with open(tmp_data_path, 'w') as f:
         for page in _get_paginated_stations(url, headers):
             logger.debug(f"Getting data: {page['fromIndex']}..{page['endIndex']}")
 
-            # save as newline-delimited JSON (*.ndjson), i.e. one JSON object per line
+            # Save as newline-delimited JSON (*.ndjson), i.e. one JSON object per line
             for station in page['stations']:
                 json.dump(station, f, ensure_ascii=False)
                 f.write('\n')

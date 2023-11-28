@@ -1,200 +1,124 @@
-"""Test class for testing the functionality of the map_charging, map_station, and map_address functions."""
-from unittest import TestCase
+"""Test the AT crawler pipeline with mock tests."""
 
-import pandas as pd
-from geoalchemy2.shape import from_shape
-from shapely.geometry import Point
+import json
+import logging
+from unittest import mock
 
-from charging_stations_pipelines.models.address import Address
-from charging_stations_pipelines.models.charging import Charging
-from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.at.econtrol_mapper import map_charging, map_station, map_address
+import pytest
+
+import charging_stations_pipelines.pipelines.at.econtrol_crawler as ec
+from charging_stations_pipelines.pipelines.at.econtrol_crawler import __name__ as test_module_name
 
 
-class Test(TestCase):
-
-    def test_map_station__plain(self):
-        datapoint = pd.Series({
-            "city": "Reichenau im M\u00fchlkreis ",
-            "contactName": "Marktgemeindeamt Reichenau i.M.",
-            "description": "Ortsplatz vor dem Gemeindeamt",
-            "email": "marktgemeindeamt@reichenau-ooe.at",
-            "evseCountryId": "AT",
-            "evseOperatorId": "000",
-            "evseStationId": "EREI001",
-            "freeParking": True,
-            "greenEnergy": True,
-            "label": "Marktplatz/Gemeindeamt",
-            "location": {
-                "latitude": 48.456161,
-                "longitude": 14.349852
-            },
-            "openingHours": {
-                "details": []
-            },
-            "points": [
-                {
-                    "authenticationModes": [],
-                    "connectorTypes": [
-                        "SCEE-7-8"
-                    ],
-                    "energyInKw": 3.0,
-                    "evseId": "AT*000*EREI001",
-                    "freeOfCharge": True,
-                    "location": {
-                        "latitude": 48.456161,
-                        "longitude": 14.349852
-                    },
-                    "public": True,
-                    "roaming": True,
-                    "status": "UNKNOWN",
-                    "vehicleTypes": [
-                        "CAR",
-                        "BICYCLE",
-                        "MOTORCYCLE"
-                    ]
-                }
-            ],
-            "postCode": "4204",
-            "public": True,
-            "status": "ACTIVE",
-            "street": "Marktplatz 2",
-            "telephone": "+43 7211 82550",
-            "website": "www.reichenau-ooe.at"
-        })
-
-        s = map_station(datapoint)  # type: Station
-
-        # source_id == evseCountryId * evseOperatorId * evseStationId
-        self.assertEqual('AT*000*EREI001', s.source_id)  # Column(String, index=True, nullable=True, unique=True)
-        self.assertEqual('AT_ECONTROL', s.data_source)  # Column(String)
-        # TODO check semantics
-        self.assertEqual('000', s.operator)  # Column(String) / evseOperatorId
-        # TODO check semantics
-        self.assertEqual(None, s.payment)  # Column(String)
-        # TODO check semantics
-        self.assertEqual([], s.authentication)  # Column(String) / .points[] | .authenticationModes
-        self.assertEqual(from_shape(Point(14.349852, 48.456161)),
-                         s.point)  # Column(Geography(geometry_type='POINT', srid=4326))
-        self.assertEqual(datapoint.to_json(), s.raw_data)  # Note: Column(JSON)
-        self.assertEqual('AT', s.country_code)  # Column(String)
-
-    def test_map_address__plain(self):
-        datapoint = pd.Series({
-            "city": "Reichenau im M\u00fchlkreis ",
-            "contactName": "Marktgemeindeamt Reichenau i.M.",
-            "description": "Ortsplatz vor dem Gemeindeamt",
-            "email": "marktgemeindeamt@reichenau-ooe.at",
-            "evseCountryId": "AT",
-            "evseOperatorId": "000",
-            "evseStationId": "EREI001",
-            "freeParking": True,
-            "greenEnergy": True,
-            "label": "Marktplatz/Gemeindeamt",
-            "location": {
-                "latitude": 48.456161,
-                "longitude": 14.349852
-            },
-            "openingHours": {
-                "details": []
-            },
-            "points": [
-                {
-                    "authenticationModes": [],
-                    "connectorTypes": [
-                        "SCEE-7-8"
-                    ],
-                    "energyInKw": 3.0,
-                    "evseId": "AT*000*EREI001",
-                    "freeOfCharge": True,
-                    "location": {
-                        "latitude": 48.456161,
-                        "longitude": 14.349852
-                    },
-                    "public": True,
-                    "roaming": True,
-                    "status": "UNKNOWN",
-                    "vehicleTypes": [
-                        "CAR",
-                        "BICYCLE",
-                        "MOTORCYCLE"
-                    ]
-                }
-            ],
-            "postCode": "4204",
-            "public": True,
-            "status": "ACTIVE",
-            "street": "Marktplatz 2",
-            "telephone": "+43 7211 82550",
-            "website": "www.reichenau-ooe.at"
-        })
-
-        a = map_address(datapoint, 3)  # type: Address
-
-        self.assertEqual(3, a.station_id)  # FK to station table
-        self.assertEqual(None, a.date_created)  # Column(Date)
-        self.assertEqual(None, a.date_updated)  # Column(Date)
-        self.assertEqual('Marktplatz 2', a.street)  # Column(String)
-        self.assertEqual('Reichenau im Mühlkreis', a.town)  # Column(String)
-        self.assertEqual('4204', a.postcode)  # Column(String)
-        self.assertEqual(None, a.district_old)  # Column(String)
-        self.assertEqual(None, a.district)  # Column(String)
-        self.assertEqual(None, a.state_old)  # Column(String)
-        self.assertEqual(None, a.state)  # Column(String)
-        self.assertEqual('AT', a.country)  # Column(String)
-
-    def test_map_charging__plain(self):
-        datapoint = pd.Series({
-            'points': [{'evseId': 'AT*002*E200101*1',
-                        'energyInKw': 12,
-                        'authenticationModes': ['APP', 'SMS', 'WEBSITE'],
-                        'connectorTypes': ['CTESLA', 'S309-1P-16A', 'CG105', 'PAN'],
-                        'vehicleTypes': ['CAR', 'TRUCK', 'BICYCLE', 'MOTORCYCLE', 'BOAT']},
-
-                       {'evseId': 'AT*002*E2001*5',
-                        'energyInKw': 15,
-                        'location': {'latitude': 48.198523499134545, 'longitude': 16.325340999197394},
-                        'priceInCentPerKwh': 12,
-                        'priceInCentPerMin': 13,
-                        'authenticationModes': ['SMS', "DEBIT_CARD", "CASH", "CREDIT_CARD"],
-                        'connectorTypes': ['CTESLA', 'CG105', 'CCCS2', 'CCCS1']}]
-        })
-
-        c = map_charging(datapoint, 1)  # type: Charging
-
-        self.assertEqual(1, c.station_id)
-        self.assertEqual(2, c.capacity)
-        self.assertEqual([12.0, 12.0, 12.0, 12.0, 15.0, 15.0, 15.0, 15.0], c.kw_list)
-        self.assertEqual(108.0, c.total_kw)
-        self.assertEqual(15.0, c.max_kw)
-        self.assertEqual(None, c.ampere_list)
-        self.assertEqual(None, c.volt_list)
-        self.assertEqual(['CTESLA', 'S309-1P-16A', 'CG105', 'PAN', 'CTESLA', 'CG105', 'CCCS2', 'CCCS1'],
-                         c.socket_type_list)
-        self.assertEqual(None, c.dc_support)
-
-    def test_map_charging__kw_list(self):
-        sample_data = [
-            # ([None, None], [[], None, None]),
-            ([None, []], [[], None, None]),
-            ([3.14, ['CTESLA', 'S309-1P-16A']], [[3.14, 3.14], 3.14, 3.14 + 3.14]),
+def test_get_paginated_stations():
+    test_url = "https://test.server.com/stations"
+    test_headers = {'Authorization': 'test_auth', 'User-Agent': 'Mozilla/5.0'}
+    mock_response_content = {
+        'totalResults': 2,
+        'fromIndex':    0,
+        'endIndex':     1,
+        'stations':     [
+            {'station_id': 1, 'name': 'Test Station 1'},
+            {'station_id': 2, 'name': 'Test Station 2'},
         ]
+    }
 
-        for raw, expected in sample_data:
-            raw_datapoint = pd.Series({
-                'points': [
-                    {
-                        'energyInKw': raw[0],
-                        'connectorTypes': raw[1]  # ['CTESLA', 'S309-1P-16A', 'CG105', 'PAN'],
-                    },
-                    # {
-                    #     'energyInKw': 15,
-                    #     'connectorTypes': ['CTESLA', 'CG105']}
-                ]
-            })
+    with mock.patch('requests.Session') as mock_session:
+        mock_session.return_value.get.return_value.json.return_value = mock_response_content
+        result = list(ec._get_paginated_stations(test_url, test_headers))
 
-            c = map_charging(raw_datapoint, 1)  # type: Charging
+    assert len(result) == 1
+    assert result[0] == mock_response_content
 
-            self.assertEqual(expected[0], c.kw_list)
-            self.assertEqual(expected[1], c.max_kw)
-            self.assertEqual(expected[2], c.total_kw)
+
+def test_get_data(caplog: object):
+    test_data_path = "/tmp/test_data.ndjson"
+
+    mock_response_content = {
+        'totalResults': 2,
+        'fromIndex':    0,
+        'endIndex':     1,
+        'stations':     [
+            {'station_id': 1, 'name': 'Test Station 1'},
+            {'station_id': 2, 'name': 'Test Station 2'},
+        ]
+    }
+
+    # Test logging (1/2): test file size logged
+    caplog.set_level(logging.DEBUG, logger=test_module_name)
+
+    with (mock.patch('requests.Session') as mock_session,
+          mock.patch('builtins.open', mock.mock_open()) as mock_file,
+          mock.patch('os.path.getsize', return_value=1077) as mock_file_size):
+        mock_session.return_value.get.return_value.json.return_value = mock_response_content
+        ec.get_data(test_data_path)
+
+    mock_file.assert_called_once_with(test_data_path, 'w')
+
+    # Test written data (JSON array of Stations objects)
+    written_data_text = ''.join([call.args[0] for call in mock_file().write.call_args_list])
+    written_json_objects = [json.loads(line) for line in written_data_text.splitlines()]
+    assert mock_response_content['stations'] == written_json_objects
+
+    mock_file_size.assert_called_once_with(test_data_path)
+
+    # Test logging (2/2): test file size logged
+    assert caplog.record_tuples[-1] == (
+        test_module_name, logging.INFO, f'Downloaded file size: {mock_file_size.return_value} bytes')
+
+
+def test_get_paginated_stations_no_data():
+    """Test the case when no data is returned from the server."""
+    test_url = "https://test.server.com/stations"
+    test_headers = {'Authorization': 'test_auth', 'User-Agent': 'Mozilla/5.0'}
+
+    with mock.patch('requests.Session') as mock_session:
+        mock_session.return_value.get.return_value.json.return_value = {}
+        result = list(ec._get_paginated_stations(test_url, test_headers))
+
+    assert len(result) == 0
+
+
+def test_get_data_empty_response(caplog):
+    """Test the case when the response does not contain any stations."""
+    test_data_path = "/tmp/test_data.ndjson"
+
+    mock_response_content = {
+        'totalResults': 0,
+        'fromIndex':    0,
+        'endIndex':     0,
+        'stations':     []
+    }
+
+    # Test logging (1/2): test file size logged
+    caplog.set_level(logging.DEBUG, logger=test_module_name)
+
+    with (mock.patch('requests.Session') as mock_session,
+          mock.patch('builtins.open', mock.mock_open()) as mock_file,
+          mock.patch('os.path.getsize', return_value=0) as mock_file_size):
+        mock_session.return_value.get.return_value.json.return_value = mock_response_content
+        ec.get_data(test_data_path)
+
+    mock_file.assert_called_once_with(test_data_path, 'w')
+    assert mock_file().write.called is False
+
+    # Test logging (2/2): test file size logged
+    assert caplog.record_tuples[-1] == (test_module_name, logging.INFO,
+                                        f'Downloaded file size: {mock_file_size.return_value} bytes')
+
+
+def test_get_paginated_stations_key_error():
+    """Test the case when the response does not contain expected keys."""
+    test_url = "https://test.server.com/stations"
+    test_headers = {'Authorization': 'test_auth', 'User-Agent': 'Mozilla/5.0'}
+    mock_response_content = {
+        'totalResults': 9454,
+        'fromIndex':    0,
+        # Missing 'endIndex' key
+    }
+
+    with mock.patch('requests.Session') as mock_session:
+        mock_session.return_value.get.return_value.json.return_value = mock_response_content
+        # Expect a KeyError due to missing 'endIndex' key
+        with pytest.raises(KeyError):
+            list(ec._get_paginated_stations(test_url, test_headers))
