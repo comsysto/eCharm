@@ -55,8 +55,6 @@ def map_address_bna(row, station_id) -> Address:
     street: str = row["Straße"] + " " + str(row["Hausnummer"])
     postcode: str = str(row["Postleitzahl"])
     town: str = row["Ort"]
-    state_old: str
-    country: str
     # workaround to keep leading zero in postcode
     if len(postcode) == 4:
         postcode = "0" + postcode
@@ -72,8 +70,8 @@ def map_address_bna(row, station_id) -> Address:
     map_address.street = (street,)
     map_address.town = (town,)
     map_address.postcode = (postcode,)
-    map_address.district_old = (row["Kreis/kreisfreie Stadt"],)
-    map_address.state_old = (row["Bundesland"],)
+    map_address.district = (row["Kreis/kreisfreie Stadt"],)
+    map_address.state = (row["Bundesland"],)
     map_address.country = ("DE",)
     return map_address
 

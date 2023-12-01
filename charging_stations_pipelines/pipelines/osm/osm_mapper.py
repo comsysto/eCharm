@@ -44,12 +44,12 @@ def map_address_osm(entry, station_id):
             postcode = tags["addr:postcode"]
             street = tags["addr:street"]
             map_address = Address()
-            map_address.state_old = None
+            map_address.state = None
             map_address.station_id = station_id
             map_address.street = street + " " + housenumber
             map_address.town = city
             map_address.postcode = postcode
-            map_address.district_old = None
+            map_address.district = None
             map_address.country = country
             return map_address
     return None

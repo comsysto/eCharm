@@ -1,0 +1,5992 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Beschreibung für das Ladestellenverzeichnis",
+    "version": "2.0",
+    "title": "Ladestellenverzeichnis",
+    "contact": {
+      "name": "E-Control",
+      "email": "office@e-control.at"
+    }
+  },
+  "host": "api.e-control.at",
+  "basePath": "/charge/1.0/",
+  "tags": [
+    {
+      "name": "Country",
+      "description": "Country Controller"
+    },
+    {
+      "name": "DATEX II",
+      "description": "Datex 2 Controller"
+    },
+    {
+      "name": "Enumeration",
+      "description": "Enum Controller"
+    },
+    {
+      "name": "Operator",
+      "description": "Operator Controller"
+    },
+    {
+      "name": "Operator Certificate",
+      "description": "Template Controller"
+    },
+    {
+      "name": "Point",
+      "description": "Point Controller"
+    },
+    {
+      "name": "Provider",
+      "description": "Provider Controller"
+    },
+    {
+      "name": "Search",
+      "description": "Search Controller"
+    },
+    {
+      "name": "Station",
+      "description": "Station Controller"
+    },
+    {
+      "name": "Template",
+      "description": "Template Controller"
+    }
+  ],
+  "paths": {
+    "/countries": {
+      "get": {
+        "tags": [
+          "Country"
+        ],
+        "summary": "Get Countries",
+        "description": "Get all available countries",
+        "operationId": "getCountriesUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Country"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators": {
+      "get": {
+        "tags": [
+          "Operator"
+        ],
+        "summary": "Get Operators",
+        "description": "Get all operators (based on user permissions)",
+        "operationId": "getOperatorsUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Operator"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/basic": {
+      "get": {
+        "tags": [
+          "Operator"
+        ],
+        "summary": "Get All Operators' Basic Data",
+        "description": "Get all operators' basic data regardless of your permissions on the operators themselves",
+        "operationId": "getAllOperatorsBasicDataUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Operator"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}": {
+      "get": {
+        "tags": [
+          "Operator"
+        ],
+        "summary": "Get Operator",
+        "description": "Get single operator (via 3-digit EVSE operator ID)\n<b>Notice:</b>\n* EVSE operator ID is case insensitive",
+        "operationId": "getOperatorUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Operator"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}/stations": {
+      "get": {
+        "tags": [
+          "Station"
+        ],
+        "summary": "Get Stations",
+        "description": "Get all stations (based on user permissions)",
+        "operationId": "getStationsUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Station"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}/stations/xlsx": {
+      "get": {
+        "tags": [
+          "Station"
+        ],
+        "summary": "Get Stations",
+        "description": "Get all stations (based on user permissions)",
+        "operationId": "getStationsAsXLSXUsingGET_2",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "description": "address",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "city",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "description": "label",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "postCode",
+            "in": "query",
+            "description": "postCode",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "stationId",
+            "in": "query",
+            "description": "stationId",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}/stations/{operatorStationId}/points": {
+      "get": {
+        "tags": [
+          "Point"
+        ],
+        "summary": "Get Points",
+        "description": "Get all points (based on user permissions)",
+        "operationId": "getPointsUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "operatorStationId",
+            "in": "path",
+            "description": "operatorStationId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Point"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}/stations/{operatorStationId}/points/xlsx": {
+      "get": {
+        "tags": [
+          "Point"
+        ],
+        "summary": "Get Stations",
+        "description": "Get all stations (based on user permissions)",
+        "operationId": "getPointsAsXLSXUsingGET_2",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "capacityKwh",
+            "in": "query",
+            "description": "capacityKwh",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseId",
+            "in": "query",
+            "description": "evseId",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "operatorStationId",
+            "in": "path",
+            "description": "operatorStationId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Resource"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}/stations/{operatorStationId}/points/{evseId}": {
+      "get": {
+        "tags": [
+          "Point"
+        ],
+        "summary": "Get Point",
+        "description": "Get single point (via 38-digit evse id)<br>\n <b>Notice:</b> \n* evse id is case insensitive",
+        "operationId": "getPointUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseId",
+            "in": "path",
+            "description": "evseId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "operatorStationId",
+            "in": "path",
+            "description": "operatorStationId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Point"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/operators/{evseOperatorId}/stations/{stationId}": {
+      "get": {
+        "tags": [
+          "Station"
+        ],
+        "summary": "Get Station",
+        "description": "Get single station (via 30-digit station id)<br>\n<b>Notice:</b> \n* station id is case insensitive\n* station id pattern: ^E[a-zA-Z0-9\\*]{1,30}$)",
+        "operationId": "getStationUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "evseOperatorId",
+            "in": "path",
+            "description": "evseOperatorId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "stationId",
+            "in": "path",
+            "description": "stationId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Station"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/providers": {
+      "get": {
+        "tags": [
+          "Provider"
+        ],
+        "summary": "Get Providers",
+        "description": "Get all providers (based on user permissions)",
+        "operationId": "getProvidersUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Provider"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/providers/basic": {
+      "get": {
+        "tags": [
+          "Provider"
+        ],
+        "summary": "Get All Providers' Basic Data",
+        "description": "Get all providers' basic data regardless of your permissions on the providers themselves",
+        "operationId": "getAllProvidersBasicDataUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Provider"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/countries/{countryId}/providers/{providerId}": {
+      "get": {
+        "tags": [
+          "Provider"
+        ],
+        "summary": "Get Provider",
+        "description": "Get single provider (via 3-digit provider ID)\n<b>Notice:</b>\n* Provider ID is case insensitive",
+        "operationId": "getProviderUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "description": "countryId",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "description": "providerId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Provider"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/datex2/v3.2/energy-infrastructure-status-publication": {
+      "get": {
+        "tags": [
+          "DATEX II"
+        ],
+        "summary": "Get status of energy infrastructure",
+        "description": "Get the status of all the sites, stations and charging points",
+        "operationId": "getEnergyInfrastructureStatusPublicationJsonUsingGET_2",
+        "produces": [
+          "application/xml",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/EnergyInfrastructureStatusPublication"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/datex2/v3.2/energy-infrastructure-table-publication": {
+      "get": {
+        "tags": [
+          "DATEX II"
+        ],
+        "summary": "Get energy infrastructure",
+        "description": "Get all the sites, stations and charging points",
+        "operationId": "getEnergyInfrastructureTablePublicationXmlUsingGET_2",
+        "produces": [
+          "application/xml",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/EnergyInfrastructureTablePublication"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/datex2/versions": {
+      "get": {
+        "tags": [
+          "DATEX II"
+        ],
+        "summary": "Get supported DATEX II Versions",
+        "description": "For each supported version there is a separate endpoint",
+        "operationId": "getSupportedDatex2VersionUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Datex2VersionDTO"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/enumerations/authenticationModes": {
+      "get": {
+        "tags": [
+          "Enumeration"
+        ],
+        "summary": "Get Authentication Modes",
+        "description": "As of definition OCPP 2.0 (reference to 'OCPP-2.0_part2_specification.pdf' section 'C. Authorization')",
+        "operationId": "getAuthenticationModeUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Authentication mode"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/enumerations/connectorTypes": {
+      "get": {
+        "tags": [
+          "Enumeration"
+        ],
+        "summary": "Get Connector Types",
+        "description": "As of definition OCPP 2.0 ((reference to 'OCPP-2.0_part2_specification.pdf' section '2.23. ConnectorEnumType')",
+        "operationId": "getConnectorTypeUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Connector type"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/enumerations/vehicleTypes": {
+      "get": {
+        "tags": [
+          "Enumeration"
+        ],
+        "summary": "Get Vehicle Types",
+        "operationId": "getVehicleTypeUsingGET_2",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Vehicle type"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get Stations in Proximity",
+        "description": "Gets the nearest stations (and its loading-points) from the given location which match the given filters.\nThe required parameters are 'latitude' and 'longitude', the optional parameters are the loading-points' minimum-energy-in-kW (badly named as 'capacity') and the loading-points' connector-types (badly named as 'types').",
+        "operationId": "searchStationsInProximityUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "capacity",
+            "in": "query",
+            "description": "capacity",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "description": "latitude",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "description": "longitude",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "description": "types",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ProximitySearchStationDTO"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/search/stations": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search for Stations",
+        "description": "Gets the stations (and its loading-points) which match all of the given filters.\n(The filter latitude only works in combination with the filter longitude and vice versa.\nThe filter maxDistanceInKm only works in combination with the filters latitude and longitude.)\nThe multi-character-wildcard '%' may be used within the text fields 'label', 'description', 'postCode', 'city', 'street' and 'evseId'.\nIf not using a wildcard the text fields 'label', 'description', 'city' and 'street' will use a fuzzy search which accepts small variations or errors (f.e. looking for 'wein' will get you 'Wien').\nFor pagination you may use 'fromIndex' and 'maxResults'. In any case no more than 1,000 results will be returned.",
+        "operationId": "searchForStationsUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "city",
+            "in": "query",
+            "description": "city",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "connectorTypes",
+            "in": "query",
+            "description": "connectorTypes",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "description": "description",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "evseId",
+            "in": "query",
+            "description": "evseId",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "freeOfCharge",
+            "in": "query",
+            "description": "freeOfCharge",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "freeParking",
+            "in": "query",
+            "description": "freeParking",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "fromIndex",
+            "in": "query",
+            "description": "fromIndex",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "greenEnergy",
+            "in": "query",
+            "description": "greenEnergy",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isPointPublic",
+            "in": "query",
+            "description": "isPointPublic",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isStationPublic",
+            "in": "query",
+            "description": "isStationPublic",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "label",
+            "in": "query",
+            "description": "label",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "description": "latitude",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "description": "longitude",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "maxDistanceInKm",
+            "in": "query",
+            "description": "maxDistanceInKm",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "maxEnergyInKw",
+            "in": "query",
+            "description": "maxEnergyInKw",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "description": "maxResults",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "minEnergyInKw",
+            "in": "query",
+            "description": "minEnergyInKw",
+            "required": false,
+            "type": "number"
+          },
+          {
+            "name": "pointStatuses",
+            "in": "query",
+            "description": "pointStatuses",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "OCCUPIED",
+                "RESERVED",
+                "FAULTED",
+                "UNAVAILABLE",
+                "UNKNOWN"
+              ]
+            },
+            "collectionFormat": "multi",
+            "enum": [
+              "AVAILABLE",
+              "OCCUPIED",
+              "RESERVED",
+              "FAULTED",
+              "UNAVAILABLE",
+              "UNKNOWN"
+            ]
+          },
+          {
+            "name": "postCode",
+            "in": "query",
+            "description": "postCode",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "roaming",
+            "in": "query",
+            "description": "roaming",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "stationStatuses",
+            "in": "query",
+            "description": "stationStatuses",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            },
+            "collectionFormat": "multi",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          {
+            "name": "street",
+            "in": "query",
+            "description": "street",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/GeneralSearchStationResultDTO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/templates": {
+      "get": {
+        "tags": [
+          "Operator Certificate",
+          "Template"
+        ],
+        "summary": "Get Templates",
+        "description": "Get all templates (TODO: based on user permissions)",
+        "operationId": "getTemplatesUsingGET_1",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Template"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/templates/{templatePath}/metadata": {
+      "get": {
+        "tags": [
+          "Operator Certificate",
+          "Template"
+        ],
+        "summary": "Get Template",
+        "description": "Get template metadata by template type",
+        "operationId": "getTemplateUsingGET_1",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "templatePath",
+            "in": "path",
+            "description": "templatePath",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Template"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "deprecated": false
+      }
+    }
+  },
+  "definitions": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "_AddressExtension": {
+          "xml": {
+            "name": "_addressExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "addressLine": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AddressLine"
+          }
+        },
+        "city": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "countryCode": {
+          "type": "string"
+        },
+        "postcode": {
+          "type": "string"
+        }
+      },
+      "title": "Address",
+      "xml": {
+        "name": "Address",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "AddressLine": {
+      "type": "object",
+      "properties": {
+        "_AddressLineExtension": {
+          "xml": {
+            "name": "_addressLineExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "order": {
+          "type": "integer",
+          "xml": {
+            "name": "order",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "text": {
+          "xml": {
+            "name": "text",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "type": {
+          "xml": {
+            "name": "type",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_AddressLineTypeEnum"
+        }
+      },
+      "title": "AddressLine",
+      "xml": {
+        "name": "AddressLine",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "AssociatedFacility": {
+      "type": "object",
+      "properties": {
+        "_AssociatedFacilityExtension": {
+          "xml": {
+            "name": "_associatedFacilityExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "description": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "facilityReference": {
+          "$ref": "#/definitions/_FacilityObjectVersionedReference"
+        },
+        "type": {
+          "xml": {
+            "name": "type",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_FacilityTypeEnum"
+        }
+      },
+      "title": "AssociatedFacility",
+      "xml": {
+        "name": "AssociatedFacility",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Authentication mode": {
+      "type": "object",
+      "required": [
+        "description",
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "C03"
+        },
+        "description": {
+          "type": "string",
+          "example": "Authorization using credit/debit card"
+        }
+      },
+      "title": "Authentication mode"
+    },
+    "ClosureInformation": {
+      "type": "object",
+      "properties": {
+        "_ClosureInformationExtension": {
+          "xml": {
+            "name": "_closureInformationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "closedFrom": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "permananentlyClosed": {
+          "type": "boolean"
+        },
+        "temporarilyClosed": {
+          "type": "boolean"
+        },
+        "temporarilyClosedUntil": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        }
+      },
+      "title": "ClosureInformation"
+    },
+    "Connector type": {
+      "type": "object",
+      "required": [
+        "description",
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "sCEE-7-8"
+        },
+        "description": {
+          "type": "string",
+          "example": "CEE 7/7 16A socket. May represent 7/4 & 7/5 a.k.a Schuko"
+        }
+      },
+      "title": "Connector type"
+    },
+    "Country": {
+      "type": "object",
+      "required": [
+        "country",
+        "sortKey"
+      ],
+      "properties": {
+        "country": {
+          "type": "string",
+          "example": "AT"
+        },
+        "sortKey": {
+          "type": "integer",
+          "format": "int32",
+          "example": 0
+        }
+      },
+      "title": "Country"
+    },
+    "Datex2VersionDTO": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": 3.0
+        }
+      },
+      "title": "Datex2VersionDTO"
+    },
+    "DayWeekMonth": {
+      "type": "object",
+      "properties": {
+        "_DayWeekMonthExtension": {
+          "xml": {
+            "name": "_dayWeekMonthExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_DayWeekMonthExtensionType"
+        },
+        "applicableDay": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_DayEnum"
+          }
+        },
+        "applicableMonth": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_MonthOfYearEnum"
+          }
+        }
+      },
+      "title": "DayWeekMonth",
+      "xml": {
+        "name": "DayWeekMonth",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "DayWeekMonthExtended": {
+      "type": "object",
+      "properties": {
+        "applicableDaysWithinMonth": {
+          "xml": {
+            "name": "applicableDaysWithinMonth",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ApplicableDaysWithinMonthEnum"
+        }
+      },
+      "title": "DayWeekMonthExtended",
+      "xml": {
+        "name": "DayWeekMonthExtended",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Dimension": {
+      "type": "object",
+      "properties": {
+        "_DimensionExtension": {
+          "xml": {
+            "name": "_dimensionExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "height": {
+          "type": "number",
+          "format": "float"
+        },
+        "length": {
+          "type": "number",
+          "format": "float"
+        },
+        "usableArea": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "Dimension",
+      "xml": {
+        "name": "Dimension",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Emissions": {
+      "type": "object",
+      "properties": {
+        "_EmissionsExtension": {
+          "xml": {
+            "name": "_emissionsExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_EmissionsExtensionType"
+        },
+        "emissionClassificationEuro": {
+          "$ref": "#/definitions/_EmissionClassificationEuroEnum"
+        },
+        "emissionClassificationOther": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emissionLevel": {
+          "$ref": "#/definitions/_LowEmissionLevelEnum"
+        }
+      },
+      "title": "Emissions",
+      "xml": {
+        "name": "Emissions",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EmissionsExtension": {
+      "type": "object",
+      "properties": {
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        }
+      },
+      "title": "EmissionsExtension",
+      "xml": {
+        "name": "EmissionsExtension",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureSite": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureSiteExtension": {
+          "xml": {
+            "name": "_energyInfrastructureSiteExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityExtension": {
+          "xml": {
+            "name": "_facilityExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityObjectExtension": {
+          "xml": {
+            "name": "_facilityObjectExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "accessibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_AccessibilityEnum"
+          }
+        },
+        "additionalInformation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "alias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "applicableForVehicles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VehicleCharacteristics"
+          }
+        },
+        "associatedFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssociatedFacility"
+          }
+        },
+        "description": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "dimension": {
+          "$ref": "#/definitions/Dimension"
+        },
+        "energyInfrastructureStation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EnergyInfrastructureStation"
+          }
+        },
+        "externalIdentifier": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "informationWebsite": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "locationReference": {
+          "$ref": "#/definitions/LocationReference"
+        },
+        "name": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "operatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "operator": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "owner": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "photo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Image"
+          }
+        },
+        "photoUrl": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "rates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "supplementalFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupplementalFacility"
+          }
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "EnergyInfrastructureSite",
+      "xml": {
+        "name": "EnergyInfrastructureSite",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureSiteStatus": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureSiteStatusExtension": {
+          "xml": {
+            "name": "_energyInfrastructureSiteStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityObjectStatusExtension": {
+          "xml": {
+            "name": "_facilityObjectStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityStatusExtension": {
+          "xml": {
+            "name": "_facilityStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "energyInfrastructureStationStatus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EnergyInfrastructureStationStatus"
+          }
+        },
+        "fault": {
+          "$ref": "#/definitions/Fault"
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "newOperatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "newRates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "openingStatus": {
+          "$ref": "#/definitions/_OpeningStatusEnum"
+        },
+        "reference": {
+          "xml": {
+            "name": "reference",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_FacilityObjectVersionedReference"
+        },
+        "regularOperatingHoursInForce": {
+          "type": "boolean"
+        },
+        "statusDescription": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "supplementalFacilityStatus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupplementalFacilityStatus"
+          }
+        }
+      },
+      "title": "EnergyInfrastructureSiteStatus",
+      "xml": {
+        "name": "EnergyInfrastructureSiteStatus",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureStation": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureStationExtension": {
+          "xml": {
+            "name": "_energyInfrastructureStationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityExtension": {
+          "xml": {
+            "name": "_facilityExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityObjectExtension": {
+          "xml": {
+            "name": "_facilityObjectExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "accessibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_AccessibilityEnum"
+          }
+        },
+        "additionalInformation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "alias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "applicableForVehicles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VehicleCharacteristics"
+          }
+        },
+        "associatedFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssociatedFacility"
+          }
+        },
+        "authenticationAndIdentificationMethods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_AuthenticationAndIdentificationEnum"
+          }
+        },
+        "description": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "dimension": {
+          "$ref": "#/definitions/Dimension"
+        },
+        "externalIdentifier": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "informationWebsite": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "locationReference": {
+          "$ref": "#/definitions/LocationReference"
+        },
+        "name": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "numberOfRefillPoints": {
+          "type": "integer"
+        },
+        "operatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "operator": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "owner": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "photo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Image"
+          }
+        },
+        "photoUrl": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "rates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "refillPoint": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RefillPoint"
+          }
+        },
+        "supplementalFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupplementalFacility"
+          }
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "EnergyInfrastructureStation",
+      "xml": {
+        "name": "EnergyInfrastructureStation",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureStationStatus": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureStationStatusExtension": {
+          "xml": {
+            "name": "_energyInfrastructureStationStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityObjectStatusExtension": {
+          "xml": {
+            "name": "_facilityObjectStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityStatusExtension": {
+          "xml": {
+            "name": "_facilityStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "fault": {
+          "$ref": "#/definitions/Fault"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "newOperatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "newRates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "openingStatus": {
+          "$ref": "#/definitions/_OpeningStatusEnum"
+        },
+        "reference": {
+          "xml": {
+            "name": "reference",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_FacilityObjectVersionedReference"
+        },
+        "refillPointStatus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RefillPointStatus"
+          }
+        },
+        "regularOperatingHoursInForce": {
+          "type": "boolean"
+        },
+        "statusDescription": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "supplementalFacilityStatus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupplementalFacilityStatus"
+          }
+        }
+      },
+      "title": "EnergyInfrastructureStationStatus",
+      "xml": {
+        "name": "EnergyInfrastructureStationStatus",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureStatusPublication": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureStatusPublicationExtension": {
+          "xml": {
+            "name": "_energyInfrastructureStatusPublicationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_PayloadPublicationExtension": {
+          "xml": {
+            "name": "_payloadPublicationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "energyInfrastructureSiteStatus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EnergyInfrastructureSiteStatus"
+          }
+        },
+        "extensionName": {
+          "type": "string",
+          "xml": {
+            "name": "extensionName",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "extensionVersion": {
+          "type": "string",
+          "xml": {
+            "name": "extensionVersion",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "lang": {
+          "type": "string",
+          "xml": {
+            "name": "lang",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "modelBaseVersion": {
+          "type": "string",
+          "xml": {
+            "name": "modelBaseVersion",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "profileName": {
+          "type": "string",
+          "xml": {
+            "name": "profileName",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "profileVersion": {
+          "type": "string",
+          "xml": {
+            "name": "profileVersion",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "publicationCreator": {
+          "xml": {
+            "name": "publicationCreator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/InternationalIdentifier"
+        },
+        "publicationTime": {
+          "xml": {
+            "name": "publicationTime",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "tableReference": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_EnergyInfrastructureTableVersionedReference"
+          }
+        }
+      },
+      "title": "EnergyInfrastructureStatusPublication",
+      "xml": {
+        "name": "EnergyInfrastructureStatusPublication",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureTable": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureTableExtension": {
+          "xml": {
+            "name": "_energyInfrastructureTableExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "energyInfrastructureSite": {
+          "type": "array",
+          "xml": {
+            "name": "energyInfrastructureSite",
+            "attribute": false,
+            "wrapped": false
+          },
+          "items": {
+            "$ref": "#/definitions/EnergyInfrastructureSite"
+          }
+        },
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "EnergyInfrastructureTable",
+      "xml": {
+        "name": "EnergyInfrastructureTable",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyInfrastructureTablePublication": {
+      "type": "object",
+      "properties": {
+        "_EnergyInfrastructureTablePublicationExtension": {
+          "xml": {
+            "name": "_energyInfrastructureTablePublicationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_PayloadPublicationExtension": {
+          "xml": {
+            "name": "_payloadPublicationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "energyInfrastructureTable": {
+          "type": "array",
+          "xml": {
+            "name": "energyInfrastructureTable",
+            "attribute": false,
+            "wrapped": false
+          },
+          "items": {
+            "$ref": "#/definitions/EnergyInfrastructureTable"
+          }
+        },
+        "extensionName": {
+          "type": "string",
+          "xml": {
+            "name": "extensionName",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "extensionVersion": {
+          "type": "string",
+          "xml": {
+            "name": "extensionVersion",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "lang": {
+          "type": "string",
+          "xml": {
+            "name": "lang",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "modelBaseVersion": {
+          "type": "string",
+          "xml": {
+            "name": "modelBaseVersion",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "profileName": {
+          "type": "string",
+          "xml": {
+            "name": "profileName",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "profileVersion": {
+          "type": "string",
+          "xml": {
+            "name": "profileVersion",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "publicationCreator": {
+          "xml": {
+            "name": "publicationCreator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/InternationalIdentifier"
+        },
+        "publicationTime": {
+          "xml": {
+            "name": "publicationTime",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        }
+      },
+      "title": "EnergyInfrastructureTablePublication",
+      "xml": {
+        "name": "EnergyInfrastructureTablePublication",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "EnergyPricingPolicy": {
+      "type": "object",
+      "properties": {
+        "_EnergyPricingPolicyExtension": {
+          "xml": {
+            "name": "_energyPricingPolicyExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "pricingPolicy": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_PricingPolicyEnum"
+          }
+        }
+      },
+      "title": "EnergyPricingPolicy"
+    },
+    "FacilityLocation": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "timeZone": {
+          "type": "string"
+        }
+      },
+      "title": "FacilityLocation",
+      "xml": {
+        "name": "FacilityLocation",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Fault": {
+      "type": "object",
+      "properties": {
+        "_FaultExtension": {
+          "xml": {
+            "name": "_faultExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "faultCreationTime": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "faultDescription": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "faultIdentifier": {
+          "type": "string"
+        },
+        "faultImpactSeverity": {
+          "$ref": "#/definitions/_FaultSeverityEnum"
+        },
+        "faultLastUpdateTime": {
+          "xml": {
+            "name": "faultLastUpdateTime",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "faultUrgencyToRectify": {
+          "$ref": "#/definitions/_FaultUrgencyEnum"
+        },
+        "manufacturerFaultCode": {
+          "type": "string"
+        }
+      },
+      "title": "Fault",
+      "xml": {
+        "name": "Fault",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "File": {
+      "type": "object",
+      "properties": {
+        "absolute": {
+          "type": "boolean"
+        },
+        "absoluteFile": {
+          "$ref": "#/definitions/File"
+        },
+        "absolutePath": {
+          "type": "string"
+        },
+        "canonicalFile": {
+          "$ref": "#/definitions/File"
+        },
+        "canonicalPath": {
+          "type": "string"
+        },
+        "directory": {
+          "type": "boolean"
+        },
+        "file": {
+          "type": "boolean"
+        },
+        "freeSpace": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "parentFile": {
+          "$ref": "#/definitions/File"
+        },
+        "path": {
+          "type": "string"
+        },
+        "totalSpace": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "usableSpace": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "File"
+    },
+    "GeneralSearchLocationDTO": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "example": 48.2083,
+          "description": "the geo-location's latitude"
+        },
+        "longitude": {
+          "type": "number",
+          "example": 16.373,
+          "description": "the geo-location's longitude"
+        }
+      },
+      "title": "GeneralSearchLocationDTO"
+    },
+    "GeneralSearchPointDTO": {
+      "type": "object",
+      "properties": {
+        "public": {
+          "type": "boolean"
+        },
+        "evseId": {
+          "type": "string",
+          "example": "AT*CTL*E12345*1",
+          "description": "the EVSE ID"
+        },
+        "energyInKw": {
+          "type": "number",
+          "example": 22.0,
+          "description": "the provided energy in kW"
+        },
+        "location": {
+          "description": "the point's geo-location",
+          "$ref": "#/definitions/GeneralSearchLocationDTO"
+        },
+        "roaming": {
+          "type": "boolean",
+          "example": true,
+          "description": "roaming contracts accepted"
+        },
+        "freeOfCharge": {
+          "type": "boolean",
+          "example": true,
+          "description": "load for free"
+        },
+        "priceInCentPerKwh": {
+          "type": "number",
+          "example": 0.0,
+          "description": "the price in Euro Cent per kWh"
+        },
+        "priceInCentPerMin": {
+          "type": "number",
+          "example": 0.0,
+          "description": "the price in Euro Cent per minute"
+        },
+        "status": {
+          "type": "string",
+          "example": [
+            'AVAILABLE',
+            'OCCUPIED',
+            'RESERVED',
+            'FAULTED',
+            'UNAVAILABLE',
+            'UNKNOWN'
+          ],
+          "description": "the point's status"
+        },
+        "authenticationModes": {
+          "type": "array",
+          "example": [
+            'CASH',
+            'RFID',
+            'CREDIT_CARD',
+            'DEBIT_CARD',
+            'APP',
+            'SMS',
+            'NFC',
+            'WEBSITE'
+          ],
+          "description": "how to authenticate yourself when loading",
+          "items": {
+            "type": "string"
+          }
+        },
+        "connectorTypes": {
+          "type": "array",
+          "example": [
+            'CCCS1',
+            'CCCS2',
+            'CG105',
+            'CTESLA',
+            'CTYPE1',
+            'CTYPE2',
+            'S309-1P-16A',
+            'S309-1P-32A',
+            'S309-3P-16A',
+            'S309-3P-32A',
+            'SBS1361',
+            'SCEE-7-8',
+            'STYPE2',
+            'STYPE3',
+            'OTHER1PHMAX16A',
+            'OTHER1PHOVER16A',
+            'OTHER3PH',
+            'PAN',
+            'WINDUCTIVE',
+            'WRESONANT',
+            'UNDETERMINED',
+            'UNKNOWN'
+          ],
+          "description": "the loading-point's connectors",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vehicleTypes": {
+          "type": "array",
+          "example": [
+            'CAR',
+            'MOTORCYCLE',
+            'BICYCLE',
+            'BOAT',
+            'TRUCK'
+          ],
+          "description": "which vehicle-types the loading-point can accommodate",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "GeneralSearchPointDTO"
+    },
+    "GeneralSearchStationDTO": {
+      "type": "object",
+      "properties": {
+        "public": {
+          "type": "boolean"
+        },
+        "evseCountryId": {
+          "type": "string",
+          "example": "AT",
+          "description": "the country part of the EVSE ID"
+        },
+        "evseOperatorId": {
+          "type": "string",
+          "example": "CTL",
+          "description": "the operator part of the EVSE ID"
+        },
+        "evseStationId": {
+          "type": "string",
+          "example": "E12345",
+          "description": "the station part of the EVSE ID"
+        },
+        "status": {
+          "type": "string",
+          "example": [
+            'ACTIVE',
+            'INACTIVE'
+          ],
+          "description": "the station's status"
+        },
+        "label": {
+          "type": "string",
+          "example": "Ladesstelle E-Control",
+          "description": "the station's name"
+        },
+        "description": {
+          "type": "string",
+          "example": "Kostenloses Laden während ihres Besuchs bei der E-Control.",
+          "description": "describing the station"
+        },
+        "postCode": {
+          "type": "string",
+          "example": 1010,
+          "description": "the station's location: zip code"
+        },
+        "city": {
+          "type": "string",
+          "example": "Wien",
+          "description": "the station's location: city"
+        },
+        "street": {
+          "type": "string",
+          "example": "Rudolfsplatz 13a",
+          "description": "the station's location: street and number"
+        },
+        "location": {
+          "description": "the station's geo-location",
+          "$ref": "#/definitions/GeneralSearchLocationDTO"
+        },
+        "distance": {
+          "type": "number",
+          "format": "double",
+          "description": "if you provided your location this is the distance between you and the station"
+        },
+        "contactName": {
+          "type": "string",
+          "example": "E-Control",
+          "description": "contact info: name"
+        },
+        "telephone": {
+          "type": "string",
+          "example": "+43 1 24 724 0",
+          "description": "contact info: telephone number"
+        },
+        "email": {
+          "type": "string",
+          "example": "ladesstellen@e-control.at",
+          "description": "contact info: e-mail"
+        },
+        "website": {
+          "type": "string",
+          "example": "https://www.e-control.at/ladestellen",
+          "description": "contact info: website"
+        },
+        "directions": {
+          "type": "string",
+          "example": "Kurze textuelle Anfahrtsbeschreibung.",
+          "description": "directions to the station"
+        },
+        "greenEnergy": {
+          "type": "boolean",
+          "example": true,
+          "description": "providing 100% green energy"
+        },
+        "freeParking": {
+          "type": "boolean",
+          "example": false,
+          "description": "free parking at the station"
+        },
+        "openingHours": {
+          "description": "the station's opening hours",
+          "$ref": "#/definitions/Opening hours"
+        },
+        "priceUrl": {
+          "type": "string",
+          "example": "https://www.e-control.at/ladestellen",
+          "description": "price info: website"
+        },
+        "points": {
+          "type": "array",
+          "description": "the station's loading-points",
+          "items": {
+            "$ref": "#/definitions/GeneralSearchPointDTO"
+          }
+        }
+      },
+      "title": "GeneralSearchStationDTO"
+    },
+    "GeneralSearchStationResultDTO": {
+      "type": "object",
+      "properties": {
+        "totalResults": {
+          "type": "integer",
+          "format": "int64",
+          "example": 1032,
+          "description": "total number of possible results with given filter"
+        },
+        "fromIndex": {
+          "type": "integer",
+          "format": "int64",
+          "example": 0,
+          "description": "index of the first returned result"
+        },
+        "endIndex": {
+          "type": "integer",
+          "format": "int64",
+          "example": 999,
+          "description": "index of the last returned result"
+        },
+        "stations": {
+          "type": "array",
+          "description": "resulting charge stations",
+          "items": {
+            "$ref": "#/definitions/GeneralSearchStationDTO"
+          }
+        }
+      },
+      "title": "GeneralSearchStationResultDTO"
+    },
+    "GrossWeightCharacteristic": {
+      "type": "object",
+      "properties": {
+        "_GrossWeightCharacteristicExtension": {
+          "xml": {
+            "name": "_grossWeightCharacteristicExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        },
+        "grossVehicleWeight": {
+          "type": "number",
+          "format": "float"
+        },
+        "typeOfWeight": {
+          "xml": {
+            "name": "typeOfWeight",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_WeightTypeEnum"
+        }
+      },
+      "title": "GrossWeightCharacteristic",
+      "xml": {
+        "name": "GrossWeightCharacteristic",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "HeaviestAxleWeightCharacteristic": {
+      "type": "object",
+      "properties": {
+        "_HeaviestAxleWeightCharacteristicExtension": {
+          "xml": {
+            "name": "_heaviestAxleWeightCharacteristicExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        },
+        "heaviestAxleWeight": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "HeaviestAxleWeightCharacteristic",
+      "xml": {
+        "name": "HeaviestAxleWeightCharacteristic",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "HeightCharacteristic": {
+      "type": "object",
+      "properties": {
+        "_HeightCharacteristicExtension": {
+          "xml": {
+            "name": "_heightCharacteristicExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        },
+        "vehicleHeight": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "HeightCharacteristic",
+      "xml": {
+        "name": "HeightCharacteristic",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Image": {
+      "type": "object",
+      "properties": {
+        "_ImageExtension": {
+          "xml": {
+            "name": "_imageExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "imageData": {
+          "type": "string",
+          "format": "byte",
+          "xml": {
+            "name": "imageData",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "imageFormat": {
+          "xml": {
+            "name": "imageFormat",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ImageFormatEnum"
+        }
+      },
+      "title": "Image",
+      "xml": {
+        "name": "Image",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "InputStream": {
+      "type": "object",
+      "title": "InputStream"
+    },
+    "InternationalIdentifier": {
+      "type": "object",
+      "properties": {
+        "_InternationalIdentifierExtension": {
+          "xml": {
+            "name": "_internationalIdentifierExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "country": {
+          "type": "string",
+          "xml": {
+            "name": "country",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "nationalIdentifier": {
+          "type": "string",
+          "xml": {
+            "name": "nationalIdentifier",
+            "attribute": false,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "InternationalIdentifier"
+    },
+    "LengthCharacteristic": {
+      "type": "object",
+      "properties": {
+        "_LengthCharacteristicExtension": {
+          "xml": {
+            "name": "_lengthCharacteristicExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        },
+        "vehicleLength": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "LengthCharacteristic",
+      "xml": {
+        "name": "LengthCharacteristic",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "LocationReference": {
+      "type": "object",
+      "properties": {
+        "_LocationReferenceExtension": {
+          "xml": {
+            "name": "_locationReferenceExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_LocationReferenceExtensionType"
+        }
+      },
+      "title": "LocationReference",
+      "xml": {
+        "name": "LocationReference",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "MultilingualString": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "xml": {
+            "name": "values",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/Values"
+        }
+      },
+      "title": "MultilingualString"
+    },
+    "MultilingualStringValue": {
+      "type": "object",
+      "properties": {
+        "lang": {
+          "type": "string",
+          "xml": {
+            "name": "lang",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": "MultilingualStringValue"
+    },
+    "NamedArea": {
+      "type": "object",
+      "properties": {
+        "_NamedAreaExtension": {
+          "xml": {
+            "name": "_namedAreaExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        }
+      },
+      "title": "NamedArea",
+      "xml": {
+        "name": "NamedArea",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "NumberOfAxlesCharacteristic": {
+      "type": "object",
+      "properties": {
+        "_NumberOfAxlesCharacteristicExtension": {
+          "xml": {
+            "name": "_numberOfAxlesCharacteristicExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        },
+        "numberOfAxles": {
+          "type": "integer",
+          "xml": {
+            "name": "numberOfAxles",
+            "attribute": false,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "NumberOfAxlesCharacteristic",
+      "xml": {
+        "name": "NumberOfAxlesCharacteristic",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Opening hour detail": {
+      "type": "object",
+      "properties": {
+        "fromWeekday": {
+          "type": "string",
+          "example": "THU",
+          "description": "From Weekday",
+          "enum": [
+            "MON",
+            "TUE",
+            "WED",
+            "THU",
+            "FRI",
+            "SAT",
+            "SUN"
+          ]
+        },
+        "fromTime": {
+          "type": "string",
+          "example": "08:00",
+          "description": "From Time"
+        },
+        "toWeekday": {
+          "type": "string",
+          "example": "FRI",
+          "description": "TO Weekday",
+          "enum": [
+            "MON",
+            "TUE",
+            "WED",
+            "THU",
+            "FRI",
+            "SAT",
+            "SUN"
+          ]
+        },
+        "toTime": {
+          "type": "string",
+          "example": "16:30",
+          "description": "To Time"
+        }
+      },
+      "title": "Opening hour detail"
+    },
+    "Opening hours": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "example": "MON-SUN from 00:00 to 24:00"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Opening hour detail"
+          }
+        }
+      },
+      "title": "Opening hours"
+    },
+    "OperatingHours": {
+      "type": "object",
+      "properties": {
+        "_OperatingHoursExtension": {
+          "xml": {
+            "name": "_operatingHoursExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "closureInformation": {
+          "$ref": "#/definitions/ClosureInformation"
+        }
+      },
+      "title": "OperatingHours"
+    },
+    "Operator": {
+      "type": "object",
+      "required": [
+        "operatorId",
+        "status"
+      ],
+      "properties": {
+        "operatorId": {
+          "type": "string",
+          "example": "EVN",
+          "description": "Operator ID"
+        },
+        "type": {
+          "type": "string",
+          "example": "ORGANIZATION",
+          "description": "Operator Type",
+          "enum": [
+            "ORGANIZATION",
+            "PERSON"
+          ]
+        },
+        "organization": {
+          "type": "string",
+          "example": "Energie-Control Austria für die Regulierung der Elektrizitäts- und Erdgaswirtschaft",
+          "description": "Organization Name"
+        },
+        "commercialRegisterNumber": {
+          "type": "string",
+          "example": "FN 74726 b",
+          "description": "Commercial Register Number"
+        },
+        "firstName": {
+          "type": "string",
+          "example": "Max",
+          "description": "Firstname"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Mustermann",
+          "description": "Lastname"
+        },
+        "sex": {
+          "type": "string",
+          "example": "M",
+          "description": "Sex"
+        },
+        "titlePrefix": {
+          "type": "string",
+          "example": "Dr.",
+          "description": "Title Prefix"
+        },
+        "titleSuffix": {
+          "type": "string",
+          "example": "PhD",
+          "description": "Title Suffix"
+        },
+        "country": {
+          "type": "string",
+          "example": "AT",
+          "description": "Address: Country"
+        },
+        "postCode": {
+          "type": "string",
+          "example": 1010,
+          "description": "Address: Post Code"
+        },
+        "city": {
+          "type": "string",
+          "example": "Wien",
+          "description": "Address: City"
+        },
+        "street": {
+          "type": "string",
+          "example": "Rudolfsplatz 13a",
+          "description": "Address: Street"
+        },
+        "website": {
+          "type": "string",
+          "example": "https://www.e-control.at",
+          "description": "Website"
+        },
+        "deviatingOperatorIds": {
+          "type": "array",
+          "example": {
+            ECR,
+            ECL
+          },
+          "description": "Deviating Operator IDs",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "example": "UNAPPROVED",
+          "description": "Status",
+          "enum": [
+            "UNAPPROVED",
+            "ACTIVE",
+            "DISABLED",
+            "DELETED"
+          ]
+        }
+      },
+      "title": "Operator",
+      "description": "Operator managing Stations"
+    },
+    "Organisation": {
+      "type": "object",
+      "properties": {
+        "_OrganisationExtension": {
+          "xml": {
+            "name": "_organisationExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "generalTimeValidity": {
+          "$ref": "#/definitions/OverallPeriod"
+        }
+      },
+      "title": "Organisation",
+      "xml": {
+        "name": "Organisation",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "OverallPeriod": {
+      "type": "object",
+      "properties": {
+        "_OverallPeriodExtension": {
+          "xml": {
+            "name": "_overallPeriodExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "exceptionPeriod": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Period"
+          }
+        },
+        "overallEndTime": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "overallStartTime": {
+          "xml": {
+            "name": "overallStartTime",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "validPeriod": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Period"
+          }
+        }
+      },
+      "title": "OverallPeriod",
+      "xml": {
+        "name": "OverallPeriod",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Period": {
+      "type": "object",
+      "properties": {
+        "_PeriodExtension": {
+          "xml": {
+            "name": "_periodExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "endOfPeriod": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "periodName": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "recurringDayWeekMonthPeriod": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DayWeekMonth"
+          }
+        },
+        "recurringSpecialDay": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SpecialDay"
+          }
+        },
+        "recurringTimePeriodOfDay": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimePeriodOfDay"
+          }
+        },
+        "startOfPeriod": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        }
+      },
+      "title": "Period",
+      "xml": {
+        "name": "Period",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Point": {
+      "type": "object",
+      "required": [
+        "capacityKwh",
+        "connectorType",
+        "evseId"
+      ],
+      "properties": {
+        "public": {
+          "type": "boolean"
+        },
+        "evseId": {
+          "type": "string",
+          "example": "AT*VIE*E5055*9"
+        },
+        "capacityKwh": {
+          "type": "number",
+          "example": 74.31
+        },
+        "latitude": {
+          "type": "number",
+          "example": 47.69694444444444
+        },
+        "longitude": {
+          "type": "number",
+          "example": 13.346388888888889
+        },
+        "roaming": {
+          "type": "boolean",
+          "example": false
+        },
+        "freeOfCharge": {
+          "type": "boolean",
+          "example": true
+        },
+        "priceCentKwh": {
+          "type": "number",
+          "example": 7.48
+        },
+        "priceCentMin": {
+          "type": "number",
+          "example": 37.5
+        },
+        "authenticationMode": {
+          "type": "array",
+          "example": [
+            "CASH",
+            "RFID",
+            "CREDIT_CARD",
+            "DEBIT_CARD",
+            "APP",
+            "SMS",
+            "NFC",
+            "WEBSITE"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "connectorType": {
+          "type": "array",
+          "example": [
+            "cTesla",
+            "cType2"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "vehicleType": {
+          "type": "array",
+          "example": [
+            "CAR",
+            "MOTORCYCLE",
+            "BICYCLE",
+            "BOAT",
+            "TRUCK"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Point",
+      "description": "Point from station"
+    },
+    "Provider": {
+      "type": "object",
+      "required": [
+        "providerId",
+        "status"
+      ],
+      "properties": {
+        "providerId": {
+          "type": "string",
+          "example": "EVN",
+          "description": "Provider ID"
+        },
+        "type": {
+          "type": "string",
+          "example": "ORGANIZATION",
+          "description": "Provider Type",
+          "enum": [
+            "ORGANIZATION",
+            "PERSON"
+          ]
+        },
+        "organization": {
+          "type": "string",
+          "example": "Energie-Control Austria für die Regulierung der Elektrizitäts- und Erdgaswirtschaft",
+          "description": "Organization Name"
+        },
+        "commercialRegisterNumber": {
+          "type": "string",
+          "example": "FN 74726 b",
+          "description": "Commercial Register Number"
+        },
+        "sex": {
+          "type": "string",
+          "example": "M",
+          "description": "Sex"
+        },
+        "titlePrefix": {
+          "type": "string",
+          "example": "Dr.",
+          "description": "Title Prefix"
+        },
+        "firstName": {
+          "type": "string",
+          "example": "Max",
+          "description": "Firstname"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Mustermann",
+          "description": "Lastname"
+        },
+        "titleSuffix": {
+          "type": "string",
+          "example": "PhD",
+          "description": "Title Suffix"
+        },
+        "country": {
+          "type": "string",
+          "example": "AT",
+          "description": "Address: Country"
+        },
+        "postCode": {
+          "type": "string",
+          "example": 1010,
+          "description": "Address: Post Code"
+        },
+        "city": {
+          "type": "string",
+          "example": "Wien",
+          "description": "Address: City"
+        },
+        "street": {
+          "type": "string",
+          "example": "Rudolfsplatz 13a",
+          "description": "Address: Street"
+        },
+        "website": {
+          "type": "string",
+          "example": "https://www.e-control.at",
+          "description": "Website"
+        },
+        "status": {
+          "type": "string",
+          "example": "UNAPPROVED",
+          "description": "Status",
+          "enum": [
+            "UNAPPROVED",
+            "ACTIVE",
+            "DISABLED",
+            "DELETED"
+          ]
+        }
+      },
+      "title": "Provider"
+    },
+    "ProximitySearchLocationDTO": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "example": 47.69694444444444
+        },
+        "lon": {
+          "type": "number",
+          "example": 13.346388888888889
+        }
+      },
+      "title": "ProximitySearchLocationDTO"
+    },
+    "ProximitySearchPointDTO": {
+      "type": "object",
+      "properties": {
+        "evseId": {
+          "type": "string"
+        },
+        "capacityKwh": {
+          "type": "number",
+          "example": 22.0
+        },
+        "location": {
+          "$ref": "#/definitions/ProximitySearchLocationDTO"
+        },
+        "roaming": {
+          "type": "boolean"
+        },
+        "freeOfCharge": {
+          "type": "boolean"
+        },
+        "priceCentKwh": {
+          "type": "number",
+          "example": 0.0
+        },
+        "priceCentMin": {
+          "type": "number",
+          "example": 0.0
+        },
+        "authenticationMode": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "connectorType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vehicleType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "ProximitySearchPointDTO"
+    },
+    "ProximitySearchStationDTO": {
+      "type": "object",
+      "required": [
+        "city",
+        "contactName",
+        "label",
+        "postCode",
+        "stationId",
+        "stationStatus",
+        "street"
+      ],
+      "properties": {
+        "stationId": {
+          "type": "string",
+          "example": "E5487EA07"
+        },
+        "stationStatus": {
+          "type": "string",
+          "example": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "example": "Ladesstelle E-Control"
+        },
+        "description": {
+          "type": "string",
+          "example": "Kostenloses laden während ihres Besuchs bei der E-Control.",
+          "description": "Description"
+        },
+        "postCode": {
+          "type": "string",
+          "example": 1010
+        },
+        "city": {
+          "type": "string",
+          "example": "Wien"
+        },
+        "street": {
+          "type": "string",
+          "example": "Rudolfsplatz 13a"
+        },
+        "location": {
+          "$ref": "#/definitions/ProximitySearchLocationDTO"
+        },
+        "distance": {
+          "type": "number",
+          "format": "double",
+          "example": 5.0
+        },
+        "contactName": {
+          "type": "string",
+          "example": "E-Control"
+        },
+        "telephone": {
+          "type": "string",
+          "example": "+43 1 24 724 0"
+        },
+        "email": {
+          "type": "string",
+          "example": "ladesstellen@e-control.at"
+        },
+        "website": {
+          "type": "string",
+          "example": "https://www.e-control.at/ladestellen"
+        },
+        "directions": {
+          "type": "string",
+          "example": "Kurze textuelle Anfahrtsbeschreibung."
+        },
+        "greenEnergy": {
+          "type": "boolean",
+          "example": true
+        },
+        "freeParking": {
+          "type": "boolean",
+          "example": false
+        },
+        "openingHours": {
+          "$ref": "#/definitions/Opening hours"
+        },
+        "priceUrl": {
+          "type": "string",
+          "example": "https://www.e-control.at/ladestellen"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProximitySearchPointDTO"
+          }
+        }
+      },
+      "title": "ProximitySearchStationDTO"
+    },
+    "QName": {
+      "type": "object",
+      "properties": {
+        "localPart": {
+          "type": "string"
+        },
+        "namespaceURI": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        }
+      },
+      "title": "QName"
+    },
+    "Rates": {
+      "type": "object",
+      "properties": {
+        "_RatesExtension": {
+          "xml": {
+            "name": "_ratesExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "applicableCurrency": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "energyPricingPolicy": {
+          "$ref": "#/definitions/EnergyPricingPolicy"
+        }
+      },
+      "title": "Rates"
+    },
+    "RefillPoint": {
+      "type": "object",
+      "properties": {
+        "_FacilityExtension": {
+          "xml": {
+            "name": "_facilityExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityObjectExtension": {
+          "xml": {
+            "name": "_facilityObjectExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_RefillPointExtension": {
+          "xml": {
+            "name": "_refillPointExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "accessibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_AccessibilityEnum"
+          }
+        },
+        "additionalInformation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "alias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "applicableForVehicles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VehicleCharacteristics"
+          }
+        },
+        "associatedFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssociatedFacility"
+          }
+        },
+        "deliveryUnit": {
+          "$ref": "#/definitions/_DeliveryUnitEnum"
+        },
+        "description": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "dimension": {
+          "$ref": "#/definitions/Dimension"
+        },
+        "externalIdentifier": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "informationWebsite": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "locationReference": {
+          "$ref": "#/definitions/LocationReference"
+        },
+        "name": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "operatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "operator": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "owner": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "photo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Image"
+          }
+        },
+        "photoUrl": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "rates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "supplementalFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupplementalFacility"
+          }
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "RefillPoint",
+      "xml": {
+        "name": "RefillPoint",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "RefillPointStatus": {
+      "type": "object",
+      "properties": {
+        "_FacilityObjectStatusExtension": {
+          "xml": {
+            "name": "_facilityObjectStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_FacilityStatusExtension": {
+          "xml": {
+            "name": "_facilityStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_RefillPointStatusExtension": {
+          "xml": {
+            "name": "_refillPointStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "fault": {
+          "$ref": "#/definitions/Fault"
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "newOperatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "newRates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "openingStatus": {
+          "$ref": "#/definitions/_OpeningStatusEnum"
+        },
+        "reference": {
+          "xml": {
+            "name": "reference",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_FacilityObjectVersionedReference"
+        },
+        "regularOperatingHoursInForce": {
+          "type": "boolean"
+        },
+        "status": {
+          "xml": {
+            "name": "status",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_RefillPointStatusEnum"
+        },
+        "statusDescription": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "supplementalFacilityStatus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SupplementalFacilityStatus"
+          }
+        }
+      },
+      "title": "RefillPointStatus",
+      "xml": {
+        "name": "RefillPointStatus",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Resource": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "file": {
+          "$ref": "#/definitions/File"
+        },
+        "filename": {
+          "type": "string"
+        },
+        "inputStream": {
+          "$ref": "#/definitions/InputStream"
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "readable": {
+          "type": "boolean"
+        },
+        "uri": {
+          "$ref": "#/definitions/URI"
+        },
+        "url": {
+          "$ref": "#/definitions/URL"
+        }
+      },
+      "title": "Resource"
+    },
+    "SpecialDay": {
+      "type": "object",
+      "properties": {
+        "_SpecialDayExtension": {
+          "xml": {
+            "name": "_specialDayExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "intersectWithApplicableDays": {
+          "type": "boolean"
+        },
+        "namedArea": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NamedArea"
+          }
+        },
+        "publicEvent": {
+          "$ref": "#/definitions/_PublicEventTypeEnum"
+        },
+        "specialDayType": {
+          "xml": {
+            "name": "specialDayType",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_SpecialDayTypeEnum"
+        }
+      },
+      "title": "SpecialDay",
+      "xml": {
+        "name": "SpecialDay",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Station": {
+      "type": "object",
+      "required": [
+        "city",
+        "contactName",
+        "label",
+        "latitude",
+        "longitude",
+        "postCode",
+        "stationId",
+        "street"
+      ],
+      "properties": {
+        "public": {
+          "type": "boolean"
+        },
+        "stationId": {
+          "type": "string",
+          "example": "E5487EA07"
+        },
+        "stationStatus": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "INACTIVE"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "example": "Ladesstelle E-Control"
+        },
+        "description": {
+          "type": "string",
+          "example": "Kostenloses laden während ihres Besuchs bei der E-Control.",
+          "description": "Description"
+        },
+        "postCode": {
+          "type": "string",
+          "example": 1010
+        },
+        "city": {
+          "type": "string",
+          "example": "Wien"
+        },
+        "street": {
+          "type": "string",
+          "example": "Rudolfsplatz 13a"
+        },
+        "latitude": {
+          "type": "number",
+          "example": 47.69694444444444
+        },
+        "longitude": {
+          "type": "number",
+          "example": 13.346388888888889
+        },
+        "contactName": {
+          "type": "string",
+          "example": "E-Control"
+        },
+        "telephone": {
+          "type": "string",
+          "example": "+43 1 24 724 0"
+        },
+        "email": {
+          "type": "string",
+          "example": "ladesstellen@e-control.at"
+        },
+        "priceUrl": {
+          "type": "string",
+          "example": "https://www.e-control.at/ladestellen"
+        },
+        "website": {
+          "type": "string",
+          "example": "https://www.e-control.at/ladestellen"
+        },
+        "directions": {
+          "type": "string",
+          "example": "Kurze textuelle Anfahrtsbeschreibung."
+        },
+        "greenEnergy": {
+          "type": "boolean",
+          "example": true
+        },
+        "freeParking": {
+          "type": "boolean",
+          "example": false
+        },
+        "openingHours": {
+          "$ref": "#/definitions/Opening hours"
+        }
+      },
+      "title": "Station",
+      "description": "Station with their points"
+    },
+    "SupplementalFacility": {
+      "type": "object",
+      "properties": {
+        "_FacilityObjectExtension": {
+          "xml": {
+            "name": "_facilityObjectExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_SupplementalFacilityExtension": {
+          "xml": {
+            "name": "_supplementalFacilityExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "accessibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_AccessibilityEnum"
+          }
+        },
+        "additionalInformation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "alias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MultilingualString"
+          }
+        },
+        "applicableForUser": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_UserTypeEnum"
+          }
+        },
+        "applicableForVehicles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VehicleCharacteristics"
+          }
+        },
+        "associatedFacility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssociatedFacility"
+          }
+        },
+        "availability": {
+          "$ref": "#/definitions/_AvailabilityEnum"
+        },
+        "description": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "dimension": {
+          "$ref": "#/definitions/Dimension"
+        },
+        "externalIdentifier": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "informationWebsite": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "locationReference": {
+          "$ref": "#/definitions/LocationReference"
+        },
+        "name": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "operatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "operator": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "owner": {
+          "$ref": "#/definitions/Organisation"
+        },
+        "photo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Image"
+          }
+        },
+        "photoUrl": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UrlLink"
+          }
+        },
+        "quantity": {
+          "type": "integer"
+        },
+        "rates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "regularlyCleaned": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "SupplementalFacility",
+      "xml": {
+        "name": "SupplementalFacility",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "SupplementalFacilityStatus": {
+      "type": "object",
+      "properties": {
+        "_FacilityObjectStatusExtension": {
+          "xml": {
+            "name": "_facilityObjectStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "_SupplementalFacilityStatusExtension": {
+          "xml": {
+            "name": "_supplementalFacilityStatusExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "equipmentOperationStatus": {
+          "$ref": "#/definitions/_OperationStatusEnum"
+        },
+        "fault": {
+          "$ref": "#/definitions/Fault"
+        },
+        "lastUpdated": {
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "newOperatingHours": {
+          "$ref": "#/definitions/OperatingHours"
+        },
+        "newRates": {
+          "$ref": "#/definitions/Rates"
+        },
+        "numberOfSubitemsOverride": {
+          "type": "integer"
+        },
+        "openingStatus": {
+          "$ref": "#/definitions/_OpeningStatusEnum"
+        },
+        "quantityOverride": {
+          "type": "integer"
+        },
+        "reference": {
+          "xml": {
+            "name": "reference",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_FacilityObjectVersionedReference"
+        },
+        "regularOperatingHoursInForce": {
+          "type": "boolean"
+        },
+        "statusDescription": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "vacantSubitems": {
+          "type": "integer"
+        }
+      },
+      "title": "SupplementalFacilityStatus",
+      "xml": {
+        "name": "SupplementalFacilityStatus",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Template": {
+      "type": "object",
+      "properties": {
+        "contentSize": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "example": "OPERATOR_CERTIFICATE",
+          "description": "Template Type",
+          "enum": [
+            "OPERATOR_CERTIFICATE",
+            "PROVIDER_CERTIFICATE",
+            "STATIONS_XLSX",
+            "POINTS_XLSX"
+          ]
+        }
+      },
+      "title": "Template",
+      "description": "document template"
+    },
+    "TimePeriodOfDay": {
+      "type": "object",
+      "properties": {
+        "_TimePeriodOfDayExtension": {
+          "xml": {
+            "name": "_timePeriodOfDayExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "endTimeOfPeriod": {
+          "xml": {
+            "name": "endTimeOfPeriod",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        },
+        "startTimeOfPeriod": {
+          "xml": {
+            "name": "startTimeOfPeriod",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/XMLGregorianCalendar"
+        }
+      },
+      "title": "TimePeriodOfDay",
+      "xml": {
+        "name": "TimePeriodOfDay",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "URI": {
+      "type": "object",
+      "properties": {
+        "absolute": {
+          "type": "boolean"
+        },
+        "authority": {
+          "type": "string"
+        },
+        "fragment": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "opaque": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "query": {
+          "type": "string"
+        },
+        "rawAuthority": {
+          "type": "string"
+        },
+        "rawFragment": {
+          "type": "string"
+        },
+        "rawPath": {
+          "type": "string"
+        },
+        "rawQuery": {
+          "type": "string"
+        },
+        "rawSchemeSpecificPart": {
+          "type": "string"
+        },
+        "rawUserInfo": {
+          "type": "string"
+        },
+        "scheme": {
+          "type": "string"
+        },
+        "schemeSpecificPart": {
+          "type": "string"
+        },
+        "userInfo": {
+          "type": "string"
+        }
+      },
+      "title": "URI"
+    },
+    "URL": {
+      "type": "object",
+      "properties": {
+        "authority": {
+          "type": "string"
+        },
+        "content": {
+          "type": "object"
+        },
+        "defaultPort": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "file": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "ref": {
+          "type": "string"
+        },
+        "userInfo": {
+          "type": "string"
+        }
+      },
+      "title": "URL"
+    },
+    "UrlLink": {
+      "type": "object",
+      "properties": {
+        "_UrlLinkExtension": {
+          "xml": {
+            "name": "_urlLinkExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "urlLinkAddress": {
+          "type": "string",
+          "xml": {
+            "name": "urlLinkAddress",
+            "attribute": false,
+            "wrapped": false
+          }
+        },
+        "urlLinkDescription": {
+          "$ref": "#/definitions/MultilingualString"
+        },
+        "urlLinkType": {
+          "$ref": "#/definitions/_UrlLinkTypeEnum"
+        }
+      },
+      "title": "UrlLink",
+      "xml": {
+        "name": "UrlLink",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "Values": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "array",
+          "xml": {
+            "name": "value",
+            "attribute": false,
+            "wrapped": false
+          },
+          "items": {
+            "$ref": "#/definitions/MultilingualStringValue"
+          }
+        }
+      },
+      "title": "Values"
+    },
+    "Vehicle type": {
+      "type": "object",
+      "required": [
+        "description",
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "CAR"
+        },
+        "description": {
+          "type": "string",
+          "example": "Electric Car"
+        }
+      },
+      "title": "Vehicle type"
+    },
+    "VehicleCharacteristics": {
+      "type": "object",
+      "properties": {
+        "_VehicleCharacteristicsExtension": {
+          "xml": {
+            "name": "_vehicleCharacteristicsExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "emissions": {
+          "$ref": "#/definitions/Emissions"
+        },
+        "fuelType": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_FuelTypeEnum"
+          }
+        },
+        "grossWeightCharacteristic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GrossWeightCharacteristic"
+          }
+        },
+        "heaviestAxleWeightCharacteristic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HeaviestAxleWeightCharacteristic"
+          }
+        },
+        "heightCharacteristic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HeightCharacteristic"
+          }
+        },
+        "lengthCharacteristic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LengthCharacteristic"
+          }
+        },
+        "loadType": {
+          "$ref": "#/definitions/_LoadTypeEnum"
+        },
+        "numberOfAxlesCharacteristic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NumberOfAxlesCharacteristic"
+          }
+        },
+        "vehicleEquipment": {
+          "$ref": "#/definitions/_VehicleEquipmentEnum"
+        },
+        "vehicleType": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/_VehicleTypeEnum"
+          }
+        },
+        "vehicleUsage": {
+          "$ref": "#/definitions/_VehicleUsageEnum"
+        },
+        "widthCharacteristic": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WidthCharacteristic"
+          }
+        },
+        "yearOfFirstRegistration": {
+          "type": "integer"
+        }
+      },
+      "title": "VehicleCharacteristics",
+      "xml": {
+        "name": "VehicleCharacteristics",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "WidthCharacteristic": {
+      "type": "object",
+      "properties": {
+        "_WidthCharacteristicExtension": {
+          "xml": {
+            "name": "_widthCharacteristicExtension",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ExtensionType"
+        },
+        "comparisonOperator": {
+          "xml": {
+            "name": "comparisonOperator",
+            "attribute": false,
+            "wrapped": false
+          },
+          "$ref": "#/definitions/_ComparisonOperatorEnum"
+        },
+        "vehicleWidth": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "WidthCharacteristic",
+      "xml": {
+        "name": "WidthCharacteristic",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "XMLGregorianCalendar": {
+      "type": "object",
+      "properties": {
+        "day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "eon": {
+          "type": "integer"
+        },
+        "eonAndYear": {
+          "type": "integer"
+        },
+        "fractionalSecond": {
+          "type": "number"
+        },
+        "hour": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "millisecond": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "minute": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "month": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "second": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "timezone": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "valid": {
+          "type": "boolean"
+        },
+        "xmlschemaType": {
+          "$ref": "#/definitions/QName"
+        },
+        "year": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "XMLGregorianCalendar"
+    },
+    "_AccessibilityEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "BARRIER_FREE_ACCESSIBLE",
+            "DISABILITY_ACCESSIBLE",
+            "WHEEL_CHAIR_ACCESSIBLE",
+            "DISABILITY_FACILITIES",
+            "ORIENTATION_SYSTEM_FOR_BLIND_PEOPLE",
+            "MARKING",
+            "NONE",
+            "UNKNOWN",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_AccessibilityEnum",
+      "xml": {
+        "name": "_AccessibilityEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_AddressLineTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "APARTMENT",
+            "BUILDING",
+            "PO_BOX",
+            "UNIT",
+            "REGION",
+            "TOWN",
+            "DISTRICT_TERRITORY",
+            "FLOOR",
+            "STREET",
+            "HOUSE_NUMBER",
+            "GENERAL_TEXT_LINE",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_AddressLineTypeEnum",
+      "xml": {
+        "name": "_AddressLineTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_ApplicableDaysWithinMonthEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "EVEN_DAY",
+            "ODD_DAY",
+            "DAYS_FROM_ONE_TO_FIFTEEN",
+            "DAYS_FROM_SIXTEEN_TO_THIRTY_ONE",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_ApplicableDaysWithinMonthEnum",
+      "xml": {
+        "name": "_ApplicableDaysWithinMonthEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_AuthenticationAndIdentificationEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "ACTIVE_RFID_CHIP",
+            "APPS",
+            "CALYPSO",
+            "CASH_PAYMENT",
+            "CREDIT_CARD",
+            "DEBIT_CARD",
+            "MIFARE_CLASSIC",
+            "MIFARE_DESFIRE",
+            "NFC",
+            "OVER_THE_AIR",
+            "PHONE_DIALOG",
+            "PHONE_SMS",
+            "PINPAD",
+            "PLC",
+            "PREPAID_CARD",
+            "RFID",
+            "WEBSITE",
+            "UNLIMITED_ACCESS",
+            "NO_ACCESS",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_AuthenticationAndIdentificationEnum",
+      "xml": {
+        "name": "_AuthenticationAndIdentificationEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_AvailabilityEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "AVAILABLE",
+            "NOT_AVAILABLE",
+            "UNKNOWN",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_AvailabilityEnum",
+      "xml": {
+        "name": "_AvailabilityEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_ComparisonOperatorEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "EQUAL_TO",
+            "GREATER_THAN",
+            "GREATER_THAN_OR_EQUAL_TO",
+            "LESS_THAN",
+            "LESS_THAN_OR_EQUAL_TO",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_ComparisonOperatorEnum",
+      "xml": {
+        "name": "_ComparisonOperatorEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_DayEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_DayEnum",
+      "xml": {
+        "name": "_DayEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_DayWeekMonthExtensionType": {
+      "type": "object",
+      "properties": {
+        "any": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "dayWeekMonthExtended": {
+          "$ref": "#/definitions/DayWeekMonthExtended"
+        }
+      },
+      "title": "_DayWeekMonthExtensionType",
+      "xml": {
+        "name": "_DayWeekMonthExtensionType",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_DeliveryUnitEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "LITRE",
+            "K_WH",
+            "KG",
+            "M_3",
+            "IMPERIAL_GALLON",
+            "US_GALLON",
+            "GAS_GALLON_EQUIVALENT",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_DeliveryUnitEnum",
+      "xml": {
+        "name": "_DeliveryUnitEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_EmissionClassificationEuroEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "EURO_UNKNOWN",
+            "EURO_I",
+            "EURO_II",
+            "EURO_III"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "EURO_5",
+            "EURO_5_A",
+            "EURO_5_B",
+            "EURO_6",
+            "EURO_6_A",
+            "EURO_6_B",
+            "EURO_6_C",
+            "EURO_V",
+            "EURO_VI",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_EmissionClassificationEuroEnum",
+      "xml": {
+        "name": "_EmissionClassificationEuroEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_EmissionsExtensionType": {
+      "type": "object",
+      "properties": {
+        "any": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "emissionsExtension": {
+          "$ref": "#/definitions/EmissionsExtension"
+        }
+      },
+      "title": "_EmissionsExtensionType",
+      "xml": {
+        "name": "_EmissionsExtensionType",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_EnergyInfrastructureTableVersionedReference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "targetClass": {
+          "type": "string",
+          "xml": {
+            "name": "targetClass",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "_EnergyInfrastructureTableVersionedReference",
+      "xml": {
+        "name": "_EnergyInfrastructureTableVersionedReference",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_ExtensionType": {
+      "type": "object",
+      "properties": {
+        "any": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "title": "_ExtensionType"
+    },
+    "_FacilityObjectVersionedReference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "xml": {
+            "name": "id",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "targetClass": {
+          "type": "string",
+          "xml": {
+            "name": "targetClass",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "version": {
+          "type": "string",
+          "xml": {
+            "name": "version",
+            "attribute": true,
+            "wrapped": false
+          }
+        }
+      },
+      "title": "_FacilityObjectVersionedReference"
+    },
+    "_FacilityTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "AIRPORT",
+            "CAR_PARK",
+            "CAR_RENTAL_STATION",
+            "ELECTRIC_CHARGING_STATION",
+            "ENERGY_INFRASTRUCTURE_SITE",
+            "LORRY_PARKING_SITE",
+            "PARKING_SITE",
+            "PETROL_STATION",
+            "PUBLIC_TRANSPORT_DEPOT",
+            "PUBLIC_TRANSPORT_HUB",
+            "SHOPPING_CENTRE",
+            "TRAIN_STATION",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_FacilityTypeEnum",
+      "xml": {
+        "name": "_FacilityTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_FaultSeverityEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "UNKNOWN",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_FaultSeverityEnum",
+      "xml": {
+        "name": "_FaultSeverityEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_FaultUrgencyEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "NORMAL",
+            "URGENT",
+            "EXTREMELY_URGENT",
+            "UNKNOWN",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_FaultUrgencyEnum",
+      "xml": {
+        "name": "_FaultUrgencyEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_FuelTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "ALL",
+            "BATTERY",
+            "BIODIESEL",
+            "DIESEL",
+            "DIESEL_BATTERY_HYBRID",
+            "ETHANOL",
+            "HYDROGEN",
+            "LIQUID_GAS",
+            "LPG",
+            "METHANE",
+            "PETROL",
+            "PETROL_95_OCTANE",
+            "PETROL_98_OCTANE",
+            "PETROL_BATTERY_HYBRID",
+            "PETROL_LEADED",
+            "PETROL_UNLEADED",
+            "UNKNOWN",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_FuelTypeEnum",
+      "xml": {
+        "name": "_FuelTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_ImageFormatEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "BMP",
+            "GIF",
+            "JPEG",
+            "PNG",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_ImageFormatEnum",
+      "xml": {
+        "name": "_ImageFormatEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_LoadTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "DANGEROUS_GOODS",
+            "PASSENGER"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "ABNORMAL_LOAD",
+            "AMMUNITION",
+            "CHEMICALS",
+            "COMBUSTIBLE_MATERIALS",
+            "CORROSIVE_MATERIALS",
+            "DEBRIS",
+            "EMPTY",
+            "EXPLOSIVE_MATERIALS",
+            "EXTRA_HIGH_LOAD",
+            "EXTRA_LONG_LOAD",
+            "EXTRA_WIDE_LOAD",
+            "FUEL",
+            "GLASS",
+            "GOODS",
+            "HAZARDOUS_MATERIALS",
+            "LIQUID",
+            "LIVESTOCK",
+            "MATERIALS",
+            "MATERIALS_DANGEROUS_FOR_PEOPLE",
+            "MATERIALS_DANGEROUS_FOR_THE_ENVIRONMENT",
+            "MATERIALS_DANGEROUS_FOR_WATER",
+            "OIL",
+            "ORDINARY",
+            "PERISHABLE_PRODUCTS",
+            "PETROL",
+            "PHARMACEUTICAL_MATERIALS",
+            "RADIOACTIVE_MATERIALS",
+            "REFRIGERATED_GOODS",
+            "REFUSE",
+            "TOXIC_MATERIALS",
+            "VEHICLES",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_LoadTypeEnum",
+      "xml": {
+        "name": "_LoadTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_LocationReferenceExtensionType": {
+      "type": "object",
+      "properties": {
+        "any": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "facilityLocation": {
+          "$ref": "#/definitions/FacilityLocation"
+        }
+      },
+      "title": "_LocationReferenceExtensionType",
+      "xml": {
+        "name": "_LocationReferenceExtensionType",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_LowEmissionLevelEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "LOW_LEVEL_EMISSION",
+            "FREE_OF_EMISSION",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_LowEmissionLevelEnum",
+      "xml": {
+        "name": "_LowEmissionLevelEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_MonthOfYearEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "JANUARY",
+            "FEBRUARY",
+            "MARCH",
+            "APRIL",
+            "MAY",
+            "JUNE",
+            "JULY",
+            "AUGUST",
+            "SEPTEMBER",
+            "OCTOBER",
+            "NOVEMBER",
+            "DECEMBER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_MonthOfYearEnum",
+      "xml": {
+        "name": "_MonthOfYearEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_OpeningStatusEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "OPEN",
+            "OPEN_WITH_SERVICE_LIMITATION",
+            "CLOSED",
+            "CLOSED_ON_HOLIDAY",
+            "CLOSED_ON_MAINTENANCE",
+            "TEMPORARILY_CLOSED",
+            "STATUS_UNKNOWN",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_OpeningStatusEnum",
+      "xml": {
+        "name": "_OpeningStatusEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_OperationStatusEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "IN_OPERATION",
+            "LIMITED_OPERATION",
+            "NOT_IN_OPERATION",
+            "NOT_IN_OPERATION_ABNORMAL",
+            "TECHNICAL_DEFECT",
+            "UNKNOWN",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_OperationStatusEnum",
+      "xml": {
+        "name": "_OperationStatusEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_PricingPolicyEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "PRICE_PER_CHARGING_TIME",
+            "PRICE_PER_DELIVERY_UNIT",
+            "CONTRACT",
+            "FLAT_RATE",
+            "UNKNOWN",
+            "FREE",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_PricingPolicyEnum"
+    },
+    "_PublicEventTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "AGRICULTURAL_SHOW",
+            "AIR_SHOW",
+            "ART_EVENT",
+            "ATHLETICS_MEETING",
+            "COMMERCIAL_EVENT",
+            "CULTURAL_EVENT",
+            "BALL_GAME",
+            "BASEBALL_GAME",
+            "BASKETBALL_GAME",
+            "BEER_FESTIVAL",
+            "BICYCLE_RACE",
+            "BOAT_RACE",
+            "BOAT_SHOW",
+            "BOXING_TOURNAMENT",
+            "BULL_FIGHT",
+            "CEREMONIAL_EVENT",
+            "CONCERT",
+            "CRICKET_MATCH",
+            "EXHIBITION",
+            "FAIR",
+            "FESTIVAL",
+            "FILM_FESTIVAL",
+            "FILM_TV_MAKING",
+            "FIREWORK_DISPLAY",
+            "FLOWER_EVENT",
+            "FOOD_FESTIVAL",
+            "FOOTBALL_MATCH",
+            "FUNFAIR",
+            "GARDENING_OR_FLOWER_SHOW",
+            "GOLF_TOURNAMENT",
+            "HOCKEY_GAME",
+            "HORSE_RACE_MEETING",
+            "INTERNATIONAL_SPORTS_MEETING",
+            "MAJOR_EVENT",
+            "MARATHON",
+            "MARKET",
+            "MATCH",
+            "MOTOR_SHOW",
+            "MOTOR_SPORT_RACE_MEETING",
+            "OPEN_AIR_CONCERT",
+            "PARADE",
+            "PROCESSION",
+            "RACE_MEETING",
+            "RUGBY_MATCH",
+            "SEVERAL_MAJOR_EVENTS",
+            "SHOW",
+            "SHOW_JUMPING",
+            "SOUND_AND_LIGHT_SHOW",
+            "SPORTS_MEETING",
+            "STATE_OCCASION",
+            "STREET_FESTIVAL",
+            "TENNIS_TOURNAMENT",
+            "THEATRICAL_EVENT",
+            "TOURNAMENT",
+            "TRADE_FAIR",
+            "WATER_SPORTS_MEETING",
+            "WINE_FESTIVAL",
+            "WINTER_SPORTS_MEETING",
+            "UNKNOWN",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_PublicEventTypeEnum",
+      "xml": {
+        "name": "_PublicEventTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_RefillPointStatusEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "AVAILABLE",
+            "BLOCKED",
+            "CHARGING",
+            "FAULTED",
+            "INOPERATIVE",
+            "OCCUPIED",
+            "OUT_OF_ORDER",
+            "OUT_OF_STOCK",
+            "PLANNED",
+            "REMOVED",
+            "RESERVED",
+            "UNAVAILABLE",
+            "UNKNOWN",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_RefillPointStatusEnum",
+      "xml": {
+        "name": "_RefillPointStatusEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_SpecialDayTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "DAY_BEFORE_PUBLIC_HOLIDAY",
+            "PUBLIC_HOLIDAY",
+            "DAY_FOLLOWING_PUBLIC_HOLIDAY",
+            "LONG_WEEKEND_DAY",
+            "IN_LIEU_OF_PUBLIC_HOLIDAY",
+            "SCHOOL_DAY",
+            "SCHOOL_HOLIDAYS",
+            "PUBLIC_EVENT_DAY",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_SpecialDayTypeEnum",
+      "xml": {
+        "name": "_SpecialDayTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_UrlLinkTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "DOCUMENT_PDF",
+            "HTML",
+            "IMAGE",
+            "RSS",
+            "VIDEO_STREAM",
+            "VOICE_STREAM",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_UrlLinkTypeEnum",
+      "xml": {
+        "name": "_UrlLinkTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_UserTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          }
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "ALL_USERS",
+            "COMMUTERS",
+            "CUSTOMERS",
+            "ELDERLY_USERS",
+            "EMPLOYEES",
+            "FAMILIES",
+            "PERSONS_WITH_DISABILITIES",
+            "HEARING_IMPAIRED",
+            "HOTEL_GUESTS",
+            "LONG_TERM_PARKERS",
+            "MEMBERS",
+            "MEN",
+            "OVERNIGHT_PARKERS",
+            "PARK_AND_CYCLE_USER",
+            "PARK_AND_RIDE_USERS",
+            "PARK_AND_WALK_USER",
+            "PENSIONERS",
+            "PREGNANT_WOMEN",
+            "REGISTERED_DISABLED_USERS",
+            "RESERVATION_HOLDERS",
+            "RESIDENTS",
+            "SEASON_TICKET_HOLDERS",
+            "SHOPPERS",
+            "SHORT_TERM_PARKERS",
+            "SPORT_EVENT_AWAY_SUPPORTERS",
+            "SPORT_EVENT_HOME_SUPPORTERS",
+            "STUDENTS",
+            "STAFF",
+            "SUBSCRIBERS",
+            "VISITORS",
+            "VISUALLY_IMPAIRED",
+            "WHEELCHAIR_USERS",
+            "WOMEN",
+            "UNKNOWN",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_UserTypeEnum",
+      "xml": {
+        "name": "_UserTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_VehicleEquipmentEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "DIPPED_HEADLIGHTS_IN_USE",
+            "SPEED_LIMITER_IN_USE",
+            "ELECTRONIC_TOLL_EQUIPMENT"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "NOT_USING_SNOW_CHAINS",
+            "NOT_USING_SNOW_CHAINS_OR_TYRES",
+            "SNOW_CHAINS_IN_USE",
+            "SNOW_TYRES_IN_USE",
+            "SNOW_CHAINS_OR_TYRES_IN_USE",
+            "WITHOUT_SNOW_TYRES_OR_CHAINS_ON_BOARD",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_VehicleEquipmentEnum",
+      "xml": {
+        "name": "_VehicleEquipmentEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_VehicleTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "ANIMAL_DRAWN_VEHICLES",
+            "ELECTRIC_VEHICLES",
+            "PASSENGER_CAR_WITH_TRAILER",
+            "MOTORIZED_VEHICLES",
+            "GOODS_VEHICLES",
+            "NON_MOTORIZED_VEHICLES",
+            "HANDCARTS",
+            "SOLO_MOTORCYCLE",
+            "MOTORIZED_VEHICLES_WITHOUT_NUMBER_PLATE",
+            "MOTOR_QUADRICYCLES",
+            "MOTORISED_PERSONAL_TRANSPORT_DEVICES"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "AGRICULTURAL_VEHICLE",
+            "ANY_VEHICLE",
+            "ARTICULATED_BUS",
+            "ARTICULATED_TROLLEY_BUS",
+            "ARTICULATED_VEHICLE",
+            "BICYCLE",
+            "BUS",
+            "CAR",
+            "CARAVAN",
+            "CAR_OR_LIGHT_VEHICLE",
+            "CAR_WITH_CARAVAN",
+            "CAR_WITH_TRAILER",
+            "CONSTRUCTION_OR_MAINTENANCE_VEHICLE",
+            "FOUR_WHEEL_DRIVE",
+            "HEAVY_GOODS_VEHICLE",
+            "HEAVY_GOODS_VEHICLE_WITH_TRAILER",
+            "HEAVY_DUTY_TRANSPORTER",
+            "HEAVY_VEHICLE",
+            "HIGH_SIDED_VEHICLE",
+            "LIGHT_COMMERCIAL_VEHICLE",
+            "LARGE_CAR",
+            "LARGE_GOODS_VEHICLE",
+            "LIGHT_COMMERCIAL_VEHICLE_WITH_TRAILER",
+            "LONG_HEAVY_LORRY",
+            "LORRY",
+            "METRO",
+            "MINIBUS",
+            "MOPED",
+            "MOTORCYCLE",
+            "MOTORCYCLE_WITH_SIDE_CAR",
+            "MOTORHOME",
+            "MOTORSCOOTER",
+            "PASSENGER_CAR",
+            "SMALL_CAR",
+            "TANKER",
+            "THREE_WHEELED_VEHICLE",
+            "TRAILER",
+            "TRAM",
+            "TROLLEY_BUS",
+            "TWO_WHEELED_VEHICLE",
+            "VAN",
+            "VEHICLE_WITH_CARAVAN",
+            "VEHICLE_WITH_CATALYTIC_CONVERTER",
+            "VEHICLE_WITHOUT_CATALYTIC_CONVERTER",
+            "VEHICLE_WITH_TRAILER",
+            "WITH_EVEN_NUMBERED_REGISTRATION_PLATES",
+            "WITH_ODD_NUMBERED_REGISTRATION_PLATES",
+            "UNKNOWN",
+            "OTHER",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_VehicleTypeEnum",
+      "xml": {
+        "name": "_VehicleTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_VehicleUsageEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "REMOVALS",
+            "CIRCUS",
+            "FUN_FAIR"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "AGRICULTURAL",
+            "CAR_SHARING",
+            "CITY_LOGISTICS",
+            "COMMERCIAL",
+            "EMERGENCY_SERVICES",
+            "MILITARY",
+            "NON_COMMERCIAL",
+            "PATROL",
+            "RECOVERY_SERVICES",
+            "ROAD_MAINTENANCE_OR_CONSTRUCTION",
+            "ROAD_OPERATOR",
+            "TAXI",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_VehicleUsageEnum",
+      "xml": {
+        "name": "_VehicleUsageEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    },
+    "_WeightTypeEnum": {
+      "type": "object",
+      "properties": {
+        "_ExtendedValue": {
+          "type": "string",
+          "xml": {
+            "name": "_extendedValue",
+            "attribute": true,
+            "wrapped": false
+          },
+          "enum": [
+            "COMBINED_MAXIMUM_PERMITTED"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "ACTUAL",
+            "MAXIMUM_PERMITTED",
+            "__EXTENDED"
+          ]
+        }
+      },
+      "title": "_WeightTypeEnum",
+      "xml": {
+        "name": "_WeightTypeEnum",
+        "attribute": false,
+        "wrapped": false
+      }
+    }
+  }
+}

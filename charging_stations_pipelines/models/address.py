@@ -2,9 +2,9 @@ from sqlalchemy import Column, Date, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
+from charging_stations_pipelines import settings
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines import settings
 
 
 class Address(Base):
@@ -15,7 +15,7 @@ class Address(Base):
     date_updated = Column(Date)
     street = Column(String)
     town = Column(String)
-    district_old = Column(String)
+    postcode = Column(String)
     district = Column(String)
     state = Column(String)
     country = Column(String)
