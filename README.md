@@ -1,5 +1,15 @@
 # eCharm: Electric Vehicle Charging Map
 
+## TODO Upgrade to Python 3.12
+
+Checklist:
+1. does Anaconda support Python 3.12?
+2. do all packages support Python 3.12?
+3. bump version of the packages
+4. adjust docs (README.md)
+5. adjust syntax, e.g. type hints (Union[int, None] -> int | None)
+6. adjust GH pipeline
+
 ## Table of contents
 * [General info](#general-info)
 * [Setup](#setup)
@@ -22,7 +32,7 @@ or the National Chargepoint Registry (NCR) for the UK.
 
 ### Technologies
 We use (among others) the following technologies. Some basic familiarity is needed to set up and run the scripts. 
-* Python 3.9
+* Python 3.12
 * Docker
 
 If you want to contribute or change details of the code for yourself, some familiarity is needed with 
@@ -45,10 +55,10 @@ Mac:
 
     brew install pyenv
 
-Install and activate Python 3.9.x , e.g.
+Install and activate Python 3.12.x , e.g.
 
-    pyenv install 3.9.10
-    pyenv local 3.9.10
+    pyenv install 3.12.0
+    pyenv local 3.12.0
 
 Check local version
 
