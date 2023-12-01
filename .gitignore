@@ -12,3 +12,4 @@ token_deepatlas.json
 alembic/versions/*.py
 debug.ipynb
 *.log
+\#*\#

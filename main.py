@@ -91,9 +91,11 @@ def run_import(countries: list[str], online: bool, delete_data: bool):
         gov_pipeline = pipeline_factory(db_session, country, online)
         gov_pipeline.run()
 
+        # TODO: Add all EU countries
         osm = OsmPipeline(country, config, db_session, online)
         osm.run()
 
+        # TODO: Add all EU countries
         ocm = OcmPipeline(country, config, db_session, online)
         ocm.run()
 

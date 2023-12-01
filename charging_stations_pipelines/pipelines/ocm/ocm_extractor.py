@@ -70,6 +70,7 @@ def testSth(x):
 
 
 def ocm_extractor(tmp_file_path: str, country_code: str):
+    # TODO: Add all EU countries
 
     # OCM export contains norwegian data under country code "NO" and that's why we need to rename it to "NO"
     if country_code == "NOR":

@@ -6,6 +6,7 @@ from requests import Response
 
 def get_osm_data(country_code: str, tmp_data_path):
     country_code_to_area = {
+`        # TODO: Add all EU countries
         "DE": "Deutschland",
         "AT": "Österreich",
         "FR": "France métropolitaine",
