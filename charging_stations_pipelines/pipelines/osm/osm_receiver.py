@@ -6,14 +6,16 @@ from requests import Response
 
 def get_osm_data(country_code: str, tmp_data_path):
     country_code_to_area = {
-`        # TODO: Add all EU countries
-        "DE": "Deutschland",
-        "AT": "Österreich",
-        "FR": "France métropolitaine",
-        "GB": "United Kingdom",
-        "IT": "Italia",
+        "DE":  "Deutschland",
+        "AT":  "Österreich",
+        "FR":  "France métropolitaine",
+        "GB":  "United Kingdom",
+        "IT":  "Italia",
         "NOR": "Norge",
-        "SWE": "Sverige"
+        "SWE": "Sverige",
+
+        # TODO: Add all EU countries
+        '':    ''
     }
 
     if country_code not in country_code_to_area:
@@ -37,7 +39,7 @@ def get_osm_data(country_code: str, tmp_data_path):
     }
 
     response: Response = requests.get(
-        "http://overpass-api.de/api/interpreter", params=query_params
+            "http://overpass-api.de/api/interpreter", params=query_params
     )
     status_code: int = response.status_code
     if status_code != 200:

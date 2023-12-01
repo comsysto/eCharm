@@ -41,9 +41,9 @@ class EcontrolAtPipeline:
     def __init__(self, config: configparser, session: Session, online: bool = False):
         self.config = config
         self.session = session
-        self.online: bool = online
+        self.online = online
         relative_dir = os.path.join("../../..", "data")
-        self.data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
+        self.data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
 
     def _retrieve_data(self):
         pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
