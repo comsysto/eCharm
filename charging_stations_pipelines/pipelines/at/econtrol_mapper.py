@@ -86,19 +86,17 @@ def map_station(row: pd.Series) -> Station:
     station = Station()
 
     station.country_code = country_id  # should be always 'AT'
-    # Using combination of evseStationId and evseOperatorId and evseCountryId as source_id,
-    #   since evseStationId alone is not unique enough
+    # Using combination of evseCountryId, evseStationId and evseOperatorId as source_id,
+    # since evseStationId alone is not unique enough
     station.source_id = f'{country_id}*{operator_id}*{station_id}'
 
-    # TODO there are also other attributes available in the data source,
-    #  which could be useful for the `operator`, e.g.:
+    # there are also other attributes available in the data source,
+    # which could be useful for the `operator`, e.g.:
     # 1. `contactName`, e.g.: "E-Werk der Stadtgemeinde Kindberg"
     # 2. `label`, e.g.: "Ladestelle Roßdorf Platz"
     station.operator = operator_id  # evseOperatorId, e.g. "014"
 
-    # TODO check semantics
     station.payment = None
-    # TODO check semantics
     station.authentication = _extract_auth_modes(row.get("points")) or None
     station.data_source = DATA_SOURCE_KEY
     station.point = _extract_location(row.get("location"))
@@ -166,17 +164,6 @@ def _extract_charger_details(points: pd.Series) -> tuple[list[float], list[str]]
     return kw_list, socket_type_list
 
 
-def _sanitize_charging_attributes(final_charging: Charging) -> Charging:
-    # max sockets/charging points per charging station
-    max_capacity: Final[int] = 4
-    # average capacity across all charging stations is set when capacity>MAX_CAPACITY
-    avg_capacity: Final[int] = 2
-    if final_charging.capacity is not None and final_charging.capacity > max_capacity:
-        final_charging.capacity = avg_capacity
-
-    return final_charging
-
-
 def map_charging(row: pd.Series, station_id: Optional[int]) -> Charging:
     """Maps the given raw datapoint to a Charging object.
 
@@ -198,7 +185,5 @@ def map_charging(row: pd.Series, station_id: Optional[int]) -> Charging:
     charging.dc_support = None  # NOTE: is not available in the data source
     charging.total_kw = sum(kw_list) if kw_list else None
     charging.max_kw = max(kw_list) if kw_list else None
-
-    charging = _sanitize_charging_attributes(charging)
 
     return charging

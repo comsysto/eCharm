@@ -118,8 +118,8 @@ Put the following content to `.env` file in the root directory:
     # for Nobil access:
     NOBIL_APIKEY=<MY_NOBIL_API_KEY>
     # for e-control.at / ladestellen.at access:
-    ECONTROL_AT_APIKEY=<MY ECONTROL API KEY>
-    ECONTROL_AT_DOMAIN=<DOMAIN PROVIDED DURING REGISTRATION>
+    # ECONTROL_AT_APIKEY=<MY ECONTROL API KEY> # access via API key not working currently, see charging_stations_pipelines/pipelines/at/README.md
+    # ECONTROL_AT_DOMAIN=<DOMAIN PROVIDED DURING REGISTRATION>
 
 ### Start docker containers
 
@@ -168,7 +168,7 @@ tasks, since eCharm is not (yet) clever with updating data from consecutive impo
 python main.py import merge --countries de it --delete_data
 ```
 
-Currently, we support `de`,`gb`,`fr`, `it`, `nor` and `swe` as country codes.
+Currently, we support `at`, `de`,`gb`,`fr`, `it`, `nor` and `swe` as country codes.
 
 #### Export all original (un-merged) station data for Germany in csv format:
 
