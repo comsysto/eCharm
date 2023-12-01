@@ -78,7 +78,7 @@ class EcontrolAtPipeline:
                 count_imported_stations += 1
             except Exception as e:
                 count_invalid_stations += 1
-                logger.error(
+                logger.debug(
                     f"{DATA_SOURCE_KEY} entry could not be mapped! Error:\n{e}\nRow:\n----\n{datapoint}\n----\n")
                 continue
             station_updater.update_station(station, DATA_SOURCE_KEY)

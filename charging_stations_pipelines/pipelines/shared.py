@@ -26,7 +26,7 @@ def check_coordinates(coords: Union[float, int, str]) -> Optional[float]:
     if isinstance(coords, str):
         try:
             processed_coords = "".join(c for c in coords.replace(",", ".") if c.isdigit() or c in ".-")
-            logger.warning(f"Coords are string: {coords} will be transformed!")
+            logger.debug(f"Coords are string: {coords} will be transformed!")
             return float(processed_coords)
         except ValueError:
             pass  # will raise ValueError later
