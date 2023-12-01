@@ -125,9 +125,9 @@ def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
     address.street = str_strip_whitespace(row.get("street")) or None
     address.town = str_strip_whitespace(row.get("city")) or None
     address.postcode = str_strip_whitespace(row.get("postCode")) or None
-    address.district_old = None  # Note: is not available in the data source
     address.district = None  # Note: is not available in the data source
-    address.state_old = None  # Note: is not available in the data source
+    address.district = None  # Note: is not available in the data source
+    address.state = None  # Note: is not available in the data source
     address.state = None  # Note: is not available in the data source
     address.country = str_strip_whitespace(row.get("evseCountryId")) or None
 

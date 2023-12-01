@@ -38,8 +38,8 @@ def map_address_gb(entry, station_id):
     town_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("PostTown")
     town: Optional[str] = town_raw if isinstance(town_raw, str) else None
 
-    state_old_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("County")
-    state_old: Optional[str] = state_old_raw if isinstance(state_old_raw, str) else None
+    state_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("County")
+    state: Optional[str] = state_raw if isinstance(state_raw, str) else None
 
     country: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("Country")
 
@@ -47,13 +47,13 @@ def map_address_gb(entry, station_id):
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
     map_address = Address()
-    map_address.state_old = None
+    map_address.state = None
     map_address.station_id = station_id
     map_address.street = street
     map_address.town = town
     map_address.postcode = postcode
-    map_address.district_old = None
-    map_address.state_old = state_old
+    map_address.district = None
+    map_address.state = state
     map_address.country = country
     return map_address
 

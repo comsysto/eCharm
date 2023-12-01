@@ -53,14 +53,12 @@ def create_station() -> Station:
 
 
 def create_address() -> Address:
-    state_old: str
-    country: str
     address = Address()
     address.street = "Teststr."
     address.town = "Testhausen"
     address.postcode = "12345"
-    address.district_old = ""
-    address.state_old = ""
+    address.district = ""
+    address.state = ""
     address.country = ("DE",)
     return address
 

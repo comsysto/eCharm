@@ -131,9 +131,7 @@ class Test(TestCase):
         self.assertEqual('Marktplatz 2', a.street)  # Column(String)
         self.assertEqual('Reichenau im Mühlkreis', a.town)  # Column(String)
         self.assertEqual('4204', a.postcode)  # Column(String)
-        self.assertEqual(None, a.district_old)  # Column(String)
         self.assertEqual(None, a.district)  # Column(String)
-        self.assertEqual(None, a.state_old)  # Column(String)
         self.assertEqual(None, a.state)  # Column(String)
         self.assertEqual('AT', a.country)  # Column(String)
 
