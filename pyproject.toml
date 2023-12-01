@@ -17,4 +17,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
-target_version = ['py38']
+target_version = ['py39']
+
+# TODO add test dependencies
+# testcontainers-core==0.0.1rc1
+# testcontainers-postgres==0.0.1rc1
+# pytest
+
+# TODO update dependencies

@@ -12,7 +12,7 @@ from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines import settings
-from test.shared import get_config, create_station
+from tests.shared import get_config, create_station
 
 
 class TestStationMerger(TestCase):

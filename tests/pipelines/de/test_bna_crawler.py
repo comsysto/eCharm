@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from charging_stations_pipelines.pipelines.de.bna_crawler import get_bna_data
-from test.shared import skip_if_github
+from tests.shared import skip_if_github
 
 
 class Test(TestCase):

@@ -186,16 +186,10 @@ python main.py export --export_format GeoJSON --export_merged_stations --export_
 
 ### Testing
 
-Before you run the tests you need to install test dependencies by
+You can run all tests under `/tests` by running the following command:
 
 ```bash
-pip install -r test/requirements.txt
-```
-
-You can run all tests under `/test` by running the following command:
-
-```bash
-python -m unittest discover test
+pytest
 ```
 
 #### Testdata import / Integration test for the merger
