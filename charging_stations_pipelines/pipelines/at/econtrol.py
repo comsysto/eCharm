@@ -1,5 +1,4 @@
-"""
-This module handles the mapping of charging data obtained from e-control.at (also known as ladestellen.at).
+"""This module handles the mapping of charging data obtained from e-control.at (also known as ladestellen.at).
 The data is structured into three main objects:
 - 'Station': Represents the charging station.
 - 'Address': Contains address information for the charging station.
@@ -15,6 +14,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import get_data
 from charging_stations_pipelines.pipelines.at.econtrol_mapper import map_address, map_charging, map_station
@@ -23,9 +23,8 @@ from charging_stations_pipelines.pipelines.station_table_updater import StationT
 logger = logging.getLogger(__name__)
 
 
-class EcontrolAtPipeline:
-    """
-    :class:`EcontrolAtPipeline` is a class that represents a pipeline for processing data
+class EcontrolAtPipeline(Pipeline):
+    """:class:`EcontrolAtPipeline` is a class that represents a pipeline for processing data
     from the e-control.at (aka ladestellen.at) - an official data source from the Austrian government.
 
     :param config: A `configparser` object containing configurations for the pipeline.
@@ -39,11 +38,10 @@ class EcontrolAtPipeline:
     """
 
     def __init__(self, config: configparser, session: Session, online: bool = False):
-        self.config = config
-        self.session = session
-        self.online: bool = online
+        super().__init__(config, session, online)
+
         relative_dir = os.path.join("../../..", "data")
-        self.data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
+        self.data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
 
     def _retrieve_data(self):
         pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
@@ -79,7 +77,7 @@ class EcontrolAtPipeline:
             except Exception as e:
                 count_invalid_stations += 1
                 logger.debug(
-                    f"{DATA_SOURCE_KEY} entry could not be mapped! Error:\n{e}\nRow:\n----\n{datapoint}\n----\n")
+                        f"{DATA_SOURCE_KEY} entry could not be mapped! Error:\n{e}\nRow:\n----\n{datapoint}\n----\n")
                 continue
             station_updater.update_station(station, DATA_SOURCE_KEY)
         logger.info(f"Finished {DATA_SOURCE_KEY} Pipeline, "

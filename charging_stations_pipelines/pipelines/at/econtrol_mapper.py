@@ -12,7 +12,7 @@ from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
-from charging_stations_pipelines.pipelines.shared import check_coordinates, lst_flatten, \
+from charging_stations_pipelines.pipelines.shared import check_coordinates, lst_expand, lst_flatten, \
     str_strip_whitespace, str_to_float, try_remove_dupes
 
 logger = logging.getLogger(__name__)
@@ -69,19 +69,8 @@ def map_station(row: pd.Series) -> Station:
     - 'date_created': The creation date of the station.
     - 'date_updated': The update date of the station.
     """
-    # TODO following attributes are also available in the data source
-    #  1. status          9469 non-null
-    #  2. label           9469 non-null
-    #  3. description     5668 non-null
-    #  4. openingHours    9469 non-null
-    #  5. priceUrl        2880 non-null
-    #  ...
-    #  6. evseCountryId   9469 non-null
-    #  7. evseStationId   9469 non-null
-    #  8. evseOperatorId  9469 non-null
-
     country_id, operator_id, station_id = str_strip_whitespace(
-        row.get(["evseCountryId", "evseOperatorId", "evseStationId"]))
+            row.get(["evseCountryId", "evseOperatorId", "evseStationId"]))
 
     station = Station()
 
@@ -89,13 +78,11 @@ def map_station(row: pd.Series) -> Station:
     # Using combination of evseCountryId, evseStationId and evseOperatorId as source_id,
     # since evseStationId alone is not unique enough
     station.source_id = f'{country_id}*{operator_id}*{station_id}'
-
-    # there are also other attributes available in the data source,
-    # which could be useful for the `operator`, e.g.:
-    # 1. `contactName`, e.g.: "E-Werk der Stadtgemeinde Kindberg"
-    # 2. `label`, e.g.: "Ladestelle Roßdorf Platz"
-    station.operator = operator_id  # evseOperatorId, e.g. "014"
-
+    station.evse_country_id = str_strip_whitespace(country_id) or None
+    station.evse_operator_id = str_strip_whitespace(operator_id) or None
+    station.evse_station_id = str_strip_whitespace(station_id) or None
+    # contactName: e.g. "E-Werk der Stadtgemeinde Kindberg"
+    station.operator = str_strip_whitespace(row.get('contactName')) or None
     station.payment = None
     station.authentication = _extract_auth_modes(row.get("points")) or None
     station.data_source = DATA_SOURCE_KEY
@@ -114,11 +101,6 @@ def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
     :param station_id: An integer representing the station ID.
     :return: An Address object.
     """
-    # TODO following attributes are also available in the data source:
-    #  1. contactName     9469 non-null
-    #  2. telephone       8615 non-null
-    #  3. email           2358 non-null
-    #  4. website         4951 non-null
     address = Address()
 
     address.station_id = station_id
@@ -133,21 +115,6 @@ def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
 
     return address
 
-# FIXME: write unittests
-def _lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
-    """Repeats float value according to its count in the input list.
-
-    :param aggregated_list: A list of tuples where each tuple contains a float value and the count of how often
-        the value occurs.
-    :return: A new list where each float value is repeated according to its count in the input list.
-
-    Example:
-    >>> _lst_expand([(1.0, 3), (2.5, 2)])
-    [1.0, 1.0, 1.0, 2.5, 2.5]
-    """
-    # [0] - float value, [1] - count, how often this value occurs
-    return [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []
-
 
 def _extract_charger_details(points: pd.Series) -> tuple[list[float], list[str]]:
     # Aggregate energy_in_kw
@@ -155,7 +122,7 @@ def _extract_charger_details(points: pd.Series) -> tuple[list[float], list[str]]
     for p in points:
         energy_in_kw = str_to_float(p.get("energyInKw"))
         kw_list_agg.append((energy_in_kw, len(p.get("connectorTypes", []) or [])))
-    kw_list = _lst_expand(kw_list_agg)
+    kw_list = lst_expand(kw_list_agg)
 
     # Aggregate socket types
     socket_type_list_agg = _aggregate_attribute(points, "connectorTypes")

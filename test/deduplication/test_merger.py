@@ -1,98 +1,129 @@
-from unittest import TestCase
+"""Tests for the merger module."""
 
+import pytest
 from geoalchemy2.shape import from_shape
 from shapely import wkb
-from shapely.speedups._speedups import Point
+from shapely.geometry import Point
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.schema import CreateSchema
+from sqlalchemy.sql.ddl import CreateSchema
 from testcontainers.postgres import PostgresContainer
 
+from charging_stations_pipelines import settings
+from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.deduplication.merger import StationMerger
-from charging_stations_pipelines import settings
-from test.shared import get_config, create_station
+from test.shared import create_station, get_config, is_float_eq
 
 
-class TestStationMerger(TestCase):
+@pytest.fixture
+def postgres_container():
+    """Start a postgres container for testing."""
+    container = PostgresContainer("kartoza/postgis")
+    container.start()
+    yield container
+    container.stop()
 
-    def setUp(self) -> None:
-        super().setUp()
-        self.postgres_container = PostgresContainer("kartoza/postgis")
-        self.postgres_container.start()
-        sql_url = self.postgres_container.get_connection_url()
-        connect_args = {"options": f"-csearch_path={settings.db_schema},public"}
-        self.engine = create_engine(sql_url, connect_args=connect_args)
-        if not self.engine.dialect.has_schema(self.engine, settings.db_schema):
-            self.engine.execute(CreateSchema(settings.db_schema))
-        Base.metadata.create_all(self.engine)
 
-    def tearDown(self) -> None:
-        super().tearDown()
-        self.postgres_container.stop()
+@pytest.fixture
+def engine(postgres_container):
+    """Create a database engine for testing."""
+    sql_url = postgres_container.get_connection_url()
+    connect_args = {"options": f"-csearch_path={settings.db_schema},public"}
+    db_engine = create_engine(sql_url, connect_args=connect_args)
+    db_engine.execute(CreateSchema(settings.db_schema))
+    Base.metadata.create_all(db_engine)
+    return db_engine
 
-    def test_expect_a_merged_entry_if_two_duplicates_exists(self):
-        # given: setup db with two duplicated station entries
-        session = sessionmaker(bind=self.engine)()
 
+def _set_up_db(engine, stations):
+    """Set up the database with the given stations."""
+    session = sessionmaker(bind=engine)()
+    for station in stations:
+        session.add(station)
+    session.commit()
+    return session
+
+
+def _check_merger(engine, create_stations, run_merger, check_results):
+    # Given: db with two duplicate station entries
+    session = _set_up_db(engine, create_stations())
+    # When: run the merger
+    run_merger(engine)
+    # Then: two duplicate stations are merged
+    check_results(session)
+
+
+def _run_merger(engine):
+    """Merge duplicate stations."""
+    station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=engine)
+    station_merger.run()
+
+
+@pytest.mark.integration_test
+def test_expect_a_merged_entry_if_two_duplicates_exists(engine):
+    def _create_stations():
+        # Given: two duplicate stations
         station_one = create_station()
-        station_one.data_source = "BNA"
-        station_one.source_id = "BNA_ID1"
+        station_one.data_source = 'BNA'
+        station_one.source_id = 'BNA_ID1'
+
         station_duplicate = create_station()
-        station_duplicate.data_source = "OSM"
-        station_duplicate.source_id = "OSM_ID1"
+        station_duplicate.data_source = 'OSM'
+        station_duplicate.source_id = 'OSM_ID1'
 
-        session.add(station_one)
-        session.add(station_duplicate)
-        session.commit()
+        return station_one, station_duplicate
 
-        # when: run the merger
-        station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=self.engine, is_test=False)
-        station_merger.run()
+    def _check_results(session):
+        # Check that all_stations are merged
+        all_stations: list[Station] = session.query(Station).all()
+        assert len(all_stations) == 3
 
-        # then: the two duplicates are merged
-        stations = session.query(Station).all()
-        self.assertEqual(3, len(stations))
-        self.assertEqual("is_duplicate", station_one.merge_status)
-        self.assertEqual("is_duplicate", station_duplicate.merge_status)
-        self.assertFalse(station_one.is_merged)
-        self.assertFalse(station_duplicate.is_merged)
-        merged_stations = list(filter(lambda s: s.is_merged is True, stations))
-        self.assertEqual(1, len(merged_stations))
+        not_merged_stations = [s for s in all_stations if not s.is_merged]
+        assert len(not_merged_stations) == 2
+        assert all(s.merge_status == 'is_duplicate' for s in not_merged_stations)
+
+        merged_stations = [s for s in all_stations if s.is_merged]
+        assert len(merged_stations) == 1
         merged_station: Station = merged_stations[0]
-        self.assertEqual(2, len(merged_station.source_stations))
-        self.assertEqual("OSM_ID1", merged_station.source_stations[0].duplicate_source_id)
-        self.assertEqual("BNA_ID1", merged_station.source_stations[1].duplicate_source_id)
+        merged_station_source_stations: list[Station] = merged_station.source_stations
+        assert len(merged_station_source_stations) == 2
+        assert merged_station_source_stations[0].duplicate_source_id == "OSM_ID1"
+        assert merged_station_source_stations[1].duplicate_source_id == "BNA_ID1"
+
         session.close()
 
-    def test_OCM_should_have_higher_prio_than_BNA(self):
-        # given: setup db with two duplicated station entries
-        session = sessionmaker(bind=self.engine)()
+    _check_merger(engine, _create_stations, _run_merger, _check_results)
 
+
+@pytest.mark.integration_test
+def test_ocm_should_have_higher_prio_than_bna(engine):
+    def _create_stations():
+        # Given: two duplicate stations
         station_bna = create_station()
         station_bna.data_source = "BNA"
         station_bna.point = from_shape(Point(float(1.1111111223), float(1.11111123)))
+
         station_ocm = create_station()
-        expected_x = 1.11111112
-        expected_y = 1.111111
-        station_ocm.point = from_shape(Point(float(expected_x), float(expected_y)))
+        station_ocm.point = from_shape(Point(float(1.11111112), float(1.111111)))
         station_ocm.data_source = "OCM"
 
-        session.add(station_bna)
-        session.add(station_ocm)
-        session.commit()
+        return station_bna, station_ocm
 
-        # when: run the merger
-        station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=self.engine, is_test=False)
-        station_merger.run()
+    def _check_results(session):
+        # Check that all_stations are merged
+        all_stations: list[Station] = session.query(Station).all()
+        merged_stations = [s for s in all_stations if s.is_merged]
+        assert len(merged_stations) == 1
 
-        # then: the two duplicates are merged
-        stations = session.query(Station).all()
-        session.close()
-        merged_stations = list(filter(lambda s: s.is_merged is True, stations))
-        self.assertEqual(1, len(merged_stations))
         merged_station = merged_stations[0]
+        assert merged_station.data_source == 'OCM'
+
         point = wkb.loads(bytes(merged_station.point.data))
-        self.assertEqual(expected_x, point.x)
-        self.assertEqual(expected_y, point.y)
+        expected_x, expected_y = 1.11111112, 1.111111
+        assert is_float_eq(point.x, expected_x)
+        assert is_float_eq(point.y, expected_y)
+
+        session.close()
+
+        _check_merger(engine, _create_stations, _run_merger, _check_results)

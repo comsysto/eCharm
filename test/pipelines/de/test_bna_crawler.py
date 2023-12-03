@@ -1,17 +1,18 @@
+"""Integration tests for the crawler of the BNA pipeline."""
+
 import os
-from pathlib import Path
-from unittest import TestCase
+import tempfile
+
+import pytest
 
 from charging_stations_pipelines.pipelines.de.bna_crawler import get_bna_data
 from test.shared import skip_if_github
 
 
-class Test(TestCase):
-
-    @skip_if_github
-    def test_get_bna_data(self):
-        path_to_temp_file = Path(__file__).parent.parent.parent.parent.joinpath("data/bna_temp.xlsx")
-        get_bna_data(str(path_to_temp_file))
-        actual_file_size = os.path.getsize(path_to_temp_file)
-        os.remove(path_to_temp_file)
-        self.assertTrue(actual_file_size > 6000000)  # 6MB
+@pytest.mark.integration_test
+@pytest.mark.skipif(skip_if_github(), reason="Skip the test when running on Github")
+def test_get_bna_data():
+    """Test the get_bna_data function."""
+    with tempfile.NamedTemporaryFile() as temp_file:
+        get_bna_data(temp_file.name)
+        assert os.path.getsize(temp_file.name) > 6 * 1_000_000, "File size is less than 6MB"

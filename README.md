@@ -195,7 +195,11 @@ pip install -r test/requirements.txt
 You can run all tests under `/test` by running the following command:
 
 ```bash
-python -m unittest discover test
+# to run all tests, use:
+pytest
+
+# ... or the following to run only the unit tests, i.e. not the integration tests (which run a bit longer): 
+pytest -m 'not integration_test' -W ignore::DeprecationWarning
 ```
 
 #### Testdata import / Integration test for the merger

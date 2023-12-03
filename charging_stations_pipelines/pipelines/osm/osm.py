@@ -1,3 +1,5 @@
+"""This module contains the OSM Pipeline."""
+
 import configparser
 import json
 import logging
@@ -8,6 +10,7 @@ from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.pipelines.osm.osm_mapper import map_address_osm, map_charging_osm, map_station_osm
 from charging_stations_pipelines.pipelines.osm.osm_receiver import get_osm_data
 from charging_stations_pipelines.pipelines.station_table_updater import StationTableUpdater
@@ -15,24 +18,23 @@ from charging_stations_pipelines.pipelines.station_table_updater import StationT
 logger = logging.getLogger(__name__)
 
 
-class OsmPipeline:
+class OsmPipeline(Pipeline):
     def __init__(self, country_code: str, config: configparser, session: Session, online: bool = False):
+        super().__init__(config, session, online)
+
         self.country_code = country_code
-        self.config = config
-        self.session = session
-        self.online: bool = online
         self.data: Optional[Dict] = None
 
     def _retrieve_data(self):
         data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
+                pathlib.Path(__file__).parent.resolve(), "../../..", "data"
         )
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OSM"]["filename"])
         if self.online:
             logger.info("Retrieving Online Data")
             get_osm_data(self.country_code, tmp_file_path)
-        with open(tmp_file_path, "r") as f:
+        with open(tmp_file_path) as f:
             self.data = json.load(f)
 
     def run(self):

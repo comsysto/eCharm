@@ -1,5 +1,7 @@
+"""Station database entity."""
+
 from geoalchemy2.types import Geography
-from sqlalchemy import Column, Date, Integer, String, Boolean, Index, ForeignKey, JSON
+from sqlalchemy import Boolean, Column, Date, ForeignKey, Index, Integer, JSON, String
 from sqlalchemy.orm import relationship
 
 from charging_stations_pipelines import settings
@@ -7,9 +9,13 @@ from charging_stations_pipelines.models import Base
 
 
 class Station(Base):
+    """Station class for representing a station in a database."""
     __tablename__ = f"{settings.db_table_prefix}stations"
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, index=True, nullable=True, unique=True)
+    evse_country_id = Column(String)
+    evse_operator_id = Column(String)
+    evse_station_id = Column(String)
     data_source = Column(String)
     operator = Column(String)
     payment = Column(String)
@@ -30,13 +36,14 @@ class Station(Base):
 
 
 Index(
-    "stations_point_geom_idx",
-    Station.__table__.c.point,
-    postgresql_using='gist',
+        "stations_point_geom_idx",
+        Station.__table__.c.point,
+        postgresql_using='gist',
 )
 
 
 class MergedStationSource(Base):
+    """This class represents a merged station source entity."""
     __tablename__ = f"{settings.db_table_prefix}merged_station_source"
     id = Column(Integer, primary_key=True, autoincrement=True)
     merged_station_id = Column(Integer, ForeignKey(f'{Station.__tablename__}.id'))

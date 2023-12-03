@@ -54,9 +54,6 @@ def include_object(object, name, type_, reflected, compare_to):
     elif type_ == "table" and settings.restrict_tables and name not in restrict_tables:
         print(f"Not including table {name}, because it's not in strict tables")
         return False
-    elif type_ == "table" and settings.restrict_tables and name not in restrict_tables:
-        print(f"Not including table {name}, because it's not in strict tables")
-        return False
     else:
         return True
 

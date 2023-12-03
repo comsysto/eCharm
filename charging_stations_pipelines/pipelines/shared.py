@@ -7,13 +7,14 @@ from typing import Optional, TypeVar, Union
 
 import pandas as pd
 from dateutil import parser
+from dateutil.parser import ParserError
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
 
-def check_coordinates(coords: Union[float, int, str]) -> Optional[float]:
+def check_coordinates(coords: Optional[Union[float, int, str]]) -> Optional[float]:
     """Helper function to convert string coordinates to float.
     It handles coordinates given as strings, and replaces commas with dots, and keeps only digits, dots and minus sign.
 
@@ -48,7 +49,7 @@ def parse_date(date_str: Optional[str]) -> Optional[datetime]:
     """
     try:
         return parser.parse(date_str)
-    except TypeError as e:
+    except (ParserError, TypeError) as e:
         logger.debug(f"Could not parse date string: '{date_str}'! {e}")
         return None
 
@@ -79,7 +80,7 @@ def str_to_float(s: Optional[str]) -> Optional[float]:
     """
     try:
         return float(s)
-    except TypeError:
+    except (ValueError, TypeError):
         return None
 
 
@@ -101,3 +102,18 @@ def try_remove_dupes(lst: Optional[list[T]], default=None) -> Optional[list[T]]:
         returns the default value (or an empty list if not provided).
     """
     return list(dict.fromkeys(lst)) if lst else (default or [])
+
+
+def lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
+    """Repeats float value according to its count in the input list.
+
+    :param aggregated_list: A list of tuples where each tuple contains a float value and the count of how often
+        the value occurs.
+    :return: A new list where each float value is repeated according to its count in the input list.
+
+    Example:
+    >>> lst_expand([(1.0, 3), (2.5, 2)])
+    [1.0, 1.0, 1.0, 2.5, 2.5]
+    """
+    # [0] - float value, [1] - count, how often this value occurs
+    return [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []

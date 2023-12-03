@@ -1,3 +1,5 @@
+"""Main entry point for eCharm."""
+
 import argparse
 import logging
 import sys
@@ -19,6 +21,7 @@ logger = logging.getLogger("charging_stations_pipelines.main")
 
 
 def parse_args(args):
+    """This method is used to parse the command line arguments for the eCharm program."""
     valid_task_options = ["import", "merge", "export", "testdata"]
     valid_country_options = ["DE", "AT", "FR", "GB", "IT", "NOR", "SWE"]
     valid_export_format_options = ["csv", "GeoJSON"]
@@ -38,7 +41,7 @@ def parse_args(args):
                              'export creates a data export for the specified countries in csv or geo-json format. '
                              'testdata is only intended to be used for development purposes.')
     parser.add_argument('-c', '--countries', choices=valid_country_options,
-                        default=valid_country_options, nargs='+', type=str.upper, metavar='<country-code>',
+                        default=valid_country_options, nargs='+', type=lambda s: s.upper(), metavar='<country-code>',
                         help='specifies the countries for which to perform the given tasks. '
                              'The country-codes must be one or several of %(choices)s (case-insensitive). '
                              'If not specified, the given tasks are run for all available countries')
@@ -76,11 +79,13 @@ def parse_args(args):
 
 
 def get_db_engine(**kwargs):
+    """Method to get the database engine."""
     connect_args = {"options": f"-csearch_path={settings.db_schema},public"}
     return create_engine(name_or_url=db_uri, connect_args=connect_args, **kwargs)
 
 
 def run_import(countries: list[str], online: bool, delete_data: bool):
+    """This method runs the import process for the specified countries. It has three parameters."""
     if delete_data:
         logger.debug("deleting all data ...")
         db_utils.delete_all_data(sessionmaker(bind=get_db_engine())())
@@ -99,6 +104,7 @@ def run_import(countries: list[str], online: bool, delete_data: bool):
 
 
 def run_merge(countries: list[str], delete_data: bool):
+    """Run the merge process for the specified countries."""
     engine = get_db_engine(pool_pre_ping=True)
 
     if delete_data:
@@ -111,6 +117,7 @@ def run_merge(countries: list[str], delete_data: bool):
 
 
 def run_export(cli_args):
+    """This method runs the export process based on the provided command line arguments."""
     args_file_descriptor = cli_args.export_file_descriptor if cli_args.export_file_descriptor else ''
 
     args_export_area = ExportArea(
@@ -137,12 +144,11 @@ def run_export(cli_args):
                                  export_merged=cli_args.export_merged_stations,
                                  export_charging_attributes=cli_args.export_charging,
                                  export_to_csv=should_export_csv,
-                                 export_all_countries=False,
-                                 export_area=None,
                                  file_descriptor=args_file_descriptor)
 
 
 def main():
+    """Entry point for the application."""
     cli_args = parse_args(sys.argv[1:])
 
     if cli_args.verbose:
