@@ -33,6 +33,7 @@ def get_osm_data(country_code: str, tmp_data_path):
     """
     country_code_to_area = {
         "DE": "Deutschland",
+        "AT": "Österreich",
         "FR": "France métropolitaine",
         "GB": "United Kingdom",
         "IT": "Italia",

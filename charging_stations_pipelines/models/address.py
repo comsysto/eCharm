@@ -15,7 +15,7 @@ class Address(Base):
     date_updated = Column(Date)
     street = Column(String)
     town = Column(String)
-    district_old = Column(String)
+    postcode = Column(String)
     district = Column(String)
     state = Column(String)
     country = Column(String)

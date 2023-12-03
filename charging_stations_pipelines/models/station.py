@@ -1,5 +1,5 @@
 from geoalchemy2.types import Geography
-from sqlalchemy import Column, Date, Integer, String, Boolean, Index, ForeignKey
+from sqlalchemy import Column, Date, Integer, String, Boolean, Index, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 
 from charging_stations_pipelines import settings
@@ -17,7 +17,7 @@ class Station(Base):
     point = Column(Geography(geometry_type='POINT', srid=4326))
     date_created = Column(Date)
     date_updated = Column(Date)
-    raw_data = Column(String)
+    raw_data = Column(JSON)
     country_code = Column(String)
     address = relationship("Address", back_populates="station", uselist=False)
     charging = relationship("Charging", back_populates="station", uselist=False)

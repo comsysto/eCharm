@@ -1,7 +1,8 @@
 import logging
 import math
+import math
 from datetime import datetime
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
