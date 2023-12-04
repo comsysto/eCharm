@@ -1,8 +1,7 @@
 import logging
 import math
-import math
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Final, List, LiteralString, Optional
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
@@ -12,7 +11,7 @@ from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
 from charging_stations_pipelines.pipelines.shared import check_coordinates
-from charging_stations_pipelines.shared import filter_none, try_float, try_clean_str, try_split_str
+from charging_stations_pipelines.shared import filter_none, try_clean_str, try_float, try_split_str
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ def map_address_osm(entry: Dict, station_id: Optional[int]) -> Optional[Address]
     tags = entry.get('tags')
     if not tags:
         return None
-    address_keys = [  # Final[list[LiteralString]]
+    address_keys = [  # type: Final[list[LiteralString]]
         "addr:city",
         "addr:country",
         "addr:housenumber",
@@ -63,14 +62,10 @@ def map_address_osm(entry: Dict, station_id: Optional[int]) -> Optional[Address]
         street = tags["addr:street"]
 
         map_address = Address()
-        # TODO add state_old to Address
-        # map_address.state_old = None
         map_address.station_id = station_id
         map_address.street = street + " " + housenumber
         map_address.town = city
-        # TODO add postcode to Address
-        # map_address.postcode = postcode
-        map_address.district_old = None
+        map_address.postcode = postcode
         map_address.country = country
 
         return map_address
@@ -129,7 +124,7 @@ def _extract_socket_type_list(datapoint: Dict[str, Optional[str]]) -> List[str]:
     # |"{"DC Kupplung Combo"," DC CHAdeMO","AC Kupplung Typ 2"}"                              |
     # |"{"DC Kupplung Combo"}"                                                                |
     # +---------------------------------------------------------------------------------------+
-    socket_types = [('socket:chademo', 'CHAdeMO'),  # Final[list[tuple[LiteralString, LiteralString]]]
+    socket_types = [('socket:chademo', 'CHAdeMO'),  # type: Final[list[tuple[LiteralString, LiteralString]]]
                     ('socket:schuko', 'AC Schuko'),
                     ('socket:tesla_supercharger', 'Tesla Supercharger'),
                     ('socket:type2', 'AC Steckdose Typ 2'),
@@ -173,22 +168,6 @@ def _calc_max_kw(kwlist: List[Optional[float]]) -> Optional[float]:
     return max(kwlist) if kwlist else None
 
 
-def _extract_dc_support(datapoint: Dict[str, Optional[str]]) -> Optional[bool]:
-    # TODO
-    return False
-
-
-def _sanitize_attributes(final_charging: Charging) -> Charging:
-    # max sockets/charging points per charging station
-    max_capacity = 4  # Final[int]
-    # # average capacity across all charging stations is set when capacity>MAX_CAPACITY
-    avg_capacity = 2  # Final[int]
-    if final_charging.capacity and final_charging.capacity > max_capacity:
-        final_charging.capacity = avg_capacity
-
-    return final_charging
-
-
 def map_charging_osm(row: Dict[str, Optional[str]], station_id: Optional[int]) -> Charging:
     """Extracts charging station data from a row of the OSM dataset.
 
@@ -205,10 +184,8 @@ def map_charging_osm(row: Dict[str, Optional[str]], station_id: Optional[int]) -
     charging.ampere_list = _extract_ampere_list(row)
     charging.volt_list = _extract_volt_list(row)
     charging.socket_type_list = _extract_socket_type_list(row)
-    charging.dc_support = _extract_dc_support(row)
+    charging.dc_support = None
     charging.total_kw = _calc_total_kw(charging.kw_list)
     charging.max_kw = _calc_max_kw(charging.kw_list)
-
-    charging = _sanitize_attributes(charging)
 
     return charging

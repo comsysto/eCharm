@@ -2,35 +2,35 @@ from unittest import TestCase
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
-from charging_stations_pipelines.pipelines.osm.osm_mapper import map_charging_osm, map_address_osm
+from charging_stations_pipelines.pipelines.osm.osm_mapper import map_address_osm, map_charging_osm
 
 
 class Test(TestCase):
     def test_address_mapping(self):
         json_data = {
-            "id": 290918381,
-            "lat": 48.5023337,
-            "lon": 9.3760597,
+            "id":   290918381,
+            "lat":  48.5023337,
+            "lon":  9.3760597,
             "tags": {
-                "addr:city": "Bad Urach",
-                "addr:country": "DE",
-                "addr:housenumber": "2",
-                "addr:postcode": "72574",
-                "addr:street": "Bei den Thermen",
-                "amenity": "charging_station",
-                "beds": "144",
-                "bicycle": "yes",
-                "contact:email": "info@hotel-graf-eberhard.de",
-                "contact:fax": "+49 7125 8214",
-                "contact:phone": "+49 7125 1480",
-                "contact:website": "http://www.hotel-graf-eberhard.de",
-                "internet_access": "wlan",
+                "addr:city":           "Bad Urach",
+                "addr:country":        "DE",
+                "addr:housenumber":    "2",
+                "addr:postcode":       "72574",
+                "addr:street":         "Bei den Thermen",
+                "amenity":             "charging_station",
+                "beds":                "144",
+                "bicycle":             "yes",
+                "contact:email":       "info@hotel-graf-eberhard.de",
+                "contact:fax":         "+49 7125 8214",
+                "contact:phone":       "+49 7125 1480",
+                "contact:website":     "http://www.hotel-graf-eberhard.de",
+                "internet_access":     "wlan",
                 "internet_access:fee": "no",
-                "name": "Hotel Graf Eberhard",
-                "operator": "Hotel Graf Eberhard GmbH + Co. KG",
-                "stars": "4",
-                "tourism": "hotel",
-                "wheelchair": "yes"
+                "name":                "Hotel Graf Eberhard",
+                "operator":            "Hotel Graf Eberhard GmbH + Co. KG",
+                "stars":               "4",
+                "tourism":             "hotel",
+                "wheelchair":          "yes"
             },
             "type": "node"
         }
@@ -41,7 +41,7 @@ class Test(TestCase):
         self.assertEqual(1, address.station_id)
         self.assertEqual('Bei den Thermen 2', address.street)
         self.assertEqual('Bad Urach', address.town)
-        self.assertEqual(None, address.district_old)
+        self.assertEqual('72574', address.postcode)
         self.assertEqual(None, address.district)
         self.assertEqual(None, address.state)
         self.assertEqual('DE', address.country)
@@ -50,15 +50,15 @@ class Test(TestCase):
 
     def test_charging_mapping__plain_01(self):
         json_data = {
-            "id": 2420152562,
-            "lat": 48.9277666,
-            "lon": 8.4709132,
+            "id":   2420152562,
+            "lat":  48.9277666,
+            "lon":  8.4709132,
             "tags": {
-                "amenity": "charging_station",
-                "bicycle": "yes",
-                "capacity": "4",
-                "fee": "no",
-                "socket:schuko": "4",
+                "amenity":                   "charging_station",
+                "bicycle":                   "yes",
+                "capacity":                  "4",
+                "fee":                       "no",
+                "socket:schuko":             "4",
                 "socket:type2:combo:output": "2.3 kW"
             },
             "type": "node"
@@ -107,7 +107,7 @@ class Test(TestCase):
     def test_charging_mapping__amperage_04(self):
         json_data = {
             "tags": {
-`                "amperage": "16;32",
+                "amperage": "16;32",
             },
         }
         charging: Charging = map_charging_osm(json_data, 1)

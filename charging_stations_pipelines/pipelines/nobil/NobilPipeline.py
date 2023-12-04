@@ -89,8 +89,7 @@ def _map_address_to_domain(nobil_station: NobilStation) -> Address:
     new_address: Address = Address()
     new_address.street = nobil_station.street + " " + nobil_station.house_number
     new_address.town = nobil_station.city
-    # TODO add postcode to Address
-    # new_address.postcode = nobil_station.zipcode
+    new_address.postcode = nobil_station.zipcode
     return new_address
 
 

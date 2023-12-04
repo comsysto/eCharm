@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 def map_address_fra(row):
     street: str = row["adresse_station"]
-    postcode: str = str(row["consolidated_code_postal"])
     town: str = row["consolidated_commune"]
     country: str
     # if not pd.isna(town):
@@ -24,8 +23,7 @@ def map_address_fra(row):
     map_address = Address()
     map_address.street = (street,)
     map_address.town = (town,)
-    # TODO add postcode to Address
-    # map_address.postcode = (postcode,)
+    map_address.postcode = str(row["consolidated_code_postal"])
     map_address.country = ("FR",)
     return map_address
 
