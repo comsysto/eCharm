@@ -179,7 +179,7 @@ def test_address_mapping__empty(input_data, expected_output):
          "max_kw":           2.3,
          "ampere_list":      [],
          "volt_list":        [],
-         "socket_type_list": ['AC Steckdose Typ 2 Combo'],
+         "socket_type_list": ['Typ 2 Combo'],
          "dc_support":       None}),
     ({  # Test case 2
          "id":      2420152562,
@@ -200,7 +200,7 @@ def test_address_mapping__empty(input_data, expected_output):
          "max_kw":           2.3,
          "ampere_list":      [],
          "volt_list":        [],
-         "socket_type_list": ['AC Schuko', 'AC Steckdose Typ 2 Combo'],
+         "socket_type_list": ['AC Schuko', 'Typ 2 Combo'],
          "dc_support":       None
      }), ])
 def test_charging_mapping(json_data, station_id, expected_outcome):
@@ -274,7 +274,7 @@ def test_charging_mapping__voltage(raw_voltage, expected):
     (('socket:schuko', '2;yes', '2.22'), (['AC Schuko'], [2.22])),
     (('socket:tesla_supercharger', 'Yes', '3.14'), (['Tesla Supercharger'], [3.14])),
     (('socket:type2', '2', '2.0'), (['AC Steckdose Typ 2'], [2.0])),
-    (('socket:type2_combo', '55', '55.0'), (['AC Steckdose Typ 2 Combo'], [55.0])),
+    (('socket:type2_combo', '55', '55.0'), (['Typ 2 Combo'], [55.0])),
     (('socket:type3', '3', '3.0'), (['AC Steckdose Typ 3'], [3.0])),
     (('socket:type3c', '2', '2.0'), (['AC Steckdose Typ 3c'], [2.0])),
     (('socket:typee', ' 1 ', '1.0'), (['AC Steckdose Typ E'], [1.0])), ])
