@@ -1,3 +1,4 @@
+"""This module contains the methods for mapping the OpenStreetMap (OSM) data to the database models."""
 import logging
 import math
 from datetime import datetime
@@ -110,16 +111,7 @@ def _extract_capacity(datapoint: dict[str, Optional[str]]) -> Optional[int]:
     return math.trunc(capacity_raw) if capacity_raw else None
 
 
-def _extract_kw_list(datapoint: dict[str, Optional[str]]) -> list[float]:
-    raw = datapoint.get('tags', {}).get('socket:output')
-    if not raw:
-        return []
-    raw = try_clean_str(raw, r'(kw|kva)')
-    list_raw = try_split_str(raw, '[,;-]')
-    return filter_none(map(try_float, list_raw))
-
-
-def _ext_kw_list(raw: str) -> list[float]:
+def _extract_kw_list(raw: str) -> list[float]:
     if not raw:
         return []
 
@@ -134,7 +126,7 @@ def _extract_kw_map(datapoint: dict[str, Any]) -> dict[str, list[float]]:
 
     socket_output_map: dict[str, list[float]] = {}
     for k in SOCKET_TYPES.keys():
-        kw_list = _ext_kw_list(tags.get(f'{k}:output'))
+        kw_list = _extract_kw_list(tags.get(f'{k}:output'))
         if kw_list:
             socket_output_map[k] = kw_list
 
