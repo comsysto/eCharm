@@ -21,8 +21,8 @@ SOCKET_TYPES = {  # type: Final[dict[str, str]]
     'socket:schuko':             'AC Schuko',
     'socket:tesla_supercharger': 'Tesla Supercharger',
     'socket:type2':              'AC Steckdose Typ 2',
-    'socket:type2:combo':        'AC Steckdose Typ 2 Combo',
-    'socket:type2_combo':        'AC Steckdose Typ 2 Combo',
+    'socket:type2:combo':        'Typ 2 Combo',
+    'socket:type2_combo':        'Typ 2 Combo',
     'socket:type3':              'AC Steckdose Typ 3',
     'socket:type3c':             'AC Steckdose Typ 3c',
     'socket:typee':              'AC Steckdose Typ E'}
