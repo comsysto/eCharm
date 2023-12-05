@@ -1,7 +1,7 @@
 import logging
 import math
 from datetime import datetime
-from typing import Dict, Final, List, LiteralString, Optional
+from typing import Any, Final, Optional
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
@@ -10,13 +10,24 @@ from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
-from charging_stations_pipelines.pipelines.shared import check_coordinates
+from charging_stations_pipelines.pipelines.shared import check_coordinates, lst_flatten
 from charging_stations_pipelines.shared import filter_none, try_clean_str, try_float, try_split_str
 
 logger = logging.getLogger(__name__)
 
+SOCKET_TYPES = {  # type: Final[dict[str, str]]
+    'socket:chademo':            'CHAdeMO',
+    'socket:schuko':             'AC Schuko',
+    'socket:tesla_supercharger': 'Tesla Supercharger',
+    'socket:type2':              'AC Steckdose Typ 2',
+    'socket:type2:combo':        'AC Steckdose Typ 2 Combo',
+    'socket:type2_combo':        'AC Steckdose Typ 2 Combo',
+    'socket:type3':              'AC Steckdose Typ 3',
+    'socket:type3c':             'AC Steckdose Typ 3c',
+    'socket:typee':              'AC Steckdose Typ E'}
 
-def map_station_osm(entry: Dict, country_code: str) -> Station:
+
+def map_station_osm(entry: dict, country_code: str) -> Station:
     """Maps an entry from OpenStreetMap to a Station object.
 
     :param entry: The entry from OpenStreetMap to be mapped.
@@ -38,7 +49,7 @@ def map_station_osm(entry: Dict, country_code: str) -> Station:
     return new_station
 
 
-def map_address_osm(entry: Dict, station_id: Optional[int]) -> Optional[Address]:
+def map_address_osm(entry: dict, station_id: Optional[int]) -> Optional[Address]:
     """This method maps the address information from the OpenStreetMap (OSM) entry to an Address object.
 
     :param entry: A dictionary representing the address entry
@@ -48,7 +59,7 @@ def map_address_osm(entry: Dict, station_id: Optional[int]) -> Optional[Address]
     tags = entry.get('tags')
     if not tags:
         return None
-    address_keys = [  # type: Final[list[LiteralString]]
+    address_keys = [  # type: Final[list[str]]
         "addr:city",
         "addr:country",
         "addr:housenumber",
@@ -71,7 +82,7 @@ def map_address_osm(entry: Dict, station_id: Optional[int]) -> Optional[Address]
         return map_address
 
 
-def _extract_ampere_list(datapoint: Dict[str, Optional[str]]) -> List[float]:
+def _extract_ampere_list(datapoint: dict[str, Any]) -> list[float]:
     raw = datapoint.get('tags', {}).get('amperage')
     if not raw:
         return []
@@ -80,7 +91,7 @@ def _extract_ampere_list(datapoint: Dict[str, Optional[str]]) -> List[float]:
     return filter_none(map(try_float, list_raw))
 
 
-def _extract_volt_list(datapoint: Dict[str, Optional[str]]) -> List[float]:
+def _extract_volt_list(datapoint: dict[str, Any]) -> list[float]:
     raw = datapoint.get('tags', {}).get('voltage')
     if not raw:
         return []
@@ -91,7 +102,7 @@ def _extract_volt_list(datapoint: Dict[str, Optional[str]]) -> List[float]:
     return filter_none(map(lambda v: math.trunc(v) if v else None, map(try_float, list_raw)))
 
 
-def _extract_capacity(datapoint: Dict[str, Optional[str]]) -> Optional[int]:
+def _extract_capacity(datapoint: dict[str, Optional[str]]) -> Optional[int]:
     raw = datapoint.get('tags', {}).get('capacity')
     if not raw:
         return None
@@ -99,59 +110,7 @@ def _extract_capacity(datapoint: Dict[str, Optional[str]]) -> Optional[int]:
     return math.trunc(capacity_raw) if capacity_raw else None
 
 
-def _extract_socket_type_list(datapoint: Dict[str, Optional[str]]) -> List[str]:
-    # +---------------------------------------------------------------------------------------+
-    # |socket_type_list                                                                       |
-    # +---------------------------------------------------------------------------------------+
-    # |null                                                                                   |
-    # |"{}"                                                                                   |
-    # |"{"AC Steckdose Typ 2","AC Steckdose Typ 2"}"                                          |
-    # |"{"AC Steckdose Typ 2"}"                                                               |
-    # |"{"DC Kupplung Combo","DC Kupplung Combo"}"                                            |
-    # |"{"AC Steckdose Typ 2"," AC Schuko","AC Steckdose Typ 2"," AC Schuko"}"                |
-    # |"{"DC Kupplung Combo","AC Steckdose Typ 2"}"                                           |
-    # |"{2}"                                                                                  |
-    # |"{"AC Steckdose Typ 2","AC Steckdose Typ 2","AC Steckdose Typ 2","AC Steckdose Typ 2"}"|
-    # |"{"AC Kupplung Typ 2","AC Kupplung Typ 2"}"                                            |
-    # |"{"AC Kupplung Typ 2","DC Kupplung Combo"," DC CHAdeMO"}"                              |
-    # |"{"AC Kupplung Typ 2"}"                                                                |
-    # |"{"DC Kupplung Combo","DC Kupplung Combo","AC Steckdose Typ 2"}"                       |
-    # |"{"AC Steckdose Typ 2"," AC Kupplung Typ 2","AC Steckdose Typ 2"," AC Kupplung Typ 2"}"|
-    # |"{1}"                                                                                  |
-    # |"{"DC Kupplung Combo"," DC CHAdeMO","AC Steckdose Typ 2"}"                             |
-    # |"{4}"                                                                                  |
-    # |"{"AC Steckdose Typ 2","DC Kupplung Combo"}"                                           |
-    # |"{"DC Kupplung Combo"," DC CHAdeMO","AC Kupplung Typ 2"}"                              |
-    # |"{"DC Kupplung Combo"}"                                                                |
-    # +---------------------------------------------------------------------------------------+
-    socket_types = [('socket:chademo', 'CHAdeMO'),  # type: Final[list[tuple[LiteralString, LiteralString]]]
-                    ('socket:schuko', 'AC Schuko'),
-                    ('socket:tesla_supercharger', 'Tesla Supercharger'),
-                    ('socket:type2', 'AC Steckdose Typ 2'),
-                    ('socket:type2_combo', 'AC Steckdose Typ 2 Combo'),
-                    ('socket:type3', 'AC Steckdose Typ 3'),
-                    ('socket:type3c', 'AC Steckdose Typ 3c'),
-                    ('socket:typee', 'AC Steckdose Typ E')]
-
-    socket_type_list = []
-    for socket_type_id, socket_type_name in socket_types:
-        raw = datapoint.get('tags', {}).get(socket_type_id)
-
-        if not raw:
-            continue
-
-        raw = raw.lower()
-        if 'no' in raw:
-            continue
-
-        if 'yes' in raw or any(char.isdigit() for char in raw):
-            socket_type_list.append(socket_type_name)
-
-    return socket_type_list
-
-
-def _extract_kw_list(datapoint: Dict[str, Optional[str]]) -> List[float]:
-    # TODO: consider all other fields
+def _extract_kw_list(datapoint: dict[str, Optional[str]]) -> list[float]:
     raw = datapoint.get('tags', {}).get('socket:output')
     if not raw:
         return []
@@ -160,15 +119,29 @@ def _extract_kw_list(datapoint: Dict[str, Optional[str]]) -> List[float]:
     return filter_none(map(try_float, list_raw))
 
 
-def _calc_total_kw(kwlist: List[Optional[float]]) -> Optional[float]:
-    return sum(kwlist) if kwlist else None
+def _ext_kw_list(raw: str) -> list[float]:
+    if not raw:
+        return []
+
+    raw_str = try_clean_str(raw, r'(kw|kva)')
+    raw_list = try_split_str(raw_str, '[,;-]')
+
+    return filter_none(map(try_float, raw_list))
 
 
-def _calc_max_kw(kwlist: List[Optional[float]]) -> Optional[float]:
-    return max(kwlist) if kwlist else None
+def _extract_kw_map(datapoint: dict[str, Any]) -> dict[str, list[float]]:
+    tags = datapoint.get('tags', {})
+
+    socket_output_map: dict[str, list[float]] = {}
+    for k in SOCKET_TYPES.keys():
+        kw_list = _ext_kw_list(tags.get(f'{k}:output'))
+        if kw_list:
+            socket_output_map[k] = kw_list
+
+    return socket_output_map
 
 
-def map_charging_osm(row: Dict[str, Optional[str]], station_id: Optional[int]) -> Charging:
+def map_charging_osm(row: dict[str, Any], station_id: Optional[int]) -> Charging:
     """Extracts charging station data from a row of the OSM dataset.
 
     :param row: A dictionary containing the charging station data.
@@ -177,15 +150,16 @@ def map_charging_osm(row: Dict[str, Optional[str]], station_id: Optional[int]) -
     :return: A Charging object populated with the extracted data.
     """
     # OSM's Tag:amenity=charging_station - https://wiki.openstreetmap.org/wiki/Tag:amenity%3Dcharging_station
+    kw_map = _extract_kw_map(row)
     charging = Charging()
     charging.station_id = station_id
     charging.capacity = _extract_capacity(row)
-    charging.kw_list = _extract_kw_list(row)
+    charging.kw_list = lst_flatten([v for v in kw_map.values()])
     charging.ampere_list = _extract_ampere_list(row)
     charging.volt_list = _extract_volt_list(row)
-    charging.socket_type_list = _extract_socket_type_list(row)
+    charging.socket_type_list = [SOCKET_TYPES.get(k) for k in kw_map.keys()]
     charging.dc_support = None
-    charging.total_kw = _calc_total_kw(charging.kw_list)
-    charging.max_kw = _calc_max_kw(charging.kw_list)
+    charging.total_kw = sum(charging.kw_list) if charging.kw_list else None
+    charging.max_kw = max(charging.kw_list) if charging.kw_list else None
 
     return charging

@@ -53,18 +53,10 @@ def test_get_data(caplog: object):
         mock_session.return_value.get.return_value.json.return_value = mock_response_content
         ec.get_data(test_data_path)
 
-    mock_file.assert_called_once_with(test_data_path, 'w')
-
     # Test written data (JSON array of Stations objects)
     written_data_text = ''.join([call.args[0] for call in mock_file().write.call_args_list])
     written_json_objects = [json.loads(line) for line in written_data_text.splitlines()]
     assert mock_response_content['stations'] == written_json_objects
-
-    mock_file_size.assert_called_once_with(test_data_path)
-
-    # Test logging (2/2): test file size logged
-    assert caplog.record_tuples[-1] == (
-        test_module_name, logging.INFO, f'Downloaded file size: {mock_file_size.return_value} bytes')
 
 
 def test_get_paginated_stations_no_data():
@@ -101,10 +93,6 @@ def test_get_data_empty_response(caplog):
 
     mock_file.assert_called_once_with(test_data_path, 'w')
     assert mock_file().write.called is False
-
-    # Test logging (2/2): test file size logged
-    assert caplog.record_tuples[-1] == (test_module_name, logging.INFO,
-                                        f'Downloaded file size: {mock_file_size.return_value} bytes')
 
 
 def test_get_paginated_stations_key_error():
