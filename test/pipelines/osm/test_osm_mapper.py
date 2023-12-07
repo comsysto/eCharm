@@ -7,6 +7,7 @@ from shapely.geometry import Point
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
+from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines import osm
 from charging_stations_pipelines.pipelines.osm import osm_mapper
 from charging_stations_pipelines.pipelines.osm.osm_mapper import (
@@ -57,7 +58,7 @@ from charging_stations_pipelines.shared import float_cmp_eq
     ],
 )
 def test_station_mapping(test_data, expected):
-    s = osm_mapper.map_station_osm(test_data)
+    s: Station = osm_mapper.map_station_osm(test_data)
     assert s.country_code == expected["country_code"]
     assert s.source_id == expected["source_id"]
     assert s.operator == expected["operator"]
@@ -263,8 +264,8 @@ def test_charging_mapping(json_data, station_id, expected_outcome):
     assert charging.station_id == expected_outcome["station_id"]
     assert charging.capacity == expected_outcome["capacity"]
     assert charging.kw_list == expected_outcome["kw_list"]
-    assert abs(charging.total_kw - expected_outcome["total_kw"]) < 1e-6
-    assert abs(charging.max_kw - expected_outcome["max_kw"]) < 1e-6
+    assert float_cmp_eq(charging.total_kw, expected_outcome["total_kw"])
+    assert float_cmp_eq(charging.max_kw, expected_outcome["max_kw"])
     assert charging.ampere_list == expected_outcome["ampere_list"]
     assert charging.volt_list == expected_outcome["volt_list"]
     assert charging.socket_type_list == expected_outcome["socket_type_list"]

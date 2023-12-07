@@ -117,11 +117,13 @@ def str_strip_whitespace(
         return default
 
 
-def str_clean_pattern(raw_str: Optional[str], remove_pattern: str) -> Optional[str]:
+def str_clean_pattern(
+    raw_str: Optional[str], remove_pattern: Optional[str]
+) -> Optional[str]:
     """Removes a given pattern from a string."""
     return (
         re.sub(remove_pattern, "", raw_str, flags=re.IGNORECASE).strip()
-        if raw_str
+        if raw_str and remove_pattern
         else None
     )
 

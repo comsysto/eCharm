@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import pathlib
-from typing import Dict, Optional
 
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -14,6 +13,7 @@ from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.pipelines.ocm.ocm_extractor import ocm_extractor
 from charging_stations_pipelines.pipelines.ocm.ocm_mapper import map_address_ocm, map_charging_ocm, map_station_ocm
 from charging_stations_pipelines.pipelines.station_table_updater import StationTableUpdater
+from charging_stations_pipelines.shared import JSON
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class OcmPipeline(Pipeline):
         super().__init__(config, session, online)
 
         self.country_code = country_code
-        self.data: Optional[Dict] = None
+        self.data: JSON = None
 
     def _retrieve_data(self):
         data_dir: str = os.path.join(
@@ -41,7 +41,9 @@ class OcmPipeline(Pipeline):
         logger.info(f"Running {self.country_code} OCM Pipeline...")
         self._retrieve_data()
         station_updater = StationTableUpdater(session=self.session, logger=logger)
-        for _, entry in tqdm(iterable=iter(self.data.items()), total=len(self.data)):  # type: _, dict
+
+        entry: JSON
+        for _, entry in tqdm(iterable=iter(self.data.items()), total=len(self.data)):
             mapped_address = map_address_ocm(entry, None)
             mapped_charging = map_charging_ocm(entry, None)
             mapped_station = map_station_ocm(entry, self.country_code)

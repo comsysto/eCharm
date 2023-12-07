@@ -5,7 +5,10 @@ import json
 import requests
 from requests import Response
 
-from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
+from charging_stations_pipelines.pipelines.osm import (
+    COUNTRY_CODE_TO_AREA_MAP,
+    DATA_SOURCE_KEY,
+)
 
 
 def get_osm_data(country_code: str, tmp_data_path):
@@ -13,7 +16,7 @@ def get_osm_data(country_code: str, tmp_data_path):
     includes information about charging stations in the specified country.
 
     The `country_code` parameter is a string representing the two-letter country code. Valid country codes are "DE"
-    for Germany, "FR" for France, "GB" for United Kingdom, "IT" for Italy, "NOR" for Norway, and "SWE" for Sweden.
+    for Germany, "FR" for France, "GB" for the United Kingdom, "IT" for Italy, "NOR" for Norway, and "SWE" for Sweden.
 
     The `tmp_data_path parameter` is a string representing the path to save the downloaded OSM data. The OSM data will
     be saved in JSON format.
@@ -31,20 +34,10 @@ def get_osm_data(country_code: str, tmp_data_path):
     :type tmp_data_path: str
     :return: None
     """
-    country_code_to_area = {
-        "DE": "Deutschland",
-        "AT": "Österreich",
-        "FR": "France métropolitaine",
-        "GB": "United Kingdom",
-        "IT": "Italia",
-        "NOR": "Norge",
-        "SWE": "Sverige"
-    }
-
-    if country_code not in country_code_to_area:
+    if country_code not in COUNTRY_CODE_TO_AREA_MAP:
         raise Exception(f"country code '{country_code}' unknown for {DATA_SOURCE_KEY}")
 
-    area_name = country_code_to_area[country_code]
+    area_name = COUNTRY_CODE_TO_AREA_MAP[country_code]
 
     query_params = {
         "data": f"""
@@ -64,9 +57,13 @@ def get_osm_data(country_code: str, tmp_data_path):
         """
     }
 
-    response: Response = requests.get("https://overpass-api.de/api/interpreter", query_params)
+    response: Response = requests.get(
+        "https://overpass-api.de/api/interpreter", query_params
+    )
     status_code: int = response.status_code
     if status_code != 200:
-        raise RuntimeError(f"Failed to get {DATA_SOURCE_KEY} data! Status code: {status_code}")
+        raise RuntimeError(
+            f"Failed to get {DATA_SOURCE_KEY} data! Status code: {status_code}"
+        )
     with open(tmp_data_path, "w") as f:
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)

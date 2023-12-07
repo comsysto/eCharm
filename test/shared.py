@@ -95,11 +95,6 @@ def skip_if_github():
     return 'GITHUB_WORKFLOW' in os.environ
 
 
-def is_float_eq(a, b, eps=1e-10):
-    """Check if two floating-point numbers are close to each other (i.e. "equal")."""
-    return abs(a - b) <= eps
-
-
 class LogLocalCaptureFixture:
     """Provides access and control of log capturing."""
 

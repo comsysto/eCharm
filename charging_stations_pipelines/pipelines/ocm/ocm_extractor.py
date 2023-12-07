@@ -77,7 +77,7 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
     data_dir: str = os.path.join(data_root_dir, f"data/{country_code}")
 
     try:
-        git_version_raw: str = subprocess.check_output(["git", "--version"]).decode('urt-8')
+        git_version_raw: str = subprocess.check_output(["git", "--version"]).decode()
         pattern = re.compile(r"\d+\.\d+\.\d+")
         match = re.search(pattern, git_version_raw).group()
         git_version: version = version.parse(match)
@@ -87,8 +87,8 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
         raise RuntimeError(f"Could not parse git version! {e}")
     else:
         if git_version < version.parse("2.25.0"):
-            logger.warning(
-                    f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
+            logger.warning(f"found git version {git_version}, extracted from git"
+                           f" --version: {git_version_raw} and regex match {match}")
             raise RuntimeError("Git version must be >= 2.25.0!")
 
     if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:
@@ -122,7 +122,7 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
     records: List = []
     for subdir, dirs, files in os.walk(os.path.join(data_dir)):
         for file in files:
-            with open(os.path.join(subdir, file), "r") as f:
+            with open(os.path.join(subdir, file)) as f:
                 records += [(json.load(f))]
     data: pd.DataFrame = pd.json_normalize(records)
 

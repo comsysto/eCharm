@@ -227,7 +227,8 @@ Black reformats the code, isort orders the imports and flake8 checks for remaini
 Example usage:
 
 ```bash
-isort -rc -sl .
-autoflake --remove-all-unused-imports -i -r --exclude alembic .
-isort -rc -m 3 .
+isort --force-single-line-imports .
+autoflake --remove-all-unused-imports -i -r --exclude ./alembic .
+# Note: '3' means 3-vert-hanging multiline imports
+isort --multi-line 3 .
 ```

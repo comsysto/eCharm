@@ -8,7 +8,11 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.shared import check_coordinates, parse_date
+from charging_stations_pipelines.shared import (
+    check_coordinates,
+    parse_date,
+    str_strip_whitespace,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,24 +40,20 @@ def map_address_ocm(row, station_id):
     town_raw: Optional[str] = row["AddressInfo.Town"]
     town: Optional[str] = town_raw if isinstance(town_raw, str) else None
 
-    state_raw: Optional[str] = row["AddressInfo.StateOrProvince"]
-    state: Optional[str] = state_raw if isinstance(state_raw, str) else None
-
     country: Optional[str] = row["Title_x"]
 
     street_raw: Optional[str] = row["AddressInfo.AddressLine1"]
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
-    map_address = Address()
-    map_address.state = None
-    map_address.station_id = station_id
-    map_address.street = street
-    map_address.town = town
-    map_address.postcode = postcode
-    map_address.district = None
-    map_address.state = state
-    map_address.country = country
-    return map_address
+    address = Address()
+    address.station_id = station_id
+    address.street = street
+    address.town = town
+    address.postcode = postcode
+    address.district = None
+    address.state = str_strip_whitespace(row.get("AddressInfo.StateOrProvince")) or None
+    address.country = country
+    return address
 
 
 def map_charging_ocm(row, station_id) -> Charging:

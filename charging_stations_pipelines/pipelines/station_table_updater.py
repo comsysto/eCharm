@@ -1,3 +1,5 @@
+"""Module for updating the Stations table."""
+
 from logging import Logger
 
 from sqlalchemy.exc import IntegrityError
@@ -7,6 +9,7 @@ from charging_stations_pipelines.models.station import Station
 
 
 class StationTableUpdater:
+    """Class for updating the Stations table."""
     def __init__(self, session: Session, logger: Logger):
         self.session = session
         self.logger = logger
@@ -17,6 +20,7 @@ class StationTableUpdater:
         }
 
     def update_station(self, station: Station, data_source_key: str):
+        """Updates the Stations table with the given station."""
         error_occurred = False
         self.session.add(station)
 
@@ -38,6 +42,7 @@ class StationTableUpdater:
             self.counts['new'] += 1
 
     def log_update_station_counts(self):
+        """Log the number of new and updated stations."""
         self.logger.info(f"new stations: {self.counts['new']}, "
                          f"updated stations: {self.counts['updated']}, "
                          f"errors: {self.counts['error']}")

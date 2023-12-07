@@ -12,14 +12,14 @@ from charging_stations_pipelines.shared import JSON
 class Pipeline:
     """Base class for data processing pipelines."""
 
-    def __init__(self, config: configparser, session: Session, online=False):
+    def __init__(self, config: configparser, session: Optional[Session], online=False):
         self.config = config
         self.session = session
         self.online = online
 
         self.data: Optional[Union[pd.DataFrame, JSON]] = None
 
-    def _retrieve_data(self):
+    def retrieve_data(self):
         """Retrieves the data from the data source."""
         raise NotImplementedError
 

@@ -7,7 +7,7 @@ from typing import Any, Final, Generator
 
 import requests
 
-from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
+from charging_stations_pipelines.pipelines import at
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +37,9 @@ def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generat
 
     if total_count <= page_size:
         # No pagination needed
-        return
+        yield
 
-    num_pages = total_count // page_size + total_count % page_size
+    num_pages = total_count // page_size + (1 if total_count % page_size else 0)
     for page_num in range(2, num_pages + 1):
         idx_start = page_size * (page_num - 1)
         idx_end = min(page_size * page_num - 1, total_count - 1)
@@ -66,7 +66,7 @@ def get_data(tmp_data_path):
     headers = {'Authorization': f"Basic {os.getenv('ECONTROL_AT_AUTH')}", 'User-Agent': 'Mozilla/5.0'}
     logger.debug(f'Using HTTP headers:\n{headers}')
 
-    logger.info(f"Downloading {DATA_SOURCE_KEY} data from {url}...")
+    logger.info(f"Downloading {at.DATA_SOURCE_KEY} data from {url}...")
     with open(tmp_data_path, 'w') as f:
         for page in _get_paginated_stations(url, headers):
             logger.debug(f"Getting data: {page['fromIndex']}..{page['endIndex']}")
@@ -75,5 +75,5 @@ def get_data(tmp_data_path):
             for station in page['stations']:
                 json.dump(station, f, ensure_ascii=False)
                 f.write('\n')
-    logger.info(f"Downloaded {DATA_SOURCE_KEY} data to: {tmp_data_path}")
+    logger.info(f"Downloaded {at.DATA_SOURCE_KEY} data to: {tmp_data_path}")
     logger.info(f"Downloaded file size: {os.path.getsize(tmp_data_path)} bytes")

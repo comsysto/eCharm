@@ -7,7 +7,7 @@ from charging_stations_pipelines.pipelines.at.econtrol import EcontrolAtPipeline
 from charging_stations_pipelines.pipelines.de.bna import BnaPipeline
 from charging_stations_pipelines.pipelines.fr.france import FraPipeline
 from charging_stations_pipelines.pipelines.gb.gbgov import GbPipeline
-from charging_stations_pipelines.pipelines.nobil.NobilPipeline import NobilPipeline
+from charging_stations_pipelines.pipelines.nobil.nobil_pipeline import NobilPipeline
 from charging_stations_pipelines.shared import config
 
 

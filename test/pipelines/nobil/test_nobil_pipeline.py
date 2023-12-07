@@ -2,7 +2,7 @@
 
 from _decimal import Decimal
 
-from charging_stations_pipelines.pipelines.nobil.NobilPipeline import parse_nobil_connectors
+from charging_stations_pipelines.pipelines.nobil.nobil_pipeline import parse_nobil_connectors
 
 
 def test_parse_nobil_connectors():

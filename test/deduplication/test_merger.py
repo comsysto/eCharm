@@ -13,7 +13,8 @@ from charging_stations_pipelines import settings
 from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
-from test.shared import create_station, get_config, is_float_eq
+from charging_stations_pipelines.shared import float_cmp_eq
+from test.shared import create_station, get_config
 
 
 @pytest.fixture
@@ -121,8 +122,8 @@ def test_ocm_should_have_higher_prio_than_bna(engine):
 
         point = wkb.loads(bytes(merged_station.point.data))
         expected_x, expected_y = 1.11111112, 1.111111
-        assert is_float_eq(point.x, expected_x)
-        assert is_float_eq(point.y, expected_y)
+        assert float_cmp_eq(point.x, expected_x)
+        assert float_cmp_eq(point.y, expected_y)
 
         session.close()
 

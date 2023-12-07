@@ -2,4 +2,5 @@
 
 from typing import Final
 
-DATA_SOURCE_KEY: Final[str] = 'BNA'
+DATA_SOURCE_KEY: Final[str] = "BNA"
+"""The data source key for the BNA (Bundesnetzagentur) data source."""

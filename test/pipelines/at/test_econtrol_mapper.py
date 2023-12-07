@@ -5,7 +5,7 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 
 from charging_stations_pipelines.pipelines.at.econtrol_mapper import map_address, map_charging, map_station
-from test.shared import is_float_eq
+from charging_stations_pipelines.shared import float_cmp_eq
 
 
 def test_map_station():
@@ -153,8 +153,8 @@ def test_map_charging():
     assert c.station_id == 1
     assert c.capacity == 2
     assert c.kw_list == [12.0, 12.0, 12.0, 12.0, 15.0, 15.0, 15.0, 15.0]
-    assert is_float_eq(c.total_kw, 108.0)
-    assert is_float_eq(c.max_kw, 15.0)
+    assert float_cmp_eq(c.total_kw, 108.0)
+    assert float_cmp_eq(c.max_kw, 15.0)
     assert c.ampere_list is None
     assert c.volt_list is None
     assert c.socket_type_list == ['CTESLA', 'S309-1P-16A', 'CG105', 'PAN', 'CTESLA', 'CG105', 'CCCS2', 'CCCS1']

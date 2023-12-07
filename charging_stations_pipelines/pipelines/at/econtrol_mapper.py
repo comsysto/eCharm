@@ -11,7 +11,7 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
+from charging_stations_pipelines.pipelines import at
 from charging_stations_pipelines.shared import check_coordinates, lst_expand, lst_flatten, \
     str_strip_whitespace, str_to_float, try_remove_dupes
 
@@ -23,7 +23,7 @@ T = TypeVar("T")
 def _aggregate_attribute(points: pd.Series, attr: str) -> list[list[T]]:
     attr_list_agg: Final[list[list[T]]] = []
     for p in points:
-        attr_vals: list = p.get(attr, [])
+        attr_vals: list[str] = p.get(attr, [])
         attr_list_agg.append(attr_vals)
 
     return attr_list_agg
@@ -75,6 +75,7 @@ def map_station(row: pd.Series) -> Station:
     station = Station()
 
     station.country_code = country_id  # should be always 'AT'
+
     # Using combination of evseCountryId, evseStationId and evseOperatorId as source_id,
     # since evseStationId alone is not unique enough
     station.source_id = f'{country_id}*{operator_id}*{station_id}'
@@ -85,7 +86,7 @@ def map_station(row: pd.Series) -> Station:
     station.operator = str_strip_whitespace(row.get('contactName')) or None
     station.payment = None
     station.authentication = _extract_auth_modes(row.get("points")) or None
-    station.data_source = DATA_SOURCE_KEY
+    station.data_source = at.DATA_SOURCE_KEY
     station.point = _extract_location(row.get("location"))
     station.raw_data = row.to_json()  # Note: is stored in DB as native type 'JSON'
     station.date_created = None  # Note: is not available in the data source
@@ -108,8 +109,6 @@ def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
     address.town = str_strip_whitespace(row.get("city")) or None
     address.postcode = str_strip_whitespace(row.get("postCode")) or None
     address.district = None  # Note: is not available in the data source
-    address.district = None  # Note: is not available in the data source
-    address.state = None  # Note: is not available in the data source
     address.state = None  # Note: is not available in the data source
     address.country = str_strip_whitespace(row.get("evseCountryId")) or None
 

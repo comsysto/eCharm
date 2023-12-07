@@ -1,7 +1,10 @@
-from dataclasses import dataclass
-from charging_stations_pipelines import settings
 import logging
+from dataclasses import dataclass
+from typing import Optional
+
 import geopandas as gpd
+
+from charging_stations_pipelines import settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +22,7 @@ def stations_data_export(db_connection,
                          export_charging_attributes: bool = False,
                          export_all_countries: bool = False,
                          export_to_csv: bool = False,
-                         export_area: ExportArea = None,
+                         export_area: Optional[ExportArea] = None,
                          file_descriptor: str = ""):
     country_filter = f"country_code='{country_code}' AND " if country_code != "" and not export_all_countries else ""
     merged_filter = "s.is_merged" if export_merged else "NOT s.is_merged"
