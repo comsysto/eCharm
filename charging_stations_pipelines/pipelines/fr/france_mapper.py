@@ -8,14 +8,13 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.shared import check_coordinates
+from charging_stations_pipelines.shared import check_coordinates
 
 logger = logging.getLogger(__name__)
 
 
 def map_address_fra(row):
     street: str = row["adresse_station"]
-    postcode: str = str(row["consolidated_code_postal"])
     town: str = row["consolidated_commune"]
     country: str
     # if not pd.isna(town):
@@ -24,7 +23,7 @@ def map_address_fra(row):
     map_address = Address()
     map_address.street = (street,)
     map_address.town = (town,)
-    map_address.postcode = (postcode,)
+    map_address.postcode = str(row["consolidated_code_postal"])
     map_address.country = ("FR",)
     return map_address
 
@@ -40,8 +39,6 @@ def map_station_fra(row):
     new_station.operator = row["nom_operateur"]
     new_station.data_source = datasource
     new_station.point = from_shape(Point(float(long), float(lat)))
-    # new_station.date_created = (row["date_mise_en_service"].strptime("%Y-%m-%d"),)
-    # new_station.date_updated = (row["date_maj"].strptime("%Y-%m-%d"),)
     if not pd.isna(row["date_mise_en_service"]):
         new_station.date_created = datetime.strptime(row["date_mise_en_service"], "%Y-%m-%d")
     if not pd.isna(row["date_maj"]):

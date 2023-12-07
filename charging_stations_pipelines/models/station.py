@@ -25,9 +25,6 @@ class Station(Base):
     merge_status = Column(String)
     source_stations = relationship("MergedStationSource")
 
-    def __repr__(self):
-        return "<stations with id: {}>".format(self.id)
-
 
 Index(
     "stations_point_geom_idx",

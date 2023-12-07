@@ -195,7 +195,7 @@ pip install -r test/requirements.txt
 You can run all tests under `/test` by running the following command:
 
 ```bash
-python -m unittest discover test
+pytest
 ```
 
 #### Testdata import / Integration test for the merger

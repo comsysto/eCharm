@@ -25,4 +25,4 @@ class Address(Base):
     station = relationship("Station", back_populates="address")
 
     def __repr__(self):
-        return f"<address: id {self.id}, station_id {self.station_id}, street: {self.street}, town: {self.town}>"
+        return f"<address id: {self.id}, station_id: {self.station_id}, street: {self.street}, town: {self.town}>"

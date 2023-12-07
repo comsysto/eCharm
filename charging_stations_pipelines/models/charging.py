@@ -10,9 +10,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Float
 
+from charging_stations_pipelines import settings
 from charging_stations_pipelines.models import Base
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines import settings
 
 
 class Charging(Base):
@@ -22,15 +22,12 @@ class Charging(Base):
     date_created = Column(Date)
     date_updated = Column(Date)
     capacity = Column(Integer)
-    kw_list = Column(ARRAY(Float, as_tuple=False))
-    ampere_list = Column(ARRAY(Float, as_tuple=False))
-    volt_list = Column(ARRAY(Float, as_tuple=False))
-    socket_type_list = Column(ARRAY(String, as_tuple=False))
+    kw_list = Column(ARRAY(Float))
+    ampere_list = Column(ARRAY(Float))
+    volt_list = Column(ARRAY(Float))
+    socket_type_list = Column(ARRAY(String))
     dc_support = Column(Boolean)
     total_kw = Column(Float)
     max_kw = Column(Float)
     is_merged = Column(Boolean, default=False)
     station = relationship("Station", back_populates="charging")
-
-    def __repr__(self):
-        return "<charging with id: {}>".format(self.id)

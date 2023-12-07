@@ -2,7 +2,7 @@ import hashlib
 import logging
 import math
 from numbers import Number
-from typing import Optional, List
+from typing import List, Optional
 
 import pandas as pd
 from geoalchemy2.shape import from_shape
@@ -11,7 +11,7 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.shared import check_coordinates
+from charging_stations_pipelines.shared import check_coordinates
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def lat_long_hash(lat_row, long_row, data_source):
 
 def _clean_attributes(charging: Charging):
     if charging.capacity and charging.capacity > MAX_CAPACITY:
-        charging.charging = AVG_CAPACITY
+        charging.capacity = AVG_CAPACITY
     return charging
 
 
