@@ -8,7 +8,7 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.shared import check_coordinates
+from charging_stations_pipelines.shared import check_coordinates
 
 logger = logging.getLogger(__name__)
 

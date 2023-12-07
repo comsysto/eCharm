@@ -1,8 +1,8 @@
 """This module contains the methods for mapping the OpenStreetMap (OSM) data to the database models."""
+import json
 import logging
-import math
 from datetime import datetime
-from typing import Any, Final, Optional
+from typing import Final, Optional
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
@@ -10,13 +10,13 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
-from charging_stations_pipelines.pipelines.shared import check_coordinates, lst_flatten
-from charging_stations_pipelines.shared import filter_none, try_clean_str, try_float, try_split_str
+from charging_stations_pipelines.pipelines import osm
+from charging_stations_pipelines.shared import (check_coordinates, JSON, lst_filter_none, lst_flatten,
+    str_clean_pattern, str_split_pattern, str_strip_whitespace, str_to_float)
 
 logger = logging.getLogger(__name__)
 
-SOCKET_TYPES = {  # type: Final[dict[str, str]]
+SOCKET_TYPES: Final[dict[str, str]] = {
     'socket:chademo':            'CHAdeMO',
     'socket:schuko':             'AC Schuko',
     'socket:tesla_supercharger': 'Tesla Supercharger',
@@ -27,30 +27,41 @@ SOCKET_TYPES = {  # type: Final[dict[str, str]]
     'socket:type3c':             'AC Steckdose Typ 3c',
     'socket:typee':              'AC Steckdose Typ E'}
 
+ADDRESS_KEYS: Final[list[str]] = [
+    "addr:city",
+    "addr:country",
+    "addr:housenumber",
+    "addr:postcode",
+    "addr:street",
+]
 
-def map_station_osm(entry: dict, country_code: str) -> Station:
+
+def map_station_osm(entry: JSON) -> Station:
     """Maps an entry from OpenStreetMap to a Station object.
 
     :param entry: The entry from OpenStreetMap to be mapped.
-    :param country_code: The country code of the station.
     :return: The mapped Station object.
     """
-    datasource: str = DATA_SOURCE_KEY
-    lat = check_coordinates(entry["lat"])
-    lon = check_coordinates(entry["lon"])
-    operator: Optional[str] = entry["tags"].get("operator")
+    lat = check_coordinates(entry.get("lat"))
+    lon = check_coordinates(entry.get("lon"))
 
     new_station = Station()
-    new_station.country_code = country_code
-    new_station.source_id = entry["id"]
-    new_station.operator = operator
-    new_station.data_source = datasource
-    new_station.point = from_shape(Point(float(lon), float(lat)))
-    new_station.date_created = entry.get("timestamp", datetime.now())
+    new_station.country_code = str_strip_whitespace(entry.get("country_code")) or None
+    new_station.source_id = entry.get("id") or None
+    new_station.operator = (
+        str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
+    )
+    new_station.data_source = osm.DATA_SOURCE_KEY
+    new_station.point = from_shape(Point(lon, lat)) if lon and lat else None
+    new_station.date_created = (
+        str_strip_whitespace(entry.get("timestamp")) or datetime.now()
+    )
+    new_station.raw_data = json.dumps(entry, ensure_ascii=False)
+
     return new_station
 
 
-def map_address_osm(entry: dict, station_id: Optional[int]) -> Optional[Address]:
+def map_address_osm(entry: JSON, station_id: Optional[int]) -> Optional[Address]:
     """This method maps the address information from the OpenStreetMap (OSM) entry to an Address object.
 
     :param entry: A dictionary representing the address entry
@@ -60,80 +71,112 @@ def map_address_osm(entry: dict, station_id: Optional[int]) -> Optional[Address]
     tags = entry.get('tags')
     if not tags:
         return None
-    address_keys = [  # type: Final[list[str]]
-        "addr:city",
-        "addr:country",
-        "addr:housenumber",
-        "addr:postcode",
-        "addr:street"]
-    if all(key in tags for key in address_keys):
-        city = tags["addr:city"]
-        country = tags["addr:country"]
-        housenumber = tags["addr:housenumber"]
-        postcode = tags["addr:postcode"]
-        street = tags["addr:street"]
 
-        map_address = Address()
-        map_address.station_id = station_id
-        map_address.street = street + " " + housenumber
-        map_address.town = city
-        map_address.postcode = postcode
-        map_address.country = country
+    if not all(key in tags for key in ADDRESS_KEYS):
+        return None
 
-        return map_address
+    map_address = Address()
+    map_address.station_id = station_id
+    map_address.street = (
+        str_strip_whitespace(
+            str_strip_whitespace(tags.get("addr:street"))
+            + " "
+            + str_strip_whitespace(tags.get("addr:housenumber"))
+        )
+        or None
+    )
+    map_address.town = str_strip_whitespace(tags.get("addr:city")) or None
+    map_address.postcode = str_strip_whitespace(tags.get("addr:postcode")) or None
+    map_address.country = str_strip_whitespace(tags.get("addr:country")) or None
+
+    return map_address
 
 
-def _extract_ampere_list(datapoint: dict[str, Any]) -> list[float]:
-    raw = datapoint.get('tags', {}).get('amperage')
+def _extract_ampere_list(datapoint: JSON) -> list[float]:
+    raw = datapoint.get("tags", {}).get("amperage")
     if not raw:
         return []
-    raw = try_clean_str(raw, r'(kva|ac|dc|a)')
-    list_raw = try_split_str(raw, '[,;-]')
-    return filter_none(map(try_float, list_raw))
+    raw = str_clean_pattern(raw, r"(kva|ac|dc|a)")
+    list_raw = str_split_pattern(raw, r"[,;\-]")
+
+    return lst_filter_none(map(str_to_float, list_raw))
 
 
-def _extract_volt_list(datapoint: dict[str, Any]) -> list[float]:
-    raw = datapoint.get('tags', {}).get('voltage')
+def _extract_volt_list(datapoint: JSON) -> list[float]:
+    raw = datapoint.get("tags", {}).get("voltage")
     if not raw:
         return []
-    if 'kw' in raw.lower():
+    if "kw" in raw.lower():
         return []
-    raw = try_clean_str(raw, r'(v)')
-    list_raw = try_split_str(raw, r'[,;\\/ \\-]')
-    return filter_none(map(lambda v: math.trunc(v) if v else None, map(try_float, list_raw)))
+    raw = str_clean_pattern(raw, r"(v)")
+    list_raw = str_split_pattern(raw, r"[,;\/ \-]")
+    list_float = lst_filter_none(map(str_to_float, list_raw))
+
+    return [float_num for float_num in list_float if float_num > 0.0]
 
 
-def _extract_capacity(datapoint: dict[str, Optional[str]]) -> Optional[int]:
+def _extract_capacity(datapoint: JSON) -> Optional[int]:
     raw = datapoint.get('tags', {}).get('capacity')
     if not raw:
         return None
-    capacity_raw = try_float(raw.strip())
-    return math.trunc(capacity_raw) if capacity_raw else None
+
+    return str_to_float(str_strip_whitespace(raw))
 
 
-def _extract_kw_list(raw: str) -> list[float]:
+def extract_kw_list(raw: Optional[str]) -> list[float]:
+    """Extracts a list of kW values from a raw string."""
     if not raw:
         return []
+    raw_str = str_clean_pattern(raw, r"(kw|kva)")
+    raw_list = str_split_pattern(raw_str, r"[,;\-]")
 
-    raw_str = try_clean_str(raw, r'(kw|kva)')
-    raw_list = try_split_str(raw_str, '[,;-]')
-
-    return filter_none(map(try_float, raw_list))
+    return lst_filter_none(map(str_to_float, raw_list))
 
 
-def _extract_kw_map(datapoint: dict[str, Any]) -> dict[str, list[float]]:
+def extract_kw_map(datapoint: JSON) -> dict[str, list[float]]:
+    """Extracts a map of socket types to kW values from a datapoint."""
     tags = datapoint.get('tags', {})
 
-    socket_output_map: dict[str, list[float]] = {}
-    for k in SOCKET_TYPES.keys():
-        kw_list = _extract_kw_list(tags.get(f'{k}:output'))
-        if kw_list:
-            socket_output_map[k] = kw_list
+    socket_output_dict = {}
+    for socket_type in SOCKET_TYPES.keys():
+        socket_output_dict[socket_type] = extract_kw_list(
+            tags.get(f"{socket_type}:output")
+        )
+    socket_output_map = {k: v for k, v in socket_output_dict.items() if v}
 
     return socket_output_map
 
 
-def map_charging_osm(row: dict[str, Any], station_id: Optional[int]) -> Charging:
+def calc_total_kw(
+    kw_list: Optional[list[float]],
+    station_output_raw: Optional[str],
+) -> Optional[float]:
+    """Calculates the total output of a charging station in kW.
+
+    The total output is the maximum value either summed output of all
+    sockets or the output parsed from station raw output.
+
+    :param kw_list: list of kw output for each socket.
+    :param station_output_raw: raw station output string
+
+    :return: maximum total output of the station
+    """
+
+    # sum output of all sockets if available, otherwise default to 0
+    summed_total_kw = sum(kw_list) if kw_list else 0.0
+
+    # Prepare station output from raw str
+    cleaned_str = str_clean_pattern(station_output_raw, r"(kw,;\-)")
+    striped_str = str_strip_whitespace(cleaned_str)
+
+    # Convert raw station output str to float, otherwise default to 0
+    station_output = str_to_float(striped_str) or 0.0
+
+    # Return the maximum of the summed output and single station output
+    return max(summed_total_kw, station_output)
+
+
+def map_charging_osm(row: JSON, station_id: Optional[int]) -> Charging:
     """Extracts charging station data from a row of the OSM dataset.
 
     :param row: A dictionary containing the charging station data.
@@ -142,16 +185,21 @@ def map_charging_osm(row: dict[str, Any], station_id: Optional[int]) -> Charging
     :return: A Charging object populated with the extracted data.
     """
     # OSM's Tag:amenity=charging_station - https://wiki.openstreetmap.org/wiki/Tag:amenity%3Dcharging_station
-    kw_map = _extract_kw_map(row)
+    kw_map = extract_kw_map(row)
+    kw_list = lst_flatten([v for v in kw_map.values()])
+
     charging = Charging()
     charging.station_id = station_id
-    charging.capacity = _extract_capacity(row)
-    charging.kw_list = lst_flatten([v for v in kw_map.values()])
-    charging.ampere_list = _extract_ampere_list(row)
-    charging.volt_list = _extract_volt_list(row)
-    charging.socket_type_list = [SOCKET_TYPES.get(k) for k in kw_map.keys()]
+    charging.capacity = _extract_capacity(row) or None
+    charging.kw_list = kw_list or None
+    charging.ampere_list = _extract_ampere_list(row) or None
+    charging.volt_list = _extract_volt_list(row) or None
+    charging.socket_type_list = [SOCKET_TYPES.get(k) for k in kw_map.keys()] or None
     charging.dc_support = None
-    charging.total_kw = sum(charging.kw_list) if charging.kw_list else None
-    charging.max_kw = max(charging.kw_list) if charging.kw_list else None
+    charging.total_kw = (
+        calc_total_kw(kw_list, row.get("tags", {}).get("charging_station:output"))
+        or None
+    )
+    charging.max_kw = max(kw_list) if kw_list else None
 
     return charging
