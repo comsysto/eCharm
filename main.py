@@ -87,10 +87,13 @@ def get_db_engine(**kwargs):
 def run_import(countries: list[str], online: bool, delete_data: bool):
     """This method runs the import process for the specified countries. It has three parameters."""
     if delete_data:
-        logger.debug("deleting all data ...")
+        logger.info("Deleting all data...")
         db_utils.delete_all_data(sessionmaker(bind=get_db_engine())())
+        logger.info("Finished deleting all data.")
 
+    logger.info("Starting to import data...")
     for country in countries:
+        logger.info(f"Importing data for country: {country}...")
         db_session = sessionmaker(bind=get_db_engine())()
 
         gov_pipeline = pipeline_factory(db_session, country, online)
@@ -101,6 +104,7 @@ def run_import(countries: list[str], online: bool, delete_data: bool):
 
         ocm = OcmPipeline(country, config, db_session, online)
         ocm.run()
+    logger.info("Finished importing data.")
 
 
 def run_merge(countries: list[str], delete_data: bool):
@@ -108,12 +112,16 @@ def run_merge(countries: list[str], delete_data: bool):
     engine = get_db_engine(pool_pre_ping=True)
 
     if delete_data:
-        logger.debug("deleting merged data ...")
+        logger.info("Deleting merged data...")
         db_utils.delete_all_merged_data(sessionmaker(bind=engine)())
+        logger.info("Finished deleting merged data.")
 
+    logger.info("Starting to merge data...")
     for country in countries:
+        logger.info(f"Merging data for country: {country}...")
         merger = StationMerger(country_code=country, config=config, db_engine=engine)
         merger.run()
+    logger.info("Finished merging data.")
 
 
 def run_export(cli_args):
@@ -139,6 +147,7 @@ def run_export(cli_args):
                              file_descriptor=args_file_descriptor)
     else:
         for country in cli_args.countries:
+            # noinspection PyArgumentEqualDefault
             stations_data_export(get_db_engine(),
                                  country_code=country,
                                  export_merged=cli_args.export_merged_stations,

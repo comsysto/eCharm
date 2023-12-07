@@ -11,8 +11,7 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.de import DATA_SOURCE_KEY
-from charging_stations_pipelines.pipelines.shared import check_coordinates
+from charging_stations_pipelines.shared import check_coordinates
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +91,7 @@ def map_charging_bna(row, station_id):
                 v: str = v.replace(",", ".")
                 logger.debug("Replaced coma with point for string to float conversion of kw!")
             try:
-                float_kw = float(v)
+                float_kw: float = float(v)
                 kw_list += [float_kw]
             except Exception:
                 logger.warning(f"Failed to convert kw string {v} to float! Will not add this kw entry to list!")
@@ -128,7 +127,6 @@ def map_charging_bna(row, station_id):
         logger.warning(f"Difference between length of kw_list {kw_list_len} and capacity {capacity}!")
 
     charging = Charging()
-
     charging.station_id = station_id
     charging.capacity = capacity
     charging.kw_list = kw_list

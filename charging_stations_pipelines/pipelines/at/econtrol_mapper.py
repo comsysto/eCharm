@@ -12,7 +12,7 @@ from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
-from charging_stations_pipelines.pipelines.shared import check_coordinates, lst_expand, lst_flatten, \
+from charging_stations_pipelines.shared import check_coordinates, lst_expand, lst_flatten, \
     str_strip_whitespace, str_to_float, try_remove_dupes
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from charging_stations_pipelines.pipelines.shared import check_coordinates, lst_expand, lst_flatten, parse_date, \
+from charging_stations_pipelines.shared import check_coordinates, lst_expand, lst_flatten, parse_date, \
     str_strip_whitespace, str_to_float, try_remove_dupes
 from test.shared import is_float_eq
 
