@@ -36,17 +36,18 @@ ADDRESS_KEYS: Final[list[str]] = [
 ]
 
 
-def map_station_osm(entry: JSON) -> Station:
+def map_station_osm(entry: JSON, country_code: str) -> Station:
     """Maps an entry from OpenStreetMap to a Station object.
 
     :param entry: The entry from OpenStreetMap to be mapped.
+    :param country_code: The country code for which this mapping is executed.
     :return: The mapped Station object.
     """
     lat = check_coordinates(entry.get("lat"))
     lon = check_coordinates(entry.get("lon"))
 
     new_station = Station()
-    new_station.country_code = str_strip_whitespace(entry.get("country_code")) or None
+    new_station.country_code = country_code
     new_station.source_id = entry.get("id") or None
     new_station.operator = (
         str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
