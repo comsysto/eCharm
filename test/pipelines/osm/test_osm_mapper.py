@@ -21,7 +21,6 @@ from charging_stations_pipelines.shared import float_cmp_eq
     [
         (
             {
-                "country_code": "FR",
                 "id": 2144376575,
                 "lat": 48.0449426,
                 "lon": -1.602638,
