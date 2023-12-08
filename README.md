@@ -53,8 +53,8 @@ Mac:
 
 Install and activate Python 3.9.x , e.g.
 
-    pyenv install 3.9.10
-    pyenv local 3.9.10
+    pyenv install 3.9.18
+    pyenv local 3.9.18
 
 Check local version
 
