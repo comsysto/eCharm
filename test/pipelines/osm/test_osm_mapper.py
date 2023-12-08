@@ -21,7 +21,6 @@ from charging_stations_pipelines.shared import float_cmp_eq
     [
         (
             {
-                "country_code": "FR",
                 "id": 2144376575,
                 "lat": 48.0449426,
                 "lon": -1.602638,
@@ -57,7 +56,7 @@ from charging_stations_pipelines.shared import float_cmp_eq
     ],
 )
 def test_station_mapping(test_data, expected):
-    s = osm_mapper.map_station_osm(test_data)
+    s = osm_mapper.map_station_osm(test_data, "FR")
     assert s.country_code == expected["country_code"]
     assert s.source_id == expected["source_id"]
     assert s.operator == expected["operator"]
