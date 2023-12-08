@@ -59,12 +59,12 @@ def map_address_bna(row, station_id) -> Address:
     if len(postcode) == 4:
         postcode = "0" + postcode
     if len(postcode) != 5:
-        logger.warning(
+        logger.debug(
             f"Failed to process postcode {postcode}! Will set postcode to None!"
         )
         postcode = None
     if len(town) < 2:
-        logger.warning(f"Failed to process town {town}! Will set town to None!")
+        logger.debug(f"Failed to process town {town}! Will set town to None!")
         town = None
     map_address = Address()
     map_address.street = (street,)
