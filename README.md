@@ -59,6 +59,10 @@ Install and activate Python 3.12.x , e.g.
 
     pyenv install 3.12.0
     pyenv local 3.12.0
+   
+... or, if you already have Python 3.12.x installed, run
+
+    pyenv local system
 
 Check local version
 
