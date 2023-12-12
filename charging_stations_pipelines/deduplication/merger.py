@@ -141,27 +141,9 @@ class StationMerger:
             data_sources = stations_to_merge["data_source"].unique()
             data_sources.sort()
 
-            # FIXME!
-            # [2023-12-12 11:46:40 +0100] ERROR    charging_stations_pipelines.deduplication.merger:
-            # No data sources found for               source_id
-            #  data_source                        point  \
-            # 109954  DE*ELE*EKRIMML4  AT_ECONTROL  POINT (12.167938 12.167938)
-            # 109952   DE*ELE*EKRIMML  AT_ECONTROL  POINT (12.167938 12.167938)
-            #
-            #             operator capacity                       street    town distance  \
-            # 109954  David Gruber     None  Gerlos Straße, Parkplatz P4  Krimml      0.0
-            # 109952  David Gruber     None  Gerlos Straße, Parkplatz P4  Krimml      0.0
-            #
-            #        station_id_col is_duplicate                             address
-            # 109954         109954         True  Gerlos Straße, Parkplatz P4,Krimml
-            # 109952         109952         True  Gerlos Straße, Parkplatz P4,Krimml
-            # 100%|█████████▉| 88283/88295 [10:43<00:00, 137.18it/s]
-            # Traceback (most recent call last):
-            if not merged_station:
-                logger.error(f"No data sources found for {stations_to_merge}")
             merged_station.data_source = ",".join(data_sources)
 
-            # get other attributes by priority:
+            # Get other attributes by priority:
             # coordinates in dataframe are WKB ? maybe convert to WKT?
             point = self._get_attribute_by_priority(
                 stations_to_merge,

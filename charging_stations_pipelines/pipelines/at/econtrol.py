@@ -89,7 +89,7 @@ class EcontrolAtPipeline(Pipeline):
                     stats["count_country_mismatch_stations"] += 1
 
                 # Address mapping
-                station.address = map_address(datapoint, None)
+                station.address = map_address(datapoint, self.country_code, None)
 
                 # Count stations which have an invalid address
                 if (

@@ -14,7 +14,6 @@ from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
 from charging_stations_pipelines.shared import (
     check_coordinates,
-    coalesce,
     lst_expand,
     lst_flatten,
     str_strip_whitespace,
@@ -27,7 +26,10 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def _aggregate_attribute(points: pd.Series, attr: str) -> list[list[T]]:
+def aggregate_attribute(points: pd.Series, attr: str) -> Optional[list[list[T]]]:
+    if points is None:
+        return None
+
     attr_list_agg: Final[list[list[T]]] = []
     for p in points:
         attr_vals: list[str] = p.get(attr, [])
@@ -38,7 +40,7 @@ def _aggregate_attribute(points: pd.Series, attr: str) -> list[list[T]]:
 
 def _extract_auth_modes(points: pd.Series) -> list[str]:
     # Aggregate authentication modes
-    auth_modes_agg = _aggregate_attribute(points, "authenticationModes")
+    auth_modes_agg = aggregate_attribute(points, "authenticationModes")
     flattened_auth_modes_agg = lst_flatten(auth_modes_agg)
     auth_modes_list = try_remove_dupes(flattened_auth_modes_agg)
 
@@ -77,16 +79,15 @@ def map_station(row: pd.Series, country_code: str) -> Station:
     - 'date_created': The creation date of the station.
     - 'date_updated': The update date of the station.
     """
-    country_id = coalesce(str_strip_whitespace(row.get("evseCountryId")),  country_code)
     operator_id  = str_strip_whitespace(row.get("evseOperatorId")) or None
     station_id = str_strip_whitespace(row.get("evseStationId")) or None
 
     station = Station()
-    station.country_code = country_id
-    # Using combination of evseCountryId, evseStationId and evseOperatorId as source_id,
+    station.country_code = country_code
+    # Using combination of country_code, evseStationId and evseOperatorId as source_id,
     # since evseStationId alone is not unique enough
-    station.source_id = f"{country_id}*{operator_id}*{station_id}"
-    station.evse_country_id = str_strip_whitespace(country_id) or None
+    station.source_id = f"{country_code}*{operator_id}*{station_id}"
+    station.evse_country_id = str_strip_whitespace(row.get("evseCountryId")) or None
     station.evse_operator_id = str_strip_whitespace(operator_id) or None
     station.evse_station_id = str_strip_whitespace(station_id) or None
     # contactName: e.g. "E-Werk der Stadtgemeinde Kindberg"
@@ -102,10 +103,11 @@ def map_station(row: pd.Series, country_code: str) -> Station:
     return station
 
 
-def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
+def map_address(row: pd.Series, country_code: str, station_id: Optional[int]) -> Address:
     """Maps the given raw datapoint to an Address object.
 
     :param row: A datapoint representing the raw data.
+    :param country_code: A string representing the country code of the station, e.g. 'DE'.
     :param station_id: An integer representing the station ID.
     :return: An Address object.
     """
@@ -117,7 +119,7 @@ def map_address(row: pd.Series, station_id: Optional[int]) -> Address:
     address.postcode = str_strip_whitespace(row.get("postCode")) or None
     address.district = None  # Note: is not available in the data source
     address.state = None  # Note: is not available in the data source
-    address.country = str_strip_whitespace(row.get("evseCountryId")) or None
+    address.country = country_code
 
     return address
 
@@ -131,7 +133,7 @@ def _extract_charger_details(points: pd.Series) -> tuple[list[float], list[str]]
     kw_list = lst_expand(kw_list_agg)
 
     # Aggregate socket types
-    socket_type_list_agg = _aggregate_attribute(points, "connectorTypes")
+    socket_type_list_agg = aggregate_attribute(points, "connectorTypes")
     socket_type_list = lst_flatten(socket_type_list_agg)
 
     return kw_list, socket_type_list
