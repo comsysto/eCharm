@@ -1,6 +1,5 @@
 """Station database entity."""
-
-from geoalchemy2.types import Geography
+from geoalchemy2 import Geography
 from sqlalchemy import Boolean, Column, Date, ForeignKey, Index, Integer, JSON, String
 from sqlalchemy.orm import relationship
 
@@ -33,9 +32,9 @@ class Station(Base):
 
 
 Index(
-        "stations_point_geom_idx",
-        Station.__table__.c.point,
-        postgresql_using='gist',
+    "stations_point_geom_idx",
+    Station.__table__.c.point,
+    postgresql_using="gist",
 )
 
 
@@ -43,5 +42,5 @@ class MergedStationSource(Base):
     """This class represents a merged station source entity."""
     __tablename__ = f"{settings.db_table_prefix}merged_station_source"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    merged_station_id = Column(Integer, ForeignKey(f'{Station.__tablename__}.id'))
+    merged_station_id = Column(Integer, ForeignKey(f"{Station.__tablename__}.id"))
     duplicate_source_id = Column(String)

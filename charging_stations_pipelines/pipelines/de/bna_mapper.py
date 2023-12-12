@@ -1,10 +1,10 @@
 """Mapper for the BNA data source."""
 import hashlib
 import logging
-import math
 from numbers import Number
-from typing import Optional
+from typing import Optional, Union
 
+import math
 import pandas as pd
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
@@ -28,9 +28,7 @@ def map_station_bna(row: pd.Series):
     new_station.country_code = "DE"
 
     new_station.data_source = bna.DATA_SOURCE_KEY
-    new_station.source_id = hashlib.sha256(
-        f"{lat}{long}{new_station.data_source}".encode()
-    ).hexdigest()
+    new_station.source_id = hashlib.sha256(f"{lat}{long}{new_station.data_source}".encode()).hexdigest()
 
     new_station.operator = row["Betreiber"]
     new_station.point = from_shape(Point(float(long), float(lat)))
@@ -47,9 +45,7 @@ def map_address_bna(row: pd.Series, station_id) -> Address:
     if len(postcode) == 4:
         postcode = "0" + postcode
     if len(postcode) != 5:
-        logger.warning(
-            f"Failed to process postcode {postcode}! Will set postcode to None!"
-        )
+        logger.warning(f"Failed to process postcode {postcode}! Will set postcode to None!")
         postcode = None
     if len(town) < 2:
         logger.warning(f"Failed to process town {town}! Will set town to None!")
@@ -58,11 +54,7 @@ def map_address_bna(row: pd.Series, station_id) -> Address:
     address = Address()
 
     address.station_id = station_id
-    address.street = (
-        str_strip_whitespace(row.get("Straße"))
-        + " "
-        + str_strip_whitespace(row.get("Hausnummer"))
-    )
+    address.street = str_strip_whitespace(row.get("Straße")) + " " + str_strip_whitespace(row.get("Hausnummer"))
     address.town = town
     address.postcode = postcode
     address.district = row["Kreis/kreisfreie Stadt"]
@@ -74,7 +66,7 @@ def map_address_bna(row: pd.Series, station_id) -> Address:
 
 def map_charging_bna(row: pd.Series, station_id):
     """Maps the data from the given pandas Series (row) to create a Charging object for storage in the DB."""
-    total_kw: Optional[float] = row["Nennleistung Ladeeinrichtung [kW]"]
+    total_kw: Optional[Union[str, float]] = row["Nennleistung Ladeeinrichtung [kW]"]
     station_raw = dict(row)
 
     if isinstance(total_kw, str):

@@ -199,6 +199,14 @@ def lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
     )
 
 
+def coalesce(*args):
+    """Returns the first non-empty argument."""
+    for arg in args:
+        if arg is not None and arg != '':
+            return arg
+    return None
+
+
 def reject_if(test: bool, error_message: str = ""):
     """Raises a RuntimeError if the given test is True."""
     if test:
@@ -216,6 +224,7 @@ def load_excel_file(path: str) -> pd.DataFrame:
     """Loads an excel file into a pandas dataframe."""
     # noinspection PyArgumentList
     df = pd.read_excel(path, engine="openpyxl")
+    # Set the column names to the values in the 10th row
     df.columns = df.iloc[9]
     # Drop the comments in the Excel
     df_dropped = df[10:]

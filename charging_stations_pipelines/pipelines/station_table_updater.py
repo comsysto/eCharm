@@ -10,6 +10,7 @@ from charging_stations_pipelines.models.station import Station
 
 class StationTableUpdater:
     """Class for updating the Stations table."""
+
     def __init__(self, session: Session, logger: Logger):
         self.session = session
         self.logger = logger

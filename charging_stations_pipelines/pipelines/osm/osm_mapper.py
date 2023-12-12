@@ -10,7 +10,7 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines import osm
+from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
 from charging_stations_pipelines.shared import (
     check_coordinates,
     JSON,
@@ -45,23 +45,24 @@ ADDRESS_KEYS: Final[list[str]] = [
 ]
 
 
-def map_station_osm(entry: JSON) -> Station:
+def map_station_osm(entry: JSON, country_code: str) -> Station:
     """Maps an entry from OpenStreetMap to a Station object.
 
     :param entry: The entry from OpenStreetMap to be mapped.
+    :param country_code: The country code of the entry.
     :return: The mapped Station object.
     """
     lat = check_coordinates(entry.get("lat"))
     lon = check_coordinates(entry.get("lon"))
 
     new_station = Station()
-    new_station.country_code = str_strip_whitespace(entry.get("country_code")) or None
+    new_station.country_code = country_code
 
     new_station.source_id = entry.get("id") or None
     new_station.operator = (
         str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
     )
-    new_station.data_source = osm.DATA_SOURCE_KEY
+    new_station.data_source = DATA_SOURCE_KEY
     new_station.point = from_shape(Point(lon, lat)) if lon and lat else None
     new_station.date_created = (
         str_strip_whitespace(entry.get("timestamp")) or datetime.now()

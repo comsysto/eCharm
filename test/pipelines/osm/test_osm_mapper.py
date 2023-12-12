@@ -8,8 +8,7 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines import osm
-from charging_stations_pipelines.pipelines.osm import osm_mapper
+from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY, osm_mapper
 from charging_stations_pipelines.pipelines.osm.osm_mapper import (
     extract_kw_list,
     extract_kw_map,
@@ -22,7 +21,6 @@ from charging_stations_pipelines.shared import float_cmp_eq
     [
         (
             {
-                "country_code": "FR",
                 "id": 2144376575,
                 "lat": 48.0449426,
                 "lon": -1.602638,
@@ -48,17 +46,18 @@ from charging_stations_pipelines.shared import float_cmp_eq
                 "type": "node",
             },
             {
-                "country_code": "FR",
+                "country_code": "DE",
                 "source_id": 2144376575,
                 "operator": "Sodetrel",
-                "data_source": osm.DATA_SOURCE_KEY,
+                "data_source": DATA_SOURCE_KEY,
                 "point": from_shape(Point(-1.602638, 48.0449426)),
             },
         ),
     ],
 )
 def test_station_mapping(test_data, expected):
-    s: Station = osm_mapper.map_station_osm(test_data)
+    s: Station = osm_mapper.map_station_osm(test_data, "DE")
+
     assert s.country_code == expected["country_code"]
     assert s.source_id == expected["source_id"]
     assert s.operator == expected["operator"]
@@ -111,7 +110,6 @@ def test_station_mapping(test_data, expected):
         ),
         (
             {  # Test case 2
-                "country_code": "DE",
                 "id": 7578833425,
                 "lat": 49.9796288,
                 "lon": 7.0870036,
@@ -164,7 +162,6 @@ def test_address_mapping(input_data, expected_output):
     [
         (
             {  # Test case: missing address tags
-                "country_code": "DE",
                 "id": 25397898,
                 "lat": 49.0211913,
                 "lon": 8.4310523,

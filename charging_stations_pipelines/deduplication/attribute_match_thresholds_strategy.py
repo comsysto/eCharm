@@ -5,6 +5,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+
 def attribute_match_thresholds_duplicates(
         current_station: pd.Series,
         duplicate_candidates: pd.DataFrame,
@@ -18,9 +19,9 @@ def attribute_match_thresholds_duplicates(
         return duplicate_candidates
 
     logger.debug(f"### Searching for duplicates to station {current_station.source_id}, "
-              f"operator: {current_station.operator}, "
-              f"address: {current_station['address']}"
-              )
+                 f"operator: {current_station.operator}, "
+                 f"address: {current_station['address']}"
+                 )
     logger.debug(f"{len(remaining_duplicate_candidates)} duplicate candidates")
 
     remaining_duplicate_candidates["operator_match"] = remaining_duplicate_candidates.operator.apply(
@@ -51,24 +52,26 @@ def attribute_match_thresholds_duplicates(
         else:
             is_duplicate = False
             logger.debug(f"no duplicate: {duplicate_candidate.data_source}, "
-                      f"source id: {duplicate_candidate.source_id}, "
-                      f"operator: {duplicate_candidate.operator}, "
-                      f"address: {duplicate_candidate.address}, "
-                      f"row id: {duplicate_candidate.name}, "
-                      f"distance: {duplicate_candidate.distance}")
+                         f"source id: {duplicate_candidate.source_id}, "
+                         f"operator: {duplicate_candidate.operator}, "
+                         f"address: {duplicate_candidate.address}, "
+                         f"row id: {duplicate_candidate.name}, "
+                         f"distance: {duplicate_candidate.distance}")
         return is_duplicate
 
     remaining_duplicate_candidates["is_duplicate"] = remaining_duplicate_candidates.apply(is_duplicate_by_score, axis=1)
     # update original candidates
     duplicate_candidates.update(remaining_duplicate_candidates)
 
-    # for all duplicates found via OSM, which has most of the time no address info, run the check again against all candidates
+    # for all duplicates found via OSM, which has most of the time no address info,
+    # run the check again against all candidates
     # so e.g. if we have a duplicate with address it can be matched to other data sources via this attribute
     new_duplicates = remaining_duplicate_candidates[remaining_duplicate_candidates["is_duplicate"]]
     for idx in range(new_duplicates.shape[0]):
         current_station: pd.Series = new_duplicates.iloc[idx]
 
-        # recursive call to the current method, but with some candidates already marked as duplicate and new current station
+        # recursive call to the current method,
+        # but with some candidates already marked as duplicate and new current station
         # TODO: think of changing distance threshold in this 2nd call
         #  as coordinates of other sources are not as good as OSM coordinates
         duplicate_candidates = attribute_match_thresholds_duplicates(

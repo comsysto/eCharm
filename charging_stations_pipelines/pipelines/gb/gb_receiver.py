@@ -9,7 +9,7 @@ from requests import Response
 def get_gb_data(tmp_file_path):
     """Retrieves data from the GB-Gov-Data API and writes it to a temporary file.
         See https://chargepoints.dft.gov.uk/api/help."""
-    api_url = "http://chargepoints.dft.gov.uk/api/retrieve/registry/format/json/"
+    api_url = "https://chargepoints.dft.gov.uk/api/retrieve/registry/format/json/"
     response: Response = requests.get(api_url)
     response.json()
 

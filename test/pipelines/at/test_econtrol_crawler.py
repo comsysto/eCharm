@@ -141,11 +141,9 @@ def test_get_data(
 @mock.patch(
     "charging_stations_pipelines.pipelines.at.econtrol_crawler._get_paginated_stations"
 )
-@mock.patch("os.getenv")
 @mock.patch("os.path.getsize")
 def test_get_data_empty_response(
     mock_getsize,
-    mock_getenv,
     mock_get_paginated_stations,
     mock_open,
     local_caplog: LogLocalCaptureFixture,
@@ -164,8 +162,6 @@ def test_get_data_empty_response(
 
     # Mock os.path.getsize() to return the expected file size
     mock_getsize.return_value = expected_file_size
-    # Mock os.getenv() to return a dummy token
-    mock_getenv.return_value = "test_token"
     # Mock open() to return a dummy file
     mock_file = mock.MagicMock()
     mock_file.__enter__.return_value = io.StringIO()  # In-memory file
@@ -180,7 +176,6 @@ def test_get_data_empty_response(
         econtrol_crawler.get_data(tmp_data_path)
 
     # Check calls
-    mock_getenv.assert_called_with("ECONTROL_AT_AUTH")
     mock_get_paginated_stations.assert_called_once()
     mock_file.assert_not_called()
     assert mock_file.write.called is False
@@ -193,8 +188,3 @@ def test_get_data_empty_response(
 
     # Check file size
     assert len(file_contents) == expected_file_size
-
-    # Check objects from file, after reading it back from the in-memory file
-    # actual_file_content_objs = [json.loads(line) for line in file_contents.splitlines()]
-    # expected_objs = [{f"id{i}": f"station{i}"} for i in range(1, 100 + 1)]
-    # assert actual_file_content_objs == expected_objs

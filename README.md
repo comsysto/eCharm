@@ -223,7 +223,7 @@ Please take advantage of the following tooling:
 pip install isort autoflake black
 ```
 
-Black reformats the code, isort orders the imports and flake8 checks for remaining issues.
+Black re-formats the code, isort orders the imports and flake8 checks for remaining issues.
 Example usage:
 
 ```bash

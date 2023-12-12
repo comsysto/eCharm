@@ -11,9 +11,16 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines import at
-from charging_stations_pipelines.shared import check_coordinates, lst_expand, lst_flatten, \
-    str_strip_whitespace, str_to_float, try_remove_dupes
+from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
+from charging_stations_pipelines.shared import (
+    check_coordinates,
+    coalesce,
+    lst_expand,
+    lst_flatten,
+    str_strip_whitespace,
+    str_to_float,
+    try_remove_dupes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +52,11 @@ def _extract_location(location: pd.Series) -> Optional[WKBElement]:
     return from_shape(Point(lon, lat)) if lon and lat else None
 
 
-def map_station(row: pd.Series) -> Station:
+def map_station(row: pd.Series, country_code: str) -> Station:
     """Maps the data from the given pandas Series (row) to create a Station object for storage in the DB.
 
     :param row: A pandas "row", representing the raw data of a station.
+    :param country_code: A string representing the country code of the station.
     :return: A Station object.
 
     The row object should have the following attributes:
@@ -69,24 +77,23 @@ def map_station(row: pd.Series) -> Station:
     - 'date_created': The creation date of the station.
     - 'date_updated': The update date of the station.
     """
-    country_id, operator_id, station_id = str_strip_whitespace(
-            row.get(["evseCountryId", "evseOperatorId", "evseStationId"]))
+    country_id = coalesce(str_strip_whitespace(row.get("evseCountryId")),  country_code)
+    operator_id  = str_strip_whitespace(row.get("evseOperatorId")) or None
+    station_id = str_strip_whitespace(row.get("evseStationId")) or None
 
     station = Station()
-
-    station.country_code = country_id  # should be always 'AT'
-
+    station.country_code = country_id
     # Using combination of evseCountryId, evseStationId and evseOperatorId as source_id,
     # since evseStationId alone is not unique enough
-    station.source_id = f'{country_id}*{operator_id}*{station_id}'
+    station.source_id = f"{country_id}*{operator_id}*{station_id}"
     station.evse_country_id = str_strip_whitespace(country_id) or None
     station.evse_operator_id = str_strip_whitespace(operator_id) or None
     station.evse_station_id = str_strip_whitespace(station_id) or None
     # contactName: e.g. "E-Werk der Stadtgemeinde Kindberg"
-    station.operator = str_strip_whitespace(row.get('contactName')) or None
+    station.operator = str_strip_whitespace(row.get("contactName")) or None
     station.payment = None
     station.authentication = _extract_auth_modes(row.get("points")) or None
-    station.data_source = at.DATA_SOURCE_KEY
+    station.data_source = DATA_SOURCE_KEY
     station.point = _extract_location(row.get("location"))
     station.raw_data = row.to_json()  # Note: is stored in DB as native type 'JSON'
     station.date_created = None  # Note: is not available in the data source

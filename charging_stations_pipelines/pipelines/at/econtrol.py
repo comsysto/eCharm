@@ -46,6 +46,9 @@ class EcontrolAtPipeline(Pipeline):
     def __init__(self, config: configparser, session: Session, online: bool = False):
         super().__init__(config, session, online)
 
+        # Is always 'AT' for this pipeline
+        self.country_code = "AT"
+
         relative_dir = os.path.join("../../..", "data")
         self.data_dir = os.path.join(
             pathlib.Path(__file__).parent.resolve(), relative_dir
@@ -79,58 +82,42 @@ class EcontrolAtPipeline(Pipeline):
             iterable=self.data.iterrows(), total=self.data.shape[0]
         ):
             try:
-                station = map_station(datapoint)
-                # Filter out stations with country codes that are not in the scope of the pipeline
+                station = map_station(datapoint, self.country_code)
+
+                # Count stations with country codes that are not in the scope of the pipeline
                 if station.country_code not in SCOPE_COUNTRIES:
-                    stats['count_country_mismatch_stations'] += 1
-                    logger.debug(
-                        f"Skipping {DATA_SOURCE_KEY} entry due to invalid country code in Station:"
-                        f" {station.country_code}.\n"
-                        f"Row:\n----\n{datapoint}\n----\n"
-                    )
-                    continue
+                    stats["count_country_mismatch_stations"] += 1
 
                 # Address mapping
                 station.address = map_address(datapoint, None)
-                # Filter out stations which have an invalid address
+
+                # Count stations which have an invalid address
                 if (
                     station.address
                     and station.address.country
                     and station.address.country not in SCOPE_COUNTRIES
                 ):
-                    stats['count_country_mismatch_stations'] += 1
-                    logger.debug(
-                        f"Skipping {DATA_SOURCE_KEY} entry due to invalid country code in Address: "
-                        f"{station.address.country}.\n"
-                        f"Row:\n----\n{datapoint}\n----\n"
-                    )
-                    continue
+                    stats["count_country_mismatch_stations"] += 1
 
-                # Filter out stations which have a mismatching country code between Station and Address
+                # Count stations which have a mismatching country code between Station and Address
                 if station.country_code != station.address.country:
-                    stats['count_country_mismatch_stations'] += 1
-                    logger.debug(
-                        f"Skipping {DATA_SOURCE_KEY} entry due to "
-                        f"mismatching country codes between Station and Address: "
-                        f"{station.country_code} != {station.address.country}.\n"
-                        f"Row:\n----\n{datapoint}\n----\n"
-                    )
-                    continue
+                    stats["count_country_mismatch_stations"] += 1
 
+                # Charging point
                 station.charging = map_charging(datapoint, None)
 
-                stats['count_valid_stations'] += 1
                 station_updater.update_station(station, DATA_SOURCE_KEY)
+                stats["count_valid_stations"] += 1
             except Exception as e:
-                stats['count_parse_error'] += 1
-                logger.debug(
+                stats["count_parse_error"] += 1
+                logger.warning(
                     f"{DATA_SOURCE_KEY} entry could not be parsed, error:\n{e}\n"
                     f"Row:\n----\n{datapoint}\n----\n"
                 )
         logger.info(
             f"Finished {DATA_SOURCE_KEY} Pipeline:\n"
-            f"1. New stations imported: {stats['count_valid_stations']}\n"
-            f"2. Not parseable: {stats['count_parse_error']}\n"
+            f"1. Valid stations found: {stats['count_valid_stations']}\n"
+            f"2. Not parseable stations: {stats['count_parse_error']}\n"
             f"3. Wrong country code stations: {stats['count_country_mismatch_stations']}."
         )
         station_updater.log_update_station_counts()

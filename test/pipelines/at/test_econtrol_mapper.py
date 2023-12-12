@@ -9,6 +9,7 @@ from charging_stations_pipelines.shared import float_cmp_eq
 
 
 def test_map_station():
+    # noinspection DuplicatedCode
     datapoint = pd.Series({
         "city":           "Reichenau im M\u00fchlkreis ",
         "contactName":    "Marktgemeindeamt Reichenau i.M.",
@@ -56,7 +57,7 @@ def test_map_station():
         "website":        "www.reichenau-ooe.at"
     })
 
-    s = map_station(datapoint)
+    s = map_station(datapoint, 'AT')
 
     assert s.source_id == 'AT*000*EREI001'
     assert s.data_source == 'AT_ECONTROL'
@@ -72,6 +73,7 @@ def test_map_station():
 
 
 def test_map_address():
+    # noinspection DuplicatedCode
     datapoint = pd.Series({
         "city":           "Reichenau im M\u00fchlkreis ",
         "contactName":    "Marktgemeindeamt Reichenau i.M.",

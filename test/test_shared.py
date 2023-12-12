@@ -6,6 +6,7 @@ import pytest
 
 from charging_stations_pipelines.shared import (
     check_coordinates,
+    coalesce,
     float_cmp_eq,
     lst_expand,
     lst_filter_none,
@@ -155,3 +156,12 @@ def test_lst_filter_none():
     assert lst_filter_none([1, None, 2, None, 3]) == [1, 2, 3]
     assert lst_filter_none(["a", None, "b", None, "c"]) == ["a", "b", "c"]
     assert lst_filter_none(None) == []
+
+
+def test_coalesce():
+    assert coalesce(None, "", "Hello", "World") == "Hello"
+    assert coalesce(None, "", None) is None
+    assert coalesce("", "", "Test") == "Test"
+    assert coalesce(None, "Hello", "") == "Hello"
+    assert coalesce("", None, 1) == 1
+    assert coalesce("", 1, None, 2) == 1
