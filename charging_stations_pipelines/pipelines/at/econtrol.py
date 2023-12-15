@@ -4,88 +4,65 @@ The data is structured into three main objects:
 - 'Address': Contains address information for the charging station.
 - 'Charging': Provides the charging details for a particular charging station.
 """
+
 import collections
 import configparser
 import logging
-import os
-import pathlib
+from pathlib import Path
 
 import pandas as pd
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from charging_stations_pipelines import PROJ_DATA_DIR
 from charging_stations_pipelines.pipelines import Pipeline
-from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY, SCOPE_COUNTRIES
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import get_data
 from charging_stations_pipelines.pipelines.at.econtrol_mapper import (
     map_address,
     map_charging,
     map_station,
 )
-from charging_stations_pipelines.pipelines.station_table_updater import (
-    StationTableUpdater,
-)
+from charging_stations_pipelines.pipelines.station_table_updater import StationTableUpdater
+from . import DATA_SOURCE_KEY, SUPPORTED_COUNTRIES
 
 logger = logging.getLogger(__name__)
 
 
 class EcontrolAtPipeline(Pipeline):
-    """:class:`EcontrolAtPipeline` is a class that represents a pipeline for processing data
-    from the e-control.at (aka ladestellen.at) - an official data source from the Austrian government.
-
-    :param config: A `configparser` object containing configurations for the pipeline.
-    :param session: A `Session` object representing the session used for database operations.
-    :param online: A boolean indicating whether the pipeline should retrieve data online. Default is False.
-
-    :ivar config: A `configparser` object containing configurations for the pipeline.
-    :ivar session: A `Session` object representing the session used for database operations.
-    :ivar online: A boolean indicating whether the pipeline should retrieve data online.
-    :ivar data_dir: A string representing the directory where data files will be stored.
+    """Class that represents a pipeline for processing data from the e-control.at (aka ladestellen.at)
+    - an official data source from the Austrian government.
     """
 
-    def __init__(self, config: configparser, session: Session, online: bool = False):
+    def __init__(self, config: configparser, session: Session, online=False):
         super().__init__(config, session, online)
 
         # Is always 'AT' for this pipeline
         self.country_code = "AT"
 
-        relative_dir = os.path.join("../../..", "data")
-        self.data_dir = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), relative_dir
-        )
+        self.data_path: Path = PROJ_DATA_DIR / self.config[DATA_SOURCE_KEY]["filename"]
+        self.data_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def _retrieve_data(self):
-        pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_data_path = os.path.join(
-            self.data_dir, self.config[DATA_SOURCE_KEY]["filename"]
-        )
+    def retrieve_data(self) -> None:
         if self.online:
-            logger.info("Retrieving Online Data")
-            get_data(tmp_data_path)
+            logger.debug("Retrieving online data")
+            get_data(self.data_path)
         # NOTE, read data from json file in NDJSON (newline delimited JSON) format,
         #   i.e. one json object per line, thus `lines=True` is required
-        self.data = pd.read_json(tmp_data_path, lines=True)  # pd.DataFrame
+        self.data = pd.read_json(self.data_path, lines=True)  # pd.DataFrame
 
-    def run(self):
-        """Runs the pipeline for a data source.
-        Retrieves data, processes it, and updates the Station table (as well as Address and Charging tables).
-
-        :return: None
-        """
+    def run(self) -> None:
         logger.info(f"Running {DATA_SOURCE_KEY} Pipeline...")
-        self._retrieve_data()
-        station_updater = StationTableUpdater(session=self.session, logger=logger)
+        self.retrieve_data()
 
+        station_updater = StationTableUpdater(self.session, logger)
         stats = collections.defaultdict(int)
         datapoint: pd.Series
-        for _, datapoint in tqdm(
-            iterable=self.data.iterrows(), total=self.data.shape[0]
-        ):
+        for _, datapoint in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):
             try:
                 station = map_station(datapoint, self.country_code)
 
                 # Count stations with country codes that are not in the scope of the pipeline
-                if station.country_code not in SCOPE_COUNTRIES:
+                if station.country_code not in SUPPORTED_COUNTRIES:
                     stats["count_country_mismatch_stations"] += 1
 
                 # Address mapping
@@ -95,7 +72,7 @@ class EcontrolAtPipeline(Pipeline):
                 if (
                     station.address
                     and station.address.country
-                    and station.address.country not in SCOPE_COUNTRIES
+                    and station.address.country not in SUPPORTED_COUNTRIES
                 ):
                     stats["count_country_mismatch_stations"] += 1
 
@@ -114,7 +91,7 @@ class EcontrolAtPipeline(Pipeline):
                     f"{DATA_SOURCE_KEY} entry could not be parsed, error:\n{e}\n"
                     f"Row:\n----\n{datapoint}\n----\n"
                 )
-        logger.info(
+        logger.debug(
             f"Finished {DATA_SOURCE_KEY} Pipeline:\n"
             f"1. Valid stations found: {stats['count_valid_stations']}\n"
             f"2. Not parseable stations: {stats['count_parse_error']}\n"

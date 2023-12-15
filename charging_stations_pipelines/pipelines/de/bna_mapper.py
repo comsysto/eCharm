@@ -1,4 +1,5 @@
 """Mapper for the BNA data source."""
+
 import hashlib
 import logging
 from numbers import Number
@@ -18,18 +19,15 @@ from charging_stations_pipelines.shared import check_coordinates, str_strip_whit
 logger = logging.getLogger(__name__)
 
 
-def map_station_bna(row: pd.Series):
+def map_station_bna(row: pd.Series, country_code: str) -> Station:
     """Maps the data from the given pandas Series (row) to create a Station object for storage in the DB."""
     lat = check_coordinates(row["Breitengrad"])
     long = check_coordinates(row["Längengrad"])
 
     new_station = Station()
-
-    new_station.country_code = "DE"
-
+    new_station.country_code = country_code
     new_station.data_source = bna.DATA_SOURCE_KEY
     new_station.source_id = hashlib.sha256(f"{lat}{long}{new_station.data_source}".encode()).hexdigest()
-
     new_station.operator = row["Betreiber"]
     new_station.point = from_shape(Point(float(long), float(lat)))
     new_station.date_created = row["Inbetriebnahmedatum"].strftime("%Y-%m-%d")
@@ -37,7 +35,7 @@ def map_station_bna(row: pd.Series):
     return new_station
 
 
-def map_address_bna(row: pd.Series, station_id) -> Address:
+def map_address_bna(row: pd.Series, country_code: str, station_id: Optional[int]) -> Address:
     """Maps the data from the given pandas Series (row) to create an Address object for storage in the DB."""
     postcode = str_strip_whitespace(row.get("Postleitzahl"))
     town = str_strip_whitespace(row.get("Ort"))
@@ -52,19 +50,18 @@ def map_address_bna(row: pd.Series, station_id) -> Address:
         town = None
 
     address = Address()
-
     address.station_id = station_id
     address.street = str_strip_whitespace(row.get("Straße")) + " " + str_strip_whitespace(row.get("Hausnummer"))
     address.town = town
     address.postcode = postcode
     address.district = row["Kreis/kreisfreie Stadt"]
     address.state = row["Bundesland"]
-    address.country = "DE"
+    address.country = country_code
 
     return address
 
 
-def map_charging_bna(row: pd.Series, station_id):
+def map_charging_bna(row: pd.Series, station_id: Optional[int]) -> Charging:
     """Maps the data from the given pandas Series (row) to create a Charging object for storage in the DB."""
     total_kw: Optional[Union[str, float]] = row["Nennleistung Ladeeinrichtung [kW]"]
     station_raw = dict(row)

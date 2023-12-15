@@ -2,22 +2,19 @@
 
 import logging
 import os
+from pathlib import Path
 
 import requests as requests
 from bs4 import BeautifulSoup
 
-from charging_stations_pipelines.shared import download_file
+from charging_stations_pipelines.file_utils import download_file
 
 logger = logging.getLogger(__name__)
 
 
-def get_bna_data(tmp_data_path):
-    """Downloads BNA (Bundesnetzagentur) data (Excel sheet 'ladesaeulenregister.xlsx') from its website into a temporary
-    file.
-
-    :param tmp_data_path: The path to save the downloaded data file.
-    :type tmp_data_path: str
-    :return: None
+def get_bna_data(out_file: Path) -> None:
+    """Downloads BNA (Bundesnetzagentur) data (Excel sheet 'ladesaeulenregister.xlsx') from its website into
+    a specified file.
     """
     # Base url & header
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -32,7 +29,8 @@ def get_bna_data(tmp_data_path):
     download_link_elem = soup.find("a", class_="FTxlsx")
     download_link_url = download_link_elem.get("href")
 
-    logger.info(f"Downloading BNA data from {download_link_url}...")
-    download_file(download_link_url, tmp_data_path)
-    logger.info(f"Downloaded BNA data to {tmp_data_path}")
-    logger.info(f"Downloaded file size: {os.path.getsize(tmp_data_path)} bytes")
+    logger.info(f"Downloading data from {download_link_url}...")
+    download_file(download_link_url, out_file)
+
+    logger.debug(f"Downloaded data to {out_file}")
+    logger.debug(f"Downloaded file size: {os.path.getsize(out_file)} bytes")

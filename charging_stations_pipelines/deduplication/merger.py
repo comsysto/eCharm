@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class StationMerger:
     def __init__(
-        self, country_code: str, config: configparser, db_engine, is_test: bool = False
+        self, country_code: str, config: configparser, db_engine, is_test=False
     ):
         self.country_code = country_code
         self.config = config
@@ -36,8 +36,10 @@ class StationMerger:
             "NOR": "NOBIL",
             "SWE": "NOBIL",
         }
+
         if country_code not in country_code_to_gov_source:
-            raise Exception(f"country code '{country_code}' unknown in merger")
+            raise ValueError(f"Country code '{country_code}' unknown in merger")
+
         self.gov_source = country_code_to_gov_source[country_code]
 
     @staticmethod
@@ -236,9 +238,7 @@ class StationMerger:
             """
 
         with self.db_engine.connect() as con:
-            gdf: GeoDataFrame = read_postgis(
-                get_stations_list_sql, con=con, geom_col="point"
-            )
+            gdf: GeoDataFrame = read_postgis(get_stations_list_sql, con=con, geom_col="point")
 
         gdf.sort_values(by=["station_id"], inplace=True, ignore_index=True)
 

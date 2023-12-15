@@ -1,4 +1,5 @@
 """Module for database utilities."""
+
 import logging
 
 from sqlalchemy import delete, text, update
@@ -11,14 +12,14 @@ logger = logging.getLogger(__name__)
 
 def delete_all_data(session: Session):
     """Deletes all data from the database."""
-    logger.info("Deleting all data from the database...")
+    logger.debug("Deleting all data from the database...")
     models = [station.MergedStationSource, station.Station, address.Address, charging.Charging]
     for model in models:
-        logger.info(f"Dropping table: '{model.__tablename__}'...")
+        logger.debug(f"Dropping table: '{model.__tablename__}'...")
         session.execute(text(f'TRUNCATE TABLE {model.__tablename__} RESTART IDENTITY CASCADE'))
     session.commit()
     session.close()
-    logger.info("Finished deleting all data from the database.")
+    logger.debug("Finished deleting all data from the database.")
 
 
 def delete_all_merged_data(session: Session):

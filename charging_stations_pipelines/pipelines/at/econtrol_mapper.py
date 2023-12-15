@@ -11,7 +11,6 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
 from charging_stations_pipelines.shared import (
     check_coordinates,
     lst_expand,
@@ -20,6 +19,7 @@ from charging_stations_pipelines.shared import (
     str_to_float,
     try_remove_dupes,
 )
+from . import DATA_SOURCE_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,6 @@ def map_address(row: pd.Series, country_code: str, station_id: Optional[int]) ->
     :return: An Address object.
     """
     address = Address()
-
     address.station_id = station_id
     address.street = str_strip_whitespace(row.get("street")) or None
     address.town = str_strip_whitespace(row.get("city")) or None

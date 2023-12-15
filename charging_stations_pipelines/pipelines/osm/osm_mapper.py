@@ -1,4 +1,5 @@
 """This module contains the methods for mapping the OpenStreetMap (OSM) data to the database models."""
+
 import json
 import logging
 from datetime import datetime

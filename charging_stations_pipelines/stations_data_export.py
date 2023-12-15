@@ -44,6 +44,7 @@ def stations_data_export(db_connection,
     get_stations_filter = f"{country_filter}{merged_filter}{export_area_filter}"
 
     prefix = settings.db_table_prefix
+    # FIXME: export country_code too!
     if not export_charging_attributes:
         get_stations_list_sql = f"""
             SELECT s.id as station_id, point, data_source, operator, a.street, a.town 

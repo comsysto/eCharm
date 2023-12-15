@@ -9,11 +9,12 @@ from sqlalchemy.orm import sessionmaker
 
 from charging_stations_pipelines import db_utils, settings
 from charging_stations_pipelines.deduplication.merger import StationMerger
+from charging_stations_pipelines.pipelines.ocm import SCOPE_COUNTRIES as ocm_countries
 from charging_stations_pipelines.pipelines.ocm.ocm import OcmPipeline
+from charging_stations_pipelines.pipelines.osm import SUPPORTED_COUNTRIES as osm_countries
 from charging_stations_pipelines.pipelines.osm.osm import OsmPipeline
 from charging_stations_pipelines.pipelines.pipeline_factory import pipeline_factory
-from charging_stations_pipelines.settings import db_uri
-from charging_stations_pipelines.shared import config
+from charging_stations_pipelines.settings import config, db_uri
 from charging_stations_pipelines.stations_data_export import (
     ExportArea,
     stations_data_export,
@@ -26,6 +27,7 @@ logger = logging.getLogger("charging_stations_pipelines.main")
 def parse_args(args):
     """This method is used to parse the command line arguments for the eCharm program."""
     valid_task_options = ["import", "merge", "export", "testdata"]
+    # FIXME: add all European countries flag
     valid_country_options = ["DE", "AT", "FR", "GB", "IT", "NOR", "SWE"]
     valid_export_format_options = ["csv", "GeoJSON"]
 
@@ -140,20 +142,43 @@ def run_import(countries: list[str], online: bool, delete_data: bool):
         db_utils.delete_all_data(sessionmaker(bind=get_db_engine())())
         logger.info("Finished deleting all data.")
 
-    logger.info("Starting to import data...")
+    logger.info("Starting to import GOV data...")
+    # FIXME: externalize all loops
+    # FIXME: add all countries flag
     for country in countries:
-        logger.info(f"Importing data for country: {country}...")
+        logger.info(f"Importing GOV data for country: {country}...")
         db_session = sessionmaker(bind=get_db_engine())()
 
+        # FIXME!
         gov_pipeline = pipeline_factory(db_session, country, online)
-        gov_pipeline.run()
+        # gov_pipeline.run()
+    logger.info("Finished importing GOV data.")
 
+    # FIXME: externalize all loops
+    logger.info("Starting to import OSM data...")
+    num_countries = len(osm_countries)
+    logger.info(f"Importing OSM data for {len(osm_countries)} countries")
+    for idx, country in enumerate(osm_countries, 1):
+        logger.info(f"[{idx}/{num_countries}] Importing OSM data for country: {country}...")
+        db_session = sessionmaker(bind=get_db_engine())()
+
+        # FIXME
         osm = OsmPipeline(country, config, db_session, online)
-        osm.run()
+        # osm.run()
+    logger.info("Finished importing OSM data.")
 
+    # FIXME
+    logger.info("Starting to import OCM data...")
+    num_countries = len(ocm_countries)
+    logger.info(f"Importing OCM data for {num_countries} countries")
+    for idx, country in enumerate(ocm_countries, 1):
+        logger.info(f"[{idx}/{num_countries}] Importing OCM data for country: {country}...")
+        db_session = sessionmaker(bind=get_db_engine())()
+
+        # FIXME
         ocm = OcmPipeline(country, config, db_session, online)
         ocm.run()
-    logger.info("Finished importing data.")
+    logger.info("Finished importing OCM data")
 
 
 def run_merge(countries: list[str], delete_data: bool):
@@ -179,15 +204,12 @@ def run_export(cli_args):
         cli_args.export_file_descriptor if cli_args.export_file_descriptor else ""
     )
 
-    args_export_area = (
-        ExportArea(
+    args_export_area = ExportArea(
             lon=cli_args.export_area[0],
             lat=cli_args.export_area[1],
             radius_meters=cli_args.export_area[2],
-        )
-        if cli_args.export_area
-        else None
-    )
+        ) if cli_args.export_area else None
+
 
     should_export_csv = cli_args.export_format == "csv"
 

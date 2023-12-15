@@ -51,8 +51,18 @@ def _set_up_db(engine, stations):
 def _check_merger(engine, create_stations, run_merger, check_results):
     # Given: db with two duplicate station entries
     session = _set_up_db(engine, create_stations())
+
     # When: run the merger
+    #
+    # NOTE: this suppresses the SettingWithCopyWarning of pandas in foreign code.
+    # <PROJ ROOT>/.venv/lib/python3.9/site-packages/geopandas/geodataframe.py:1351: SettingWithCopyWarning:
+    #   A value is trying to be set on a copy of a slice from a DataFrame.
+    #
+    # See https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+    pd.options.mode.chained_assignment = None  # default is 'warn'
+    #
     run_merger(engine)
+
     # Then: two duplicate stations are merged
     check_results(session)
 
@@ -136,7 +146,6 @@ def test_ocm_should_have_higher_prio_than_bna(engine):
 @pytest.mark.integration_test
 def test_at_merger_bug_country_code_data_source_mismatch(engine):
     def _create_test_station(raw: pd.Series, country_code: str) -> Station:
-
         station = at_mapper.map_station(raw, country_code)
 
         station.address = at_mapper.map_address(raw, country_code, station.id)
@@ -200,6 +209,13 @@ def test_at_merger_bug_country_code_data_source_mismatch(engine):
 
     # Given: db with two problematic station entries
     session = _set_up_db(engine, _create_stations())
+
+    # NOTE: this suppresses the SettingWithCopyWarning of pandas in foreign code.
+    # <PROJ ROOT>/.venv/lib/python3.9/site-packages/geopandas/geodataframe.py:1351: SettingWithCopyWarning:
+    #   A value is trying to be set on a copy of a slice from a DataFrame.
+    #
+    # See https://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas
+    pd.options.mode.chained_assignment = None  # default is 'warn'
 
     # When: run the merger
     # Merge duplicate stations

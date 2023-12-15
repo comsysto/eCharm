@@ -11,30 +11,31 @@ from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.shared import check_coordinates
+from . import DATA_SOURCE_KEY
 
 logger = logging.getLogger(__name__)
 
 
-def map_address_fra(row: pd.Series) -> Address:
+def map_address_fra(row: pd.Series, country_code: str) -> Address:
     """Map the address."""
     address = Address()
 
     address.street = row.get("adresse_station")
     address.town = row.get("consolidated_commune")
     address.postcode = row.get("consolidated_code_postal")
-    address.country = "FR"
+    address.country = country_code
 
     return address
 
 
-def map_station_fra(row: pd.Series) -> Station:
+def map_station_fra(row: pd.Series, country_code: str) -> Station:
     """Map the station."""
     station = Station()
 
-    station.country_code = "FR"
+    station.country_code = country_code
     station.source_id = row.get("id_station_itinerance")
     station.operator = row.get("nom_operateur")
-    station.data_source = "FRGOV"
+    station.data_source = DATA_SOURCE_KEY
     station.point = from_shape(Point(float(check_coordinates(row.get("consolidated_longitude"))),
                                      float(check_coordinates(row.get("consolidated_latitude")))))
     station.date_created = row.get("date_mise_en_service").strptime("%Y-%m-%d")
@@ -50,7 +51,7 @@ def map_station_fra(row: pd.Series) -> Station:
     return station
 
 
-def map_charging_fra(row) -> Station:
+def map_charging_fra(row: pd.Series) -> Station:
     """Map the charging."""
     charging = Charging()
 

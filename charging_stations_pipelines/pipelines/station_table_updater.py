@@ -20,7 +20,7 @@ class StationTableUpdater:
             'error': 0
         }
 
-    def update_station(self, station: Station, data_source_key: str):
+    def update_station(self, station: Station, data_source_key: str) -> None:
         """Updates the Stations table with the given station."""
         error_occurred = False
         self.session.add(station)
@@ -42,7 +42,7 @@ class StationTableUpdater:
         else:
             self.counts['new'] += 1
 
-    def log_update_station_counts(self):
+    def log_update_station_counts(self) -> None:
         """Log the number of new and updated stations."""
         self.logger.info(f"new stations: {self.counts['new']}, "
                          f"updated stations: {self.counts['updated']}, "

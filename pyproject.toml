@@ -24,3 +24,7 @@ target_version = ['py38']
 markers = [
     "integration_test: marks tests as integration tests, which are bit slow (deselect with '-m \"integration_test\"')",
 ]
+# Limit pytest to tests in the listed directories
+testpaths = [
+    "test",
+]

@@ -1,3 +1,5 @@
+"""Mapper for the GBGOV data source."""
+
 import logging
 from typing import Optional
 
@@ -7,31 +9,35 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.shared import check_coordinates
+from charging_stations_pipelines.shared import check_coordinates, JSON
+from . import DATA_SOURCE_KEY
 
 logger = logging.getLogger(__name__)
 
 
-# functions for GB gov data:
-def map_station_gb(entry, country_code: str):
-    datasource = "GBGOV"
+def map_station_gb(entry: JSON, country_code: str) -> Station:
+    """Maps the station data from the GBGOV data source."""
     lat: float = check_coordinates(entry.get("ChargeDeviceLocation").get("Latitude"))
     long: float = check_coordinates(entry.get("ChargeDeviceLocation").get("Longitude"))
     operator: Optional[str] = entry.get("DeviceController").get("OrganisationName")
-    new_station = Station()
-    new_station.country_code = country_code
-    new_station.source_id = entry.get("ChargeDeviceId")
-    new_station.operator = operator
-    new_station.data_source = datasource
-    new_station.point = from_shape(Point(float(long), float(lat)))
-    new_station.date_created = entry.get("DateCreated")
-    new_station.date_updated = entry.get("DateUpdated")
+
+    station = Station()
+    station.country_code = country_code
+    station.source_id = entry.get("ChargeDeviceId")
+    station.operator = operator
+    station.data_source = DATA_SOURCE_KEY
+    station.point = from_shape(Point(float(long), float(lat)))
+    station.date_created = entry.get("DateCreated")
+    station.date_updated = entry.get("DateUpdated")
+
     # TODO: find way to parse date into desired format
-    # parse_date having issues with "date out of range" at value 0"
-    return new_station
+    # FIXME: parse_date having issues with "date out of range" at value 0"
+
+    return station
 
 
-def map_address_gb(entry, station_id):
+def map_address_gb(entry: JSON, station_id: Optional[int]) -> Address:
+    """Maps the address data from the GBGOV data source."""
     postcode_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("PostCode")
     postcode: Optional[str] = postcode_raw
 
@@ -46,23 +52,27 @@ def map_address_gb(entry, station_id):
     street_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("Street")
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
-    map_address = Address()
-    map_address.state = None
-    map_address.station_id = station_id
-    map_address.street = street
-    map_address.town = town
-    map_address.postcode = postcode
-    map_address.district = None
-    map_address.state = state
-    map_address.country = country
-    return map_address
+    address = Address()
+    address.state = None
+    address.station_id = station_id
+    address.street = street
+    address.town = town
+    address.postcode = postcode
+    address.district = None
+    address.state = state
+    address.country = country
+
+    return address
 
 
-def map_charging_gb(entry):
-    mapped_charging_gb: Charging = Charging()
-    mapped_charging_gb.capacity = entry.get("RatedOutputCurrent")
-    # above is not correct information (just there for testing purposes)
+def map_charging_gb(entry: JSON) -> Charging:
+    """Maps the charging data from the GBGOV data source."""
+    charging: Charging = Charging()
+
+    charging.capacity = entry.get("RatedOutputCurrent")
+
+    # FIXME: above is not correct information (just there for testing purposes)
     # TODO:find way to count the points of charge for each station
     # since this information is not available in the json
 
-    return mapped_charging_gb
+    return charging

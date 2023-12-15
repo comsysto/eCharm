@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 from typing import Any, Final, Generator
 
 import requests
@@ -12,7 +13,7 @@ from charging_stations_pipelines.pipelines import at
 logger = logging.getLogger(__name__)
 
 
-def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generator[dict[str, Any], None, None]:
+def get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generator[dict[str, Any], None, None]:
     session = requests.Session()
     session.headers.update(headers)
 
@@ -28,9 +29,9 @@ def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generat
 
         idx_start = first_page['fromIndex']
         idx_end = first_page['endIndex']
-    except KeyError as e:
-        logging.fatal(f'Failed to parse response:\n{first_page}\n{e}')
-        raise e
+    except KeyError as ex:
+        logging.fatal(f"Error: {ex}. Failed to parse response: '{first_page}'")
+        raise ex
 
     # Number of datapoints (=station) per page, e.g. 1000
     page_size: Final[int] = idx_end - idx_start + 1
@@ -49,14 +50,8 @@ def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generat
         yield next_page
 
 
-def get_data(tmp_data_path):
-    """Downloads data from a specified URL and saves it to a file.
-
-    :param tmp_data_path: The path to the file where the data will be saved.
-    :type tmp_data_path: str
-    :return: None
-    :rtype: None
-    """
+def get_data(out_file: Path) -> None:
+    """Downloads data from a specified URL and saves it to a file."""
     url: Final[str] = 'https://api.e-control.at/charge/1.0/search/stations'
 
     # HTTP header
@@ -64,16 +59,17 @@ def get_data(tmp_data_path):
     # econtrol_at_apikey = os.getenv('ECONTROL_AT_APIKEY')
     # econtrol_at_domain = os.getenv('ECONTROL_AT_DOMAIN')
     headers = {'Authorization': f"Basic {os.getenv('ECONTROL_AT_AUTH')}", 'User-Agent': 'Mozilla/5.0'}
-    logger.debug(f'Using HTTP headers:\n{headers}')
+    logger.debug(f'Using HTTP headers: {headers}')
 
-    logger.info(f"Downloading {at.DATA_SOURCE_KEY} data from {url}...")
-    with open(tmp_data_path, 'w') as f:
-        for page in _get_paginated_stations(url, headers):
+    logger.debug(f"Downloading {at.DATA_SOURCE_KEY} data from {url}...")
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    with out_file.open("w") as file:
+        for page in get_paginated_stations(url, headers):
             logger.debug(f"Getting data: {page['fromIndex']}..{page['endIndex']}")
 
             # Save as newline-delimited JSON (*.ndjson), i.e. one JSON object per line
             for station in page['stations']:
-                json.dump(station, f, ensure_ascii=False)
-                f.write('\n')
-    logger.info(f"Downloaded {at.DATA_SOURCE_KEY} data to: {tmp_data_path}")
-    logger.info(f"Downloaded file size: {os.path.getsize(tmp_data_path)} bytes")
+                json.dump(station, file, ensure_ascii=False)
+                file.write('\n')
+    logger.debug(f"Downloaded {at.DATA_SOURCE_KEY} data to: {out_file}")
+    logger.debug(f"Downloaded file size: {out_file.stat().st_size} bytes")

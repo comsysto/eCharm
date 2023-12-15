@@ -27,7 +27,7 @@ def test_map_station_bna():
         }
     )
 
-    station = de_mapper.map_station_bna(data_row)
+    station = de_mapper.map_station_bna(data_row, "DE")
 
     assert isinstance(station, Station)
     assert station.country_code == "DE"
@@ -61,7 +61,7 @@ def test_map_address_bna():
     )
 
     station_id = 1
-    address = de_mapper.map_address_bna(row, station_id)
+    address = de_mapper.map_address_bna(row, "DE", station_id)
 
     assert address.station_id == station_id
     assert address.street == "Test-Street 12A"
@@ -84,7 +84,7 @@ def test_map_address_bna():
     )
 
     station_id = 2
-    address = de_mapper.map_address_bna(row, station_id)
+    address = de_mapper.map_address_bna(row, "DE", station_id)
 
     assert isinstance(address, Address)
     assert address.station_id == station_id

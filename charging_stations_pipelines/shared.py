@@ -1,41 +1,19 @@
 """Module containing shared utility functions for the charging stations pipelines."""
-import configparser
-import json
+
 import logging
-import os
-import pathlib
 import re
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Mapping, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
-import requests
 from dateutil import parser
 
 logger = logging.getLogger(__name__)
 
-current_dir = os.path.join(pathlib.Path(__file__).parent.parent.resolve())
 
-
-_PlainJSON = Union[
-    None, bool, int, float, str, List["_PlainJSON"], Dict[str, "_PlainJSON"]
-]
-"""_PlainJSON is a type alias for a JSON object without custom types."""
-
-JSON = Union[_PlainJSON, Dict[str, "JSON"], List["JSON"]]
-"""JSON is a type alias for a JSON object."""
-
-
-def init_config():
-    """Initializes the configuration from the config.ini file."""
-    cfg: configparser = configparser.RawConfigParser()
-    cfg.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
-    return cfg
-
-
-config: configparser = init_config()
-
+JSON = Union[Sequence['JSON'], Mapping[str, 'JSON'], bool, int, float, str, None]
+"""A type alias for a JSON object."""
 
 T = TypeVar("T")
 
@@ -74,10 +52,12 @@ def parse_date(date_str: Optional[str]) -> Optional[datetime]:
     :param date_str: The string representation of a date.
     :return: A datetime object representing the parsed date, or None if the date could not be parsed.
     """
+    if not date_str:
+        return None
+
     try:
         return parser.parse(date_str)
-    except (parser.ParserError, TypeError) as e:
-        logger.debug(f"Could not parse date string: '{date_str}'! {e}")
+    except (parser.ParserError, TypeError) as _:
         return None
 
 
@@ -143,7 +123,7 @@ def lst_flatten(nested_list: Optional[list[Optional[list[T]]]]) -> list[T]:
     :return: A flattened list.
     """
 
-    def flatten_rec(lst):
+    def _flatten_rec(lst):
         """Helper function to flatten a nested list recursively."""
         if not lst:
             return []
@@ -151,12 +131,12 @@ def lst_flatten(nested_list: Optional[list[Optional[list[T]]]]) -> list[T]:
         result = []
         for elem in lst:
             if isinstance(elem, list):
-                result.extend(flatten_rec(elem))
+                result.extend(_flatten_rec(elem))
             else:
                 result.append(elem)
         return result
 
-    return flatten_rec(nested_list)
+    return _flatten_rec(nested_list)
 
 
 def try_remove_dupes(lst: Optional[list[T]], default=None) -> Optional[list[T]]:
@@ -194,12 +174,10 @@ def lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
     [1.0, 1.0, 1.0, 2.5, 2.5]
     """
     # [0] - float value, [1] - count, how often this value occurs
-    return (
-        [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []
-    )
+    return [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []
 
 
-def coalesce(*args):
+def coalesce(*args) -> Any:
     """Returns the first non-empty argument."""
     for arg in args:
         if arg is not None and arg != '':
@@ -207,37 +185,7 @@ def coalesce(*args):
     return None
 
 
-def reject_if(test: bool, error_message: str = ""):
-    """Raises a RuntimeError if the given test is True."""
-    if test:
+def reject_if(condition: bool, error_message="") -> None:
+    """Raises a RuntimeError if the given condition is True."""
+    if condition:
         raise RuntimeError(error_message)
-
-
-def load_json_file(file_path):
-    """Loads a json file into a dictionary."""
-    with open(file_path) as file:
-        data = json.load(file)
-    return data
-
-
-def load_excel_file(path: str) -> pd.DataFrame:
-    """Loads an excel file into a pandas dataframe."""
-    # noinspection PyArgumentList
-    df = pd.read_excel(path, engine="openpyxl")
-    # Set the column names to the values in the 10th row
-    df.columns = df.iloc[9]
-    # Drop the comments in the Excel
-    df_dropped = df[10:]
-    return df_dropped
-
-
-def download_file(url, target_file):
-    """Downloads a file from the given url and saves it to the given target file."""
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
-    }
-    resp = requests.get(url, headers=headers)
-    output = open(target_file, "wb")
-    output.write(resp.content)
-    output.close()

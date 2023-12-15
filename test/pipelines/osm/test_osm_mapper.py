@@ -1,4 +1,5 @@
 """Unit tests for the mapper of the OSM pipeline."""
+
 from unittest.mock import patch, PropertyMock
 
 import pytest

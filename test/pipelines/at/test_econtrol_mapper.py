@@ -172,7 +172,7 @@ def test_map_charging__kw_list():
     (pd.Series([{'test_attr': ['a', 'b', 'c']}]), 'test_attr', [['a', 'b', 'c']]),
     (pd.Series([{'test_attr': ['a', 'b', 'c']}, {'test_attr': ['d', 'e', 'f']}]), 'test_attr',
      [['a', 'b', 'c'], ['d', 'e', 'f']]),
-    (pd.Series([]), 'test_attr', []),
+    (pd.Series([], dtype='float64'), 'test_attr', []),
     (None, None, None),
     (None, 'test_attr', None),
     (pd.Series([{'test_attr': ['a', 'b', 'c']}]), None, [[]]),

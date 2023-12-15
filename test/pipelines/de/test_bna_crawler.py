@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -14,5 +15,5 @@ from test.shared import skip_if_github
 def test_get_bna_data():
     """Test the get_bna_data function."""
     with tempfile.NamedTemporaryFile() as temp_file:
-        get_bna_data(temp_file.name)
+        get_bna_data(Path(temp_file.name))
         assert os.path.getsize(temp_file.name) > 6 * 1_000_000, "File size is less than 6MB"
