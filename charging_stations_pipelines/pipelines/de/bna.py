@@ -30,14 +30,16 @@ class BnaPipeline(Pipeline):
         # All BNA data is from Germany
         self.country_code = "DE"
 
-        self.data_dir: Final[pathlib.Path] = (pathlib.Path(__file__).parents[4] / "data").resolve()
+        self.data_dir: Final[pathlib.Path] = (pathlib.Path(__file__).parents[3] / "data").resolve()
 
     def retrieve_data(self):
         self.data_dir.mkdir(parents=True, exist_ok=True)
         tmp_data_path = self.data_dir / self.config[DATA_SOURCE_KEY]["filename"]
+
         if self.online:
             logger.info("Retrieving Online Data")
             get_bna_data(tmp_data_path)
+
             logger.info(f"Loading data from file: {tmp_data_path}")
             self.data: pd.DataFrame = load_excel_file(tmp_data_path)
             logger.info(f"Finished loading data: {self.data.shape} rows!")
@@ -45,8 +47,8 @@ class BnaPipeline(Pipeline):
     def run(self):
         logger.info(f"Running {self.country_code}/{DATA_SOURCE_KEY} Pipeline...")
         self.retrieve_data()
-        station_updater = StationTableUpdater(session=self.session, logger=logger)
 
+        station_updater = StationTableUpdater(session=self.session, logger=logger)
         row: pd.Series
         logger.info(f"Mapping {DATA_SOURCE_KEY} data...")
         for _, row in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):

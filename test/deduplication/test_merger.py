@@ -59,8 +59,15 @@ def _check_merger(engine, create_stations, run_merger, check_results):
 
 def _run_merger(engine):
     """Merge duplicate stations."""
+
+    # Suppressing Pandas warning (1/2): "A value is trying to be set on a copy of a slice from a DataFrame."
+    pd.options.mode.chained_assignment = None  # default: 'warn'
+
     station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=engine)
     station_merger.run()
+
+    # Suppressing Pandas warning (2/2): restoring default value
+    pd.options.mode.chained_assignment = 'warn'
 
 
 @pytest.mark.integration_test
@@ -136,7 +143,6 @@ def test_ocm_should_have_higher_prio_than_bna(engine):
 @pytest.mark.integration_test
 def test_at_merger_bug_country_code_data_source_mismatch(engine):
     def _create_test_station(raw: pd.Series, country_code: str) -> Station:
-
         station = at_mapper.map_station(raw, country_code)
 
         station.address = at_mapper.map_address(raw, country_code, station.id)
@@ -203,8 +209,15 @@ def test_at_merger_bug_country_code_data_source_mismatch(engine):
 
     # When: run the merger
     # Merge duplicate stations
+
+    # Suppressing Pandas warning (1/2): "A value is trying to be set on a copy of a slice from a DataFrame."
+    pd.options.mode.chained_assignment = None  # default: 'warn'
+
     station_merger = StationMerger(country_code='AT', config=(get_config()), db_engine=engine)
     station_merger.run()
+
+    # Suppressing Pandas warning (2/2): restoring default value
+    pd.options.mode.chained_assignment = 'warn'
 
     # Check that all_stations are merged
     # noinspection DuplicatedCode

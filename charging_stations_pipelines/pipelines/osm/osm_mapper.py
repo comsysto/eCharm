@@ -1,4 +1,5 @@
 """This module contains the methods for mapping the OpenStreetMap (OSM) data to the database models."""
+
 import json
 import logging
 from datetime import datetime
@@ -49,7 +50,7 @@ def map_station_osm(entry: JSON, country_code: str) -> Station:
     """Maps an entry from OpenStreetMap to a Station object.
 
     :param entry: The entry from OpenStreetMap to be mapped.
-    :param country_code: The country code of the entry.
+    :param country_code: The country code for which this mapping is executed.
     :return: The mapped Station object.
     """
     lat = check_coordinates(entry.get("lat"))
@@ -57,7 +58,6 @@ def map_station_osm(entry: JSON, country_code: str) -> Station:
 
     new_station = Station()
     new_station.country_code = country_code
-
     new_station.source_id = entry.get("id") or None
     new_station.operator = (
         str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
