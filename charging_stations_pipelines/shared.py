@@ -231,8 +231,8 @@ def load_excel_file(path: str) -> pd.DataFrame:
     return df_dropped
 
 
-def download_file(url, target_file):
-    """Downloads a file from the given url and saves it to the given target file."""
+def download_file(url: str, target_file: str) -> None:
+    """Downloads a file from the specified url and saves it to the target file path."""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"

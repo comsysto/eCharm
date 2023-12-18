@@ -1,4 +1,4 @@
-"""Tests for the merger module."""
+"""Integration Tests for the merger module."""
 
 import pandas as pd
 import pytest
@@ -71,7 +71,7 @@ def _run_merger(engine):
 
 
 @pytest.mark.integration_test
-def test_expect_a_merged_entry_if_two_duplicates_exists(engine):
+def test_int_deduplication_expect_a_merged_entry_if_two_duplicates_exists(engine):
     def _create_stations():
         # Given: two duplicate stations
         station_one = create_station()
@@ -108,7 +108,7 @@ def test_expect_a_merged_entry_if_two_duplicates_exists(engine):
 
 
 @pytest.mark.integration_test
-def test_ocm_should_have_higher_prio_than_bna(engine):
+def test_int_deduplication_ocm_should_have_higher_prio_than_bna(engine):
     def _create_stations():
         # Given: two duplicate stations
         station_bna = create_station()
@@ -141,7 +141,7 @@ def test_ocm_should_have_higher_prio_than_bna(engine):
 
 
 @pytest.mark.integration_test
-def test_at_merger_bug_country_code_data_source_mismatch(engine):
+def test_int_at_merger_bug_country_code_data_source_mismatch(engine):
     def _create_test_station(raw: pd.Series, country_code: str) -> Station:
         station = at_mapper.map_station(raw, country_code)
 

@@ -48,9 +48,9 @@ class BnaPipeline(Pipeline):
         logger.info(f"Running {self.country_code}/{DATA_SOURCE_KEY} Pipeline...")
         self.retrieve_data()
 
+        logger.info(f"Mapping {DATA_SOURCE_KEY} data...")
         station_updater = StationTableUpdater(session=self.session, logger=logger)
         row: pd.Series
-        logger.info(f"Mapping {DATA_SOURCE_KEY} data...")
         for _, row in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):
             try:
                 mapped_station = map_station_bna(row)
@@ -59,8 +59,9 @@ class BnaPipeline(Pipeline):
             except Exception as e:
                 logger.error(f"{DATA_SOURCE_KEY} entry could not be mapped! Error: {e}")
                 continue
+
             station_updater.update_station(mapped_station, DATA_SOURCE_KEY)
+
         station_updater.log_update_station_counts()
         logger.info("Finished mapping!")
-
         logger.info(f"Finished {self.country_code}/{DATA_SOURCE_KEY} Pipeline!")

@@ -11,7 +11,7 @@ from charging_stations_pipelines.pipelines.at import econtrol_crawler
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import (
     __name__ as test_module_name,
 )
-# "local_caplog" is pytest fixture from test.shared.local_caplog
+# NOTE: "local_caplog" is a pytest fixture from test.shared.local_caplog
 from test.shared import local_caplog, LogLocalCaptureFixture  # noqa: F401
 
 
@@ -112,7 +112,6 @@ def test_get_data(
         ]
     )
 
-    # Call method under test... with mocked logging
     logger = logging.getLogger(test_module_name)
     with local_caplog(level=logging.DEBUG, logger=logger):
         # Call method under test... with mocked logging

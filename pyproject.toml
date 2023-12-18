@@ -17,9 +17,19 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
-target_version = ['py38']
+target_version = ['py39']
 
 [tool.pytest.ini_options]
+
+# Set logging for code under test
+addopts = "--verbose  --capture=no --log-cli-level=DEBUG --log-cli-format='%(asctime)s %(levelname)s %(message)s' --log-cli-date-format='%Y-%m-%d %H:%M:%S' -W ignore::DeprecationWarning"
+
+# Limit search for tests to following folders
+testpaths = [
+    "test", # TODO: move content to tests/unit/ folder
+    "tests",
+]
+
 # Declare custom markers
 markers = [
     "integration_test: marks tests as integration tests, which are bit slow (deselect with '-m \"integration_test\"')",

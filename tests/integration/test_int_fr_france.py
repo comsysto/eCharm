@@ -15,4 +15,4 @@ def test_download_france_gov_file():
     """Test the download function."""
     with tempfile.NamedTemporaryFile() as temp_file:
         FraPipeline.download_france_gov_file(temp_file.name)
-        assert os.path.getsize(temp_file.name) > 20 * 1_000_000  # 20MB
+        assert os.path.getsize(temp_file.name) >= 47_498_370  # ~ 50 MB
