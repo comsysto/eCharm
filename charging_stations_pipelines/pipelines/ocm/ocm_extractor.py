@@ -1,184 +1,113 @@
+"""This module contains the OpenChargeMap (OCM) extractor pipeline."""
+
 import json
 import logging
 import os
-import pathlib
-import re
-import shutil
-import subprocess
-from typing import Dict, List
+from pathlib import Path
+from typing import Any
 
 import pandas as pd
-from packaging import version
+
+from charging_stations_pipelines.file_utils import create_success_marker_file
+from charging_stations_pipelines.shared import JSON
 
 logger = logging.getLogger(__name__)
 
-def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
-    frame: pd.DataFrame = pd.DataFrame(data)
-    frame.set_index("ID", inplace=True)
-    frame.sort_index(inplace=True)
-    return frame
+
+def standardize_country_codes(country_code: str) -> str:
+    """Standardizes country codes to ISO 3166-1 alpha-2 country codes."""
+    country_codes_map = {"NOR": "NO", "SWE": "SE"}
+    return country_codes_map.get(country_code, country_code)
 
 
-def merge_connection_types(
-        connection: pd.DataFrame, reference_data: pd.DataFrame
-) -> pd.DataFrame:
-    connection_ids: pd.Series = (
-        connection["ConnectionTypeID"].dropna().drop_duplicates()
-    )
-    return connection.merge(
-        reference_data.loc[connection_ids],
-        how="left",
-        left_on="ConnectionTypeID",
-        right_index=True,
-    )
-
-
-def merge_address_infos(
-        address_info: pd.Series, reference_data: pd.DataFrame
-) -> pd.DataFrame:
-    return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
-
-
-def merge_with_reference_data(
-        row: pd.Series,
-        connection_types: pd.DataFrame,
-        address_info: pd.DataFrame,
-        operators: pd.DataFrame,
-):
-    row["Connections"] = merge_connection_types(
-        connection=pd.json_normalize(row["Connections"]),
-        reference_data=connection_types,
-    )
-    row["AddressInfo"] = merge_address_infos(
-        address_info=pd.Series(row["AddressInfo"]), reference_data=address_info
-    )
-    row["OperatorID"] = operators.loc[row["OperatorID"]]
-    return row
-
-
-def merge_connections(row, connection_types):
-    frame = pd.DataFrame(row)
-    if not "ConnectionTypeID" in frame.columns:
-        return frame
-    return pd.merge(
-        frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID"
-    )
-
-
-def testSth(x):
-    return x.to_frame()
-
-
-def ocm_extractor(tmp_file_path: str, country_code: str):
-    # TODO: Add all EU countries
-
-    # OCM export contains norwegian data under country code "NO" and that's why we need to rename it to "NO"
-    if country_code == "NOR":
-        country_code = "NO"
-    if country_code == "SWE":
-        country_code = "SE"
-
-
-    project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve()
-    data_root_dir: str = os.path.join(project_data_dir, "ocm-export")
-    data_dir: str = os.path.join(data_root_dir, f"data/{country_code}")
-
-    try:
-        git_version_raw: str = subprocess.check_output(["git", "--version"])
-        pattern = re.compile(r"\d+\.\d+\.\d+")
-        match = re.search(pattern, git_version_raw.decode("utf-8")).group()
-        git_version: version = version.parse(match)
-    except FileNotFoundError as e:
-        raise RuntimeError(f"Git is not installed! {e}")
-    except TypeError as e:
-        raise RuntimeError(f"Could not parse git version! {e}")
-    else:
-        if git_version < version.parse("2.25.0"):
-            logger.warning(
-                f"found git version {git_version}, extracted from git --version: {git_version_raw} and regex match {match}")
-            raise RuntimeError("Git version must be >= 2.25.0!")
-
-    if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:
-        shutil.rmtree(data_root_dir, ignore_errors=True)
-        subprocess.call(
-            [
-                "git",
-                "clone",
-                "https://github.com/openchargemap/ocm-export",
-                "--no-checkout",
-                "--depth",
-                "1",
-            ],
-            cwd=project_data_dir,
-            stdout=subprocess.PIPE,
-        )
-        subprocess.call(
-            ["git", "sparse-checkout", "init", "--cone"],
-            cwd=data_root_dir,
-            stdout=subprocess.PIPE,
-        )
-        subprocess.call(
-            ["git", "sparse-checkout", "set", f"data/{country_code}"],
-            cwd=data_root_dir,
-            stdout=subprocess.PIPE,
-        )
-        subprocess.call(["git", "checkout"], cwd=data_root_dir, stdout=subprocess.PIPE)
-    else:
-        subprocess.call(["git", "pull"], cwd=data_root_dir, stdout=subprocess.PIPE)
-
-    records: List = []
-    for subdir, dirs, files in os.walk(os.path.join(data_dir)):
+def load_and_normalize_pois(in_dir: Path, refs_data_in_file: Path) -> tuple[list[dict[str, Any]], pd.DataFrame, JSON]:
+    """Loads and normalizes the OpenChargeMap (OCM) POIs data."""
+    # Load non-normalized POIs data
+    pois_non_normalized: list[dict[str, Any]] = []
+    for subdir, dirs, files in os.walk(str(in_dir)):
         for file in files:
-            with open(os.path.join(subdir, file), "r") as f:
-                records += [(json.load(f))]
-    data: pd.DataFrame = pd.json_normalize(records)
+            with open(os.path.join(subdir, file)) as file:
+                pois_non_normalized.append(json.load(file))
 
-    with open(os.path.join(data_dir, "..", "referencedata.json"), "r+") as f:
-        data_ref: Dict = json.load(f)
+    # Normalize POIs data
+    pois_normalized: pd.DataFrame = pd.json_normalize(pois_non_normalized)
 
-    connection_types: pd.DataFrame = pd.json_normalize(data_ref["ConnectionTypes"])
-    connection_frame = pd.json_normalize(
-        records, record_path=["Connections"], meta=["UUID"]
-    )
+    # Load reference data
+    with refs_data_in_file.open() as file:
+        refs_data: JSON = json.load(file)
+
+    return pois_non_normalized, pois_normalized, refs_data
+
+
+def merge_country_pois(pois_non_normalized: list[dict[str, Any]],  pois_normalized: pd.DataFrame, refs_data: JSON,
+                       out_file: Path) -> None:
+    """Merges the OpenChargeMap (OCM) POIs data with the reference data."""
+    connection_types: pd.DataFrame = pd.json_normalize(refs_data["ConnectionTypes"])
+
+    connection_frame = pd.json_normalize(pois_non_normalized, record_path=["Connections"], meta=["UUID"])
     connection_frame = pd.merge(
-        connection_frame,
-        connection_types,
-        how="left",
-        left_on="ConnectionTypeID",
-        right_on="ID",
+            left=connection_frame,
+            right=connection_types,
+            how="left",
+            left_on="ConnectionTypeID",
+            right_on="ID",
+            validate="many_to_one"
     )
     connection_frame_grouped = connection_frame.groupby("UUID").agg(list)
     connection_frame_grouped.reset_index(inplace=True)
     connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(
         lambda x: x.to_frame(), axis=1
     )
+
     data = pd.merge(
-        data,
-        connection_frame_grouped[["ConnectionsEnriched", "UUID"]],
-        how="left",
-        on="UUID",
+            pois_normalized,
+            connection_frame_grouped[["ConnectionsEnriched", "UUID"]],
+            how="left",
+            on="UUID",
+            validate="one_to_many",
     )
 
-    address_info: pd.DataFrame = pd.json_normalize(data_ref["Countries"])
+    address_info: pd.DataFrame = pd.json_normalize(refs_data["Countries"])
     address_info = address_info.rename(columns={"ID": "CountryID"})
     pd_merged_with_countries = pd.merge(
-        data,
-        address_info,
-        left_on="AddressInfo.CountryID",
-        right_on="CountryID",
-        how="left",
+            data,
+            address_info,
+            how="left",
+            left_on="AddressInfo.CountryID",
+            right_on="CountryID",
+            validate='many_to_one'
     )
 
-    operators: pd.DataFrame = pd.json_normalize(data_ref["Operators"])
+    operators: pd.DataFrame = pd.json_normalize(refs_data["Operators"])
     operators = operators.rename(columns={"ID": "OperatorIDREF"})
     pd_merged_with_operators = pd.merge(
-        pd_merged_with_countries,
-        operators,
-        left_on="OperatorID",
-        right_on="OperatorIDREF",
-        how="left",
+            pd_merged_with_countries,
+            operators,
+            how="left",
+            left_on="OperatorID",
+            right_on="OperatorIDREF",
+            validate="many_to_one"
     )
 
-    pd_merged_with_operators.reset_index(drop=True).to_json(
-        tmp_file_path, orient="index"
-    )
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    pd_merged_with_operators.reset_index(drop=True).to_json(out_file, orient="index")
+
+
+def merge_ocm_pois(in_dir: Path, out_file: Path, country_code: str) -> None:
+    """Merges Open Charge Map (OCM) raw data for a given country and saves it to a specified file."""
+    country_code = standardize_country_codes(country_code)
+    per_country_in_dir = in_dir / f"{country_code}"
+
+    # Some countries are not covered by the OCM data source (e.g. Vatican City (VA))
+    if per_country_in_dir.exists():
+        # Merge country POI files into one normalized country file
+        pois_non_normalized, pois_normalized, refs_data = load_and_normalize_pois(
+                per_country_in_dir, in_dir / "referencedata.json")
+        merge_country_pois(pois_non_normalized, pois_normalized, refs_data, out_file)
+
+        # After downloads have finished, place success marker file inside the output data folder
+        create_success_marker_file(out_file.parent)
+    else:
+        # Or, create an empty file
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.touch()

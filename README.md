@@ -53,8 +53,8 @@ Mac:
 
 Install and activate Python 3.9.x , e.g.
 
-    pyenv install 3.9.10
-    pyenv local 3.9.10
+    pyenv install 3.9.18
+    pyenv local 3.9.18
 
 Check local version
 
@@ -118,8 +118,8 @@ Put the following content to `.env` file in the root directory:
     # for Nobil access:
     NOBIL_APIKEY=<MY_NOBIL_API_KEY>
     # for e-control.at / ladestellen.at access:
-    ECONTROL_AT_APIKEY=<MY ECONTROL API KEY>
-    ECONTROL_AT_DOMAIN=<DOMAIN PROVIDED DURING REGISTRATION>
+    # ECONTROL_AT_APIKEY=<MY ECONTROL API KEY> # access via API key not working currently, see charging_stations_pipelines/pipelines/at/README.md
+    # ECONTROL_AT_DOMAIN=<DOMAIN PROVIDED DURING REGISTRATION>
 
 ### Start docker containers
 
@@ -168,7 +168,7 @@ tasks, since eCharm is not (yet) clever with updating data from consecutive impo
 python main.py import merge --countries de it --delete_data
 ```
 
-Currently, we support `de`,`gb`,`fr`, `it`, `nor` and `swe` as country codes.
+Currently, we support `at`, `de`,`gb`,`fr`, `it`, `nor` and `swe` as country codes.
 
 #### Export all original (un-merged) station data for Germany in csv format:
 
@@ -195,7 +195,11 @@ pip install -r test/requirements.txt
 You can run all tests under `/test` by running the following command:
 
 ```bash
-python -m unittest discover test
+# to run all tests, use:
+pytest
+
+# ... or the following to run only the unit tests, i.e. not the integration tests (which run a bit longer): 
+pytest -m 'not integration_test' -W ignore::DeprecationWarning
 ```
 
 #### Testdata import / Integration test for the merger
@@ -219,11 +223,12 @@ Please take advantage of the following tooling:
 pip install isort autoflake black
 ```
 
-Black reformats the code, isort orders the imports and flake8 checks for remaining issues.
+Black re-formats the code, isort orders the imports and flake8 checks for remaining issues.
 Example usage:
 
 ```bash
-isort -rc -sl .
-autoflake --remove-all-unused-imports -i -r --exclude alembic .
-isort -rc -m 3 .
+isort --force-single-line-imports .
+autoflake --remove-all-unused-imports -i -r --exclude ./alembic .
+# Note: '3' means 3-vert-hanging multiline imports
+isort --multi-line 3 .
 ```

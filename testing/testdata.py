@@ -1,18 +1,22 @@
-from dataclasses import dataclass
-from typing import Optional, List
+"""Cleans charging station data by merging duplicates within a specified radius."""
+
+import configparser
 import os
 import pathlib
+from dataclasses import dataclass
+from typing import List, Optional
 
+import pandas as pd
 from sqlalchemy import create_engine
 
+import testdata_import
 from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.settings import db_uri
-import pandas as pd
 
-import testdata_import
 
 @dataclass
 class TestData:
+    """Class used to store test data for geographic locations."""
     osm_id: Optional[str] = None
     ocm_id: Optional[str] = None
     bna_id: Optional[str] = None
@@ -20,9 +24,7 @@ class TestData:
 
 
 def load_test_data() -> List[TestData]:
-    '''
-    Create TestData objects from spreadsheet data
-    '''
+    """Create TestData objects from spreadsheet data."""
     rows = testdata_import.main()
     if not rows:
         print('No test data found.')
@@ -42,7 +44,7 @@ def load_test_data() -> List[TestData]:
         test_column.bna_id = None
         osm_latitude = row[11].replace(",", ".")
         osm_longitude = row[12].replace(",", ".")
-        if not osm_latitude == "NO":
+        if osm_latitude != "NO":
             test_column.osm_coordinates = f"POINT ({osm_longitude} {osm_latitude})"
 
         print(test_column)
@@ -52,42 +54,40 @@ def load_test_data() -> List[TestData]:
 
 
 def run():
+    """Perform the merging operation on test data."""
+    radius_m = 100
 
     test_data = load_test_data()
-
-    radius_m = 100
-    score_threshold: float = 0.49
-    score_weights = dict(operator=0.2, address=0.1, distance=0.7)
-
-    import configparser
-
     config: configparser = configparser.RawConfigParser()
+
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
 
-    merger: StationMerger = StationMerger(config=config, con=create_engine(db_uri, echo=True))
+    merger: StationMerger = StationMerger('DE', config=config, db_engine=create_engine(db_uri, echo=True))
 
-    #print(test_data)
+    # print(test_data)
     with open("testdata_merge.csv", "w") as outfile:
         for station in test_data:
             duplicates: pd.DataFrame = pd.DataFrame()
             if station.osm_coordinates:
-                #print(f"OSM ID of central charging station: {station.osm_id}")
-                duplicates, current_station = merger.find_duplicates(station.osm_id, station.osm_coordinates, radius_m, score_threshold, score_weights, filter_by_source_id=True)
+                # print(f"OSM ID of central charging station: {station.osm_id}")
+                duplicates, _ = merger.find_duplicates(station.osm_id, station.osm_coordinates, radius_m,
+                                                       filter_by_source_id=True)
             if not duplicates.empty:
                 data_sources_in_duplicates = ','.join(duplicates.data_source.unique())
-                #print(f"Data Sources in duplicates: {data_sources_in_duplicates}")
-                result = [station.osm_id, str(len(duplicates)), data_sources_in_duplicates]
+                # print(f"Data Sources in duplicates: {data_sources_in_duplicates}")
+                result: list[Optional[str]] = [station.osm_id, str(len(duplicates)), data_sources_in_duplicates]
                 print(f"Result of merge on test data: {result}")
                 outfile.write(','.join(result))
                 outfile.write('\n')
             else:
-                print(f"No successful merge on test data")
+                print("No successful merge on test data")
                 outfile.write('NA\n')
 
             if station.osm_id == '6417375309':
-                pass#break
+                pass  # break
         outfile.close()
+
 
 if __name__ == '__main__':
     run()

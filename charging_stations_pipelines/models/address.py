@@ -16,9 +16,7 @@ class Address(Base):
     street = Column(String)
     town = Column(String)
     postcode = Column(String)
-    district_old = Column(String)
     district = Column(String)
-    state_old = Column(String)
     state = Column(String)
     country = Column(String)
     gmaps_latitude = Column(Float(precision=32))
@@ -27,4 +25,4 @@ class Address(Base):
     station = relationship("Station", back_populates="address")
 
     def __repr__(self):
-        return f"<address: id {self.id}, station_id {self.station_id}, street: {self.street}, town: {self.town}>"
+        return f"<address id: {self.id}, station_id: {self.station_id}, street: {self.street}, town: {self.town}>"
