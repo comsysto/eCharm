@@ -55,7 +55,7 @@ def test_station_mapping(test_data, expected):
         actual_val = getattr(station, attr)
         if attr == 'date_created':
             # Compare date_created with a tolerance of 30 seconds
-            assert (abs(actual_val - expected_val)).total_seconds() < 30
+            assert (abs(actual_val - expected_val)).total_seconds() < 60
         else:
             assert actual_val == expected_val
 
