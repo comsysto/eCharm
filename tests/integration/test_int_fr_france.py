@@ -1,7 +1,7 @@
 """Integration tests for the crawler of the France pipeline."""
 
-import os
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -14,5 +14,6 @@ from test.shared import skip_if_github
 def test_download_france_gov_file():
     """Test the download function."""
     with tempfile.NamedTemporaryFile() as temp_file:
-        FraPipeline.download_france_gov_file(temp_file.name)
-        assert os.path.getsize(temp_file.name) > 20 * 1_000_000  # 20MB
+        temp_file_path: Path = Path(temp_file.name)
+        FraPipeline.download_france_gov_file(temp_file_path)
+        assert temp_file_path.stat().st_size>= 47_498_370  # ~ 50 MB

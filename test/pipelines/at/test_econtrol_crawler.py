@@ -16,7 +16,7 @@ from charging_stations_pipelines.pipelines.at import econtrol_crawler
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import (
     __name__ as test_module_name,
 )
-# "local_caplog" is pytest fixture from test.shared.local_caplog
+# NOTE: "local_caplog" is a pytest fixture from test.shared.local_caplog
 from test.shared import local_caplog, LogLocalCaptureFixture  # noqa: F401
 
 
@@ -76,76 +76,6 @@ def test_get_paginated_stations_key_error():
             list(econtrol_crawler.get_paginated_stations(test_url, test_headers))
 
 
-# @mock.patch.object(pathlib.Path, 'open', new_callable=mock.mock_open(), create=True)
-# @mock.patch.object(charging_stations_pipelines.pipelines.at.econtrol_crawler, 'get_paginated_stations')
-# @mock.patch("os.getenv")
-# @mock.patch('pathlib.Path.stat')
-# @mock.patch('pathlib.Path.mkdir')
-# def test_get_data(
-#     mock_mkdir,
-#     mock_stat,
-#     mock_getenv,
-#     mock_get_paginated_stations,
-#     mock_open,
-#     local_caplog: LogLocalCaptureFixture,
-# ):  # noqa: F811
-#     # Prepare test data and mocks
-#     expected_file_size: Final[int] = 2184
-#     tmp_data_path = Path("/tmp/test_data.ndjson")
-#
-#     # Mock pathlib.Path.mkdir() to not fail when parents=True is passed
-#     mock_mkdir.side_effect = lambda parents=False, exist_ok=False: FileExistsError if not parents else None
-#
-#     # Mock pathlib.Path().stat().st_size to return the expected file size
-#     mock_stat.return_value = os.stat_result((0, 0, 0, 0, 0, 0, expected_file_size, 0, 0, 0))
-#
-#     # Mock os.getenv() to return a dummy token
-#     mock_getenv.return_value = "test_token"
-#
-#     # Mock open() to return a dummy file
-#     mock_file = mock.MagicMock()
-#     # mock_file.open.return_value = io.StringIO()  # In-memory file
-#     mock_open.return_value = io.StringIO()  # In-memory file
-#
-#     # Mock get_paginated_stations() to return 100 stations in 10 pages
-#     mock_get_paginated_stations.return_value = iter(
-#         [
-#             {
-#                 "totalResults": 100,
-#                 "fromIndex": i * 10,
-#                 "endIndex": min((i + 1) * 10 - 1, 100 - 1),
-#                 "stations": [
-#                     {f"id{j}": f"station{j}"}
-#                     for j in range(i * 10 + 1, (i + 1) * 10 + 1)
-#                 ],
-#             }
-#             for i in range(100 // 10 + 100 % 10)
-#         ]
-#     )
-#
-#     # Call method under test... with mocked logging
-#     logger = logging.getLogger(test_module_name)
-#     with local_caplog(level=logging.DEBUG, logger=logger):
-#         # Call method under test... with mocked logging
-#         econtrol_crawler.get_data(tmp_data_path)
-#
-#     # Check calls
-#     mock_getenv.assert_called_with("ECONTROL_AT_AUTH")
-#     mock_get_paginated_stations.assert_called()
-#
-#     # Get file contents
-#     file_contents = mock_file.__enter__().getvalue()
-#
-#     # Check logging and file size via log message
-#     assert f"Downloaded file size: {expected_file_size} bytes" in local_caplog.logs
-#
-#     # Check file size
-#     assert len(file_contents) == expected_file_size
-#
-#     # Check objects from file, after reading it back from the in-memory file
-#     actual_file_content_objs = [json.loads(line) for line in file_contents.splitlines()]
-#     expected_objs = [{f"id{i}": f"station{i}"} for i in range(1, 100 + 1)]
-#     assert actual_file_content_objs == expected_objs
 
 
 @mock.patch.object(pathlib.Path, 'open', new_callable=mock.mock_open(), create=True)
@@ -192,6 +122,7 @@ def test_get_data_checks_api_calls_and_file_content(
     # Invoke method to be tested with mocked logging
     logger = logging.getLogger(test_module_name)
     with local_caplog(level=logging.DEBUG, logger=logger):
+        # Call method under test... with mocked logging
         econtrol_crawler.get_data(test_data_path)
 
     # Assertions related to function calls and I/O

@@ -56,6 +56,7 @@ class BnaPipeline(Pipeline):
             except Exception as e:
                 logger.error(f"{DATA_SOURCE_KEY} entry could not be mapped! Error: {e}")
                 continue
+
             station_updater.update_station(mapped_station, DATA_SOURCE_KEY)
 
         station_updater.log_update_station_counts()

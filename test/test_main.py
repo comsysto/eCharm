@@ -29,5 +29,15 @@ def test_parse_no_task_arg():
 
 
 def test_parse_invalid_task_arg():
+    # NOTE: in the pytest output, the error messages, like...:
+    # ----
+    # test/test_main.py::test_parse_invalid_task_arg usage: pytest [-h] [-c <country-code> [<country-code> ...]]
+    #   [-v] [-o] [-d] [--export_file_descriptor <file descriptor>] [--export_format {csv,GeoJSON}] [--export_charging]
+    #               [--export_merged_stations] [--export_all_countries] [--export_area <lon> <lat> <radius in m>]
+    #               <task> [<task> ...]
+    # pytest: error: argument <task>:
+    #   invalid choice: 'invalid_task' (choose from 'import', 'merge', 'export', 'testdata')
+    # ----
+    # ... is an expected side-effect of using `pytest.raises(SystemExit)`
     with pytest.raises(SystemExit):
         parse_args('invalid_task --countries de'.split())

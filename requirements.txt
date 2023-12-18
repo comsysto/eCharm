@@ -57,4 +57,5 @@ uritemplate==4.1.1
 urllib3==1.26.11
 Werkzeug==2.2.3
 zipp==3.16.1
+typing_extensions==4.8.0
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
