@@ -8,7 +8,7 @@ alembic/versions/*.py
 debug.ipynb
 *.log
 \#*\#
-
+.attach_pid*
 
 # .gitignore for Python projects
 # Byte-compiled / optimized / DLL files

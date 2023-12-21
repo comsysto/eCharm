@@ -111,8 +111,9 @@ Put the following content to `.env` file in the root directory:
     DB_PORT=54322
     DB_USER=docker
     DB_PASSWORD=docker
-    # optional for DB:
     DB_SCHEMA=friendly_fox
+
+    # optional for DB:
     DB_TABLE_PREFIX=echarm_
     DB_ALEMBIC_RESTRICT_TABLES=true
     # for Nobil access:
