@@ -38,7 +38,7 @@ def stations_data_export(db_connection,
                           f")") \
         if export_area else ""
 
-    logger.info(f"Using stations filter: country_filter='{country_filter}', "
+    logger.debug(f"Using stations filter: country_filter='{country_filter}', "
                 f"merged_filter='{merged_filter}', export_area_filter='{export_area_filter}'")
 
     get_stations_filter = f"{country_filter}{merged_filter}{export_area_filter}"
@@ -64,29 +64,33 @@ def stations_data_export(db_connection,
 
     logger.debug(f"Running postgis query {get_stations_list_sql}")
     gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql, con=db_connection, geom_col="point")
-
-    if export_to_csv:
-        suffix = "csv"
-        gdf['latitude'] = gdf['point'].apply(lambda point: point.y if point else None)
-        gdf['longitude'] = gdf['point'].apply(lambda point: point.x if point else None)
-        export_data = gdf.to_csv()
-    else:
-        suffix = "geo.json"
-        export_data = gdf.to_json()
-
     logger.debug(f"Found stations of shape: {gdf.shape}")
-    logger.debug(f"Data sample: {gdf.sample(5)}")
 
-    file_country = "europe" if export_all_countries else country_code
-    file_description = get_file_description(file_descriptor, file_country, export_area)
-    file_suffix_merged = "merged" if export_merged else "w_duplicates"
-    file_suffix_charging = "_w_charging" if export_charging_attributes else ""
+    if len(gdf) == 0:
+        logger.info(f"No stations found for country  {country_code}")
+    else:
+        if export_to_csv:
+            suffix = "csv"
+            gdf['latitude'] = gdf['point'].apply(lambda point: point.y if point else None)
+            gdf['longitude'] = gdf['point'].apply(lambda point: point.x if point else None)
+            export_data = gdf.to_csv()
+        else:
+            suffix = "geo.json"
+            export_data = gdf.to_json()
 
-    filename = f"stations_{file_description}_{file_suffix_merged}{file_suffix_charging}.{suffix}"
-    logger.info(f"Writing {len(gdf)} stations to {filename}")
-    with open(filename, "w") as outfile:
-        outfile.write(export_data)
-        logger.info(f"Done writing, file size: {outfile.tell()}")
+
+        logger.debug(f"Data sample: {gdf.sample(5)}")
+
+        file_country = "europe" if export_all_countries else country_code
+        file_description = get_file_description(file_descriptor, file_country, export_area)
+        file_suffix_merged = "merged" if export_merged else "w_duplicates"
+        file_suffix_charging = "_w_charging" if export_charging_attributes else ""
+
+        filename = f"stations_{file_description}_{file_suffix_merged}{file_suffix_charging}.{suffix}"
+        logger.info(f"Writing {len(gdf)} stations to {filename}")
+        with open(filename, "w") as outfile:
+            outfile.write(export_data)
+            logger.info(f"Done writing, file size: {outfile.tell()}")
 
 
 def get_file_description(file_descriptor: str, file_country: str, export_circle: ExportArea):
