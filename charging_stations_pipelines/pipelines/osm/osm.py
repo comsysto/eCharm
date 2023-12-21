@@ -93,9 +93,9 @@ class OsmPipeline(Pipeline):
                 stats["count_valid_stations"] += 1
             except Exception as ex:
                 stats["count_parse_error"] += 1
-                logger.warning(f"{DATA_SOURCE_KEY} entry could not be parsed, error: {ex}. Row: {entry}")
+                logger.debug(f"{DATA_SOURCE_KEY} entry could not be parsed, error: {ex}. Row: {entry}")
 
-        logger.warning(
+        logger.info(
             f"Finished {DATA_SOURCE_KEY} Pipeline:\n"
             f"1. Valid stations found: {stats['count_valid_stations']}\n"
             f"2. Not parseable stations: {stats['count_parse_error']}\n"

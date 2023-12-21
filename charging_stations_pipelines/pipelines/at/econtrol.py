@@ -110,7 +110,7 @@ class EcontrolAtPipeline(Pipeline):
                 stats["count_valid_stations"] += 1
             except Exception as e:
                 stats["count_parse_error"] += 1
-                logger.warning(
+                logger.debug(
                     f"{DATA_SOURCE_KEY} entry could not be parsed, error:\n{e}\n"
                     f"Row:\n----\n{datapoint}\n----\n"
                 )
