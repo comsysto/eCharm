@@ -1,7 +1,10 @@
+"""This script reads data from a Google Spreadsheet using the Google Sheets API."""
+
 from __future__ import print_function
 
 import os.path
 import pathlib
+from typing import Any
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -14,12 +17,13 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 SPREADSHEET_ID = '1bvwxsGRMaEsiuz_ghY3HEbFEMCPahINcVoGE2k_zgOc'
 
-def main():
+
+def main() -> list[Any]:
+    """Main method to retrieve data from a Google Sheet using the Google Sheets API.
+
+    :return: List of values retrieved from the Google Sheet.
+    """
     directory = pathlib.Path(__file__).parent.resolve()
-    """
-    Access spreadsheet via Google Sheets API.
-    Documentation how to setup the access: https://developers.google.com/sheets/api/quickstart/python
-    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -32,8 +36,7 @@ def main():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                os.path.join(directory, 'credentials.json'), SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(os.path.join(directory, 'credentials.json'), SCOPES)
             creds = flow.run_local_server(port=8083)
         # Save the credentials for the next run
         with open(token_filename, 'w') as token:
@@ -44,12 +47,10 @@ def main():
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                    range='A1:Z100').execute()
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range='A1:Z100').execute()
         values = result.get('values', [])
 
         return values
-
     except HttpError as err:
         print(err)
 

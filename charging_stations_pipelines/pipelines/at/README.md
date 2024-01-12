@@ -7,7 +7,7 @@
 1. registration required (https://admin.ladestellen.at) in order to access the API https://api.e-control.at/...
 2. the API is limited to 1000 results per request, so we need to paginate
 3. described in documentation usage via `Apikey: <...>` and `Domain: <...>` headers does not work (TODO contact
-   the support). As workaround I currently use `Authorization: Basic <base64 encoded username:password>` header.
+   the support). As workaround, I currently use `Authorization: Basic <base64 encoded username:password>` header.
 
 ## Data source
 
@@ -150,7 +150,7 @@ Full API schema (JSON) - https://api.e-control.at/charge/1.0/v2/api-docs?group=p
 E-Control is the government regulator for electricity and natural gas markets in Austria. It was founded in 2001 on the
 basis of the Energy Liberalisation Act.
 
-Das Ladestellenverzeichnis dient zudem im Sinne der EU-Richtline (Richtlinie 2014/94/EU) über den Aufbau der
+Das Ladestellenverzeichnis dient zudem im Sinne der EU-Richtlinie (Richtlinie 2014/94/EU) über den Aufbau der
 Infrastruktur für alternative Kraftstoffe als nationales Referenzverzeichnis in dem jede öffentlich zugängliche
 Ladestation aufgeführt sein soll.
 
@@ -159,7 +159,7 @@ Ladestellen bzw. Ladepunkte in das Ladestellenverzeichnis zu melden (§22a E-Con
 
 1. API docs - https://api.e-control.at/charge/1.0/v2/api-docs?group=public-api, Swagger UI for
    it - https://api.e-control.at/charge/1.0/swagger-ui.html?urls.primaryName=public-api
-2. Docs: As of definition OCPP 2.0 ((reference to ‘OCPP-2.0_part2_specification.pdf’ section ‘2.23.
+2. Docs: As of definition OCPP 2.0 (reference to ‘OCPP-2.0_part2_specification.pdf’ section ‘2.23.
    ConnectorEnumType’) - https://www.openchargealliance.org/news/download-now-ocpp-201-part-2-edition-2/ ,
    root: https://www.openchargealliance.org/protocols/ocpp-201/
 3. Login / Registration: https://admin.ladestellen.at
@@ -190,7 +190,7 @@ ConnectorEnumType is used by: reserveNow:ReserveNowRequest
 | [cCCS1](https://en.wikipedia.org/wiki/Combined_Charging_System) | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/1_cCCS1.svg)  | Combined Charging System 1 (captive cabled) a.k.a. Combo 1                                                                                                                   |
 | [cCCS2](https://en.wikipedia.org/wiki/Combined_Charging_System) | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/2_cCCS2.svg)  | Combined Charging System 2 (captive cabled) a.k.a. Combo 2                                                                                                                   |
 | [cG105](https://en.wikipedia.org/wiki/CHAdeMO)                  | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/3_cG105.svg)  | JARI G105-1993 (captive cabled) a.k.a. **CHAdeMO**                                                                                                                           |
-| [cTesla](https://en.wikipedia.org/wiki/Tesla_Supercharger)                                                      |                                                                             | Tesla Connector (captive cabled)                                                                                                                                             |                                                                                                                                             
+| [cTesla](https://en.wikipedia.org/wiki/Tesla_Supercharger)      |                                                                             | Tesla Connector (captive cabled)                                                                                                                                             |                                                                                                                                             
 | [cType1](https://en.wikipedia.org/wiki/SAE_J1772)               | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/5_cType1.svg) | IEC62196-2 Type 1 connector (captive cabled) a.k.a. J1772                                                                                                                    |           |                                                                                                         
 | [cType2](https://en.wikipedia.org/wiki/Type_2_connector)        | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/6_cType2.svg) | IEC62196-2 Type 2 connector (captive cabled) a.k.a. Mennekes connector                                                                                                       |
 | s309-1P-16A                                                     |                                                                             | 16A 1 phase IEC60309 socket                                                                                                                                                  |
@@ -198,7 +198,7 @@ ConnectorEnumType is used by: reserveNow:ReserveNowRequest
 | s309-3P-16A                                                     |                                                                             | 16A 3 phase IEC60309 socket                                                                                                                                                  |
 | s309-3P-32A                                                     |                                                                             | 32A 3 phase IEC60309 socket                                                                                                                                                  |
 | sBS1361                                                         |                                                                             | UK domestic socket a.k.a. 13Amp                                                                                                                                              |
-| sCEE-7-7                                                        | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/9_sCEE.svg)                                                                       | CEE 7/7 16A socket. May represent 7/4 & 7/5 a.k.a **Schuko**                                                                                                                 |
+| sCEE-7-7                                                        | ![](https://www.ladestellen.at/assets/appicons/electric/plugs/9_sCEE.svg)   | CEE 7/7 16A socket. May represent 7/4 & 7/5 a.k.a **Schuko**                                                                                                                 |
 | sType2                                                          |                                                                             | IEC62196-2 Type 2 socket a.k.a. Mennekes connector                                                                                                                           |
 | [sType3](https://en.wikipedia.org/wiki/Type_3_connector)        | ![]()                                                                       | IEC62196-2 Type 2 socket a.k.a. Scame                                                                                                                                        |
 | Other1PhMax16A                                                  |                                                                             | Other single phase (domestic) sockets not mentioned above, rated at no more than 16A. CEE7/17, AS3112,NEMA 5-15, NEMA 5-20, JISC8303, TIS166, SI 32, CPCS-CCC, SEV1011, etc. |                                                       
@@ -223,7 +223,7 @@ Fahrzeug gleichzeitig geladen werden kann. Wenn also beispielsweise an einer Lad
 (Ladesäule) zwei Stecker vorhanden sind, an denen gleichzeitig auch zwei Fahrzeuge laden können,
 dann sind das zwei Ladepunkte. Wenn aber etwas mehrere, unterschiedliche Stecker an einer
 Ladeeinrichtung vorhanden sind, die nur der Stecktypauswahl dienen, von denen aber immer nur
-einer gleichzeitig genutzt werden kann, dann sind diese mehreren Stecker dennoch nur ein
+einer gleichzeitig genutzt werden kann, dann sind diese mehrere Stecker dennoch nur ein
 Ladepunkt [1]
 
 **Wechselstrom = AC (Alternating Current)**: beim AC – Laden stehen Leistungen von 3,6 kW bis 43 kW bei den

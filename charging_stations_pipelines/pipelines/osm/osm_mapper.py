@@ -1,4 +1,5 @@
 """This module contains the methods for mapping the OpenStreetMap (OSM) data to the database models."""
+
 import json
 import logging
 from datetime import datetime
@@ -10,22 +11,31 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.pipelines import osm
-from charging_stations_pipelines.shared import (check_coordinates, JSON, lst_filter_none, lst_flatten,
-    str_clean_pattern, str_split_pattern, str_strip_whitespace, str_to_float)
+from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY
+from charging_stations_pipelines.shared import (
+    check_coordinates,
+    JSON,
+    lst_filter_none,
+    lst_flatten,
+    str_clean_pattern,
+    str_split_pattern,
+    str_strip_whitespace,
+    str_to_float,
+)
 
 logger = logging.getLogger(__name__)
 
 SOCKET_TYPES: Final[dict[str, str]] = {
-    'socket:chademo':            'CHAdeMO',
-    'socket:schuko':             'AC Schuko',
-    'socket:tesla_supercharger': 'Tesla Supercharger',
-    'socket:type2':              'AC Steckdose Typ 2',
-    'socket:type2:combo':        'Typ 2 Combo',
-    'socket:type2_combo':        'Typ 2 Combo',
-    'socket:type3':              'AC Steckdose Typ 3',
-    'socket:type3c':             'AC Steckdose Typ 3c',
-    'socket:typee':              'AC Steckdose Typ E'}
+    "socket:chademo": "CHAdeMO",
+    "socket:schuko": "AC Schuko",
+    "socket:tesla_supercharger": "Tesla Supercharger",
+    "socket:type2": "AC Steckdose Typ 2",
+    "socket:type2:combo": "Typ 2 Combo",
+    "socket:type2_combo": "Typ 2 Combo",
+    "socket:type3": "AC Steckdose Typ 3",
+    "socket:type3c": "AC Steckdose Typ 3c",
+    "socket:typee": "AC Steckdose Typ E",
+}
 
 ADDRESS_KEYS: Final[list[str]] = [
     "addr:city",
@@ -52,7 +62,7 @@ def map_station_osm(entry: JSON, country_code: str) -> Station:
     new_station.operator = (
         str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
     )
-    new_station.data_source = osm.DATA_SOURCE_KEY
+    new_station.data_source = DATA_SOURCE_KEY
     new_station.point = from_shape(Point(lon, lat)) if lon and lat else None
     new_station.date_created = (
         str_strip_whitespace(entry.get("timestamp")) or datetime.now()
@@ -69,7 +79,7 @@ def map_address_osm(entry: JSON, station_id: Optional[int]) -> Optional[Address]
     :param station_id: An optional integer representing the station ID
     :return: An optional Address object
     """
-    tags = entry.get('tags')
+    tags = entry.get("tags")
     if not tags:
         return None
 
@@ -93,7 +103,8 @@ def map_address_osm(entry: JSON, station_id: Optional[int]) -> Optional[Address]
     return map_address
 
 
-def _extract_ampere_list(datapoint: JSON) -> list[float]:
+def extract_ampere_list(datapoint: JSON) -> list[float]:
+    """Extracts a list of ampere values from a datapoint."""
     raw = datapoint.get("tags", {}).get("amperage")
     if not raw:
         return []
@@ -103,7 +114,8 @@ def _extract_ampere_list(datapoint: JSON) -> list[float]:
     return lst_filter_none(map(str_to_float, list_raw))
 
 
-def _extract_volt_list(datapoint: JSON) -> list[float]:
+def extract_volt_list(datapoint: JSON) -> list[float]:
+    """Extracts a list of volt values from a datapoint."""
     raw = datapoint.get("tags", {}).get("voltage")
     if not raw:
         return []
@@ -116,8 +128,9 @@ def _extract_volt_list(datapoint: JSON) -> list[float]:
     return [float_num for float_num in list_float if float_num > 0.0]
 
 
-def _extract_capacity(datapoint: JSON) -> Optional[int]:
-    raw = datapoint.get('tags', {}).get('capacity')
+def extract_capacity(datapoint: JSON) -> Optional[int]:
+    """Extracts the capacity of a charging station from a datapoint."""
+    raw = datapoint.get("tags", {}).get("capacity")
     if not raw:
         return None
 
@@ -136,7 +149,7 @@ def extract_kw_list(raw: Optional[str]) -> list[float]:
 
 def extract_kw_map(datapoint: JSON) -> dict[str, list[float]]:
     """Extracts a map of socket types to kW values from a datapoint."""
-    tags = datapoint.get('tags', {})
+    tags = datapoint.get("tags", {})
 
     socket_output_dict = {}
     for socket_type in SOCKET_TYPES.keys():
@@ -191,10 +204,10 @@ def map_charging_osm(row: JSON, station_id: Optional[int]) -> Charging:
 
     charging = Charging()
     charging.station_id = station_id
-    charging.capacity = _extract_capacity(row) or None
+    charging.capacity = extract_capacity(row) or None
     charging.kw_list = kw_list or None
-    charging.ampere_list = _extract_ampere_list(row) or None
-    charging.volt_list = _extract_volt_list(row) or None
+    charging.ampere_list = extract_ampere_list(row) or None
+    charging.volt_list = extract_volt_list(row) or None
     charging.socket_type_list = [SOCKET_TYPES.get(k) for k in kw_map.keys()] or None
     charging.dc_support = None
     charging.total_kw = (

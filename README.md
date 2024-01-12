@@ -111,8 +111,9 @@ Put the following content to `.env` file in the root directory:
     DB_PORT=54322
     DB_USER=docker
     DB_PASSWORD=docker
-    # optional for DB:
     DB_SCHEMA=friendly_fox
+
+    # optional for DB:
     DB_TABLE_PREFIX=echarm_
     DB_ALEMBIC_RESTRICT_TABLES=true
     # for Nobil access:
@@ -195,7 +196,11 @@ pip install -r test/requirements.txt
 You can run all tests under `/test` by running the following command:
 
 ```bash
+# to run all tests, use:
 pytest
+
+# ... or the following to run only the unit tests, i.e. not the integration tests (which run a bit longer): 
+pytest -m 'not integration_test' -W ignore::DeprecationWarning
 ```
 
 #### Testdata import / Integration test for the merger
@@ -219,11 +224,12 @@ Please take advantage of the following tooling:
 pip install isort autoflake black
 ```
 
-Black reformats the code, isort orders the imports and flake8 checks for remaining issues.
+Black re-formats the code, isort orders the imports and flake8 checks for remaining issues.
 Example usage:
 
 ```bash
-isort -rc -sl .
-autoflake --remove-all-unused-imports -i -r --exclude alembic .
-isort -rc -m 3 .
+isort --force-single-line-imports .
+autoflake --remove-all-unused-imports -i -r --exclude ./alembic .
+# Note: '3' means 3-vert-hanging multiline imports
+isort --multi-line 3 .
 ```

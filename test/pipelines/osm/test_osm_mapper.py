@@ -1,4 +1,5 @@
 """Unit tests for the mapper of the OSM pipeline."""
+from datetime import datetime
 from unittest.mock import patch, PropertyMock
 
 import pytest
@@ -7,8 +8,8 @@ from shapely.geometry import Point
 
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
-from charging_stations_pipelines.pipelines import osm
-from charging_stations_pipelines.pipelines.osm import osm_mapper
+from charging_stations_pipelines.models.station import Station
+from charging_stations_pipelines.pipelines.osm import DATA_SOURCE_KEY, osm_mapper
 from charging_stations_pipelines.pipelines.osm.osm_mapper import (
     extract_kw_list,
     extract_kw_map,
@@ -49,24 +50,27 @@ from charging_stations_pipelines.shared import float_cmp_eq
                 "country_code": "FR",
                 "source_id": 2144376575,
                 "operator": "Sodetrel",
-                "data_source": osm.DATA_SOURCE_KEY,
+                "data_source": DATA_SOURCE_KEY,
                 "point": from_shape(Point(-1.602638, 48.0449426)),
+                "date_created": datetime.now(),
             },
         ),
     ],
 )
 def test_station_mapping(test_data, expected):
-    s = osm_mapper.map_station_osm(test_data, "FR")
-    assert s.country_code == expected["country_code"]
-    assert s.source_id == expected["source_id"]
-    assert s.operator == expected["operator"]
-    assert s.data_source == expected["data_source"]
-    assert s.point == expected["point"]
-    assert s.date_created is not None
+    station: Station = osm_mapper.map_station_osm(test_data, "FR")
+
+    for attr, expected_val in expected.items():
+        actual_val = getattr(station, attr)
+        if attr == "date_created":
+            # Compare date_created with a tolerance of up to 60 seconds
+            assert (abs(actual_val - expected_val)).total_seconds() <= 60
+        else:
+            assert actual_val == expected_val
 
 
 @pytest.mark.parametrize(
-    "input_data,expected_output",
+    "input_data,expected",
     [
         (
             {  # Test case 1
@@ -109,7 +113,6 @@ def test_station_mapping(test_data, expected):
         ),
         (
             {  # Test case 2
-                "country_code": "DE",
                 "id": 7578833425,
                 "lat": 49.9796288,
                 "lon": 7.0870036,
@@ -145,24 +148,18 @@ def test_station_mapping(test_data, expected):
         ),
     ],
 )
-def test_address_mapping(input_data, expected_output):
+def test_address_mapping(input_data, expected):
     address: Address = osm_mapper.map_address_osm(input_data, 1)
-    assert address.station_id == expected_output["station_id"]
-    assert address.street == expected_output["street"]
-    assert address.town == expected_output["town"]
-    assert address.district == expected_output["district"]
-    assert address.state == expected_output["state"]
-    assert address.country == expected_output["country"]
-    assert address.gmaps_latitude == expected_output["gmaps_latitude"]
-    assert address.gmaps_longitude == expected_output["gmaps_longitude"]
+
+    for attr, expected_val in expected.items():
+        assert getattr(address, attr) == expected_val
 
 
 @pytest.mark.parametrize(
-    "input_data,expected_output",
+    "input_data,expected",
     [
         (
             {  # Test case: missing address tags
-                "country_code": "DE",
                 "id": 25397898,
                 "lat": 49.0211913,
                 "lon": 8.4310523,
@@ -188,17 +185,18 @@ def test_address_mapping(input_data, expected_output):
                 },
                 "type": "node",
             },
-            {},
+            None,
         )
     ],
 )
-def test_address_mapping__empty(input_data, expected_output):
+def test_address_mapping__empty(input_data, expected):
     address = osm_mapper.map_address_osm(input_data, 1)
-    assert address is None
+
+    assert address is expected
 
 
 @pytest.mark.parametrize(
-    "json_data,station_id,expected_outcome",
+    "json_data,station_id,expected",
     [
         (
             {  # Test case 1
@@ -257,17 +255,16 @@ def test_address_mapping__empty(input_data, expected_output):
         ),
     ],
 )
-def test_charging_mapping(json_data, station_id, expected_outcome):
+def test_charging_mapping(json_data, station_id, expected):
     charging = osm_mapper.map_charging_osm(json_data, station_id)
-    assert charging.station_id == expected_outcome["station_id"]
-    assert charging.capacity == expected_outcome["capacity"]
-    assert charging.kw_list == expected_outcome["kw_list"]
-    assert abs(charging.total_kw - expected_outcome["total_kw"]) < 1e-6
-    assert abs(charging.max_kw - expected_outcome["max_kw"]) < 1e-6
-    assert charging.ampere_list == expected_outcome["ampere_list"]
-    assert charging.volt_list == expected_outcome["volt_list"]
-    assert charging.socket_type_list == expected_outcome["socket_type_list"]
-    assert charging.dc_support is expected_outcome["dc_support"]
+
+    for attr, expected_val in expected.items():
+        actual_val = getattr(charging, attr)
+        if attr in ["total_kw", "max_kw"]:
+            # Extra handling for float values comparison
+            assert float_cmp_eq(actual_val, expected_val)
+        else:
+            assert actual_val == expected_val
 
 
 @pytest.mark.parametrize(
@@ -284,12 +281,15 @@ def test_charging_mapping(json_data, station_id, expected_outcome):
     ],
 )
 def test_charging_mapping__amperage(raw_amperage, expected):
-    json_data = {
-        "tags": {
-            "amperage": raw_amperage,
+    charging = osm_mapper.map_charging_osm(
+        {
+            "tags": {
+                "amperage": raw_amperage,
+            },
         },
-    }
-    charging = osm_mapper.map_charging_osm(json_data, 1)
+        1,
+    )
+
     assert charging.ampere_list == expected
 
 
@@ -303,6 +303,7 @@ def test_charging_mapping__amperage_missing_key(amperage_tag_missing, expected):
         },
         1,
     )
+
     assert charging.ampere_list == expected
 
 
@@ -331,6 +332,7 @@ def test_charging_mapping__voltage(raw_voltage, expected):
         },
     }
     charging: Charging = osm_mapper.map_charging_osm(json_data, 1)
+
     assert charging.volt_list == expected
 
 
@@ -351,19 +353,20 @@ def test_charging_mapping__voltage(raw_voltage, expected):
     ],
 )
 def test_charging_mapping__socket_type_list(test_input, expected):
-    (st_id, st_id_val, st_id_output_val), (exp_st_lst, exp_kw_lst) = (
-        test_input,
-        expected,
-    )
+    (
+        (socket_id, socket_id_val, socket_id_out_val),
+        (expected_socket_lst, expected_kw_lst),
+    ) = (test_input, expected)
     json_data = {
         "tags": {
-            st_id: st_id_val,
-            f"{st_id}:output": st_id_output_val,
+            socket_id: socket_id_val,
+            f"{socket_id}:output": socket_id_out_val,
         },
     }
     charging = osm_mapper.map_charging_osm(json_data, 1)
-    assert charging.socket_type_list == exp_st_lst
-    assert charging.kw_list == exp_kw_lst
+
+    assert charging.socket_type_list == expected_socket_lst
+    assert charging.kw_list == expected_kw_lst
 
 
 @pytest.mark.parametrize(
@@ -385,7 +388,7 @@ def test_calc_total_kw(kw_list, output_raw, expected):
 
 
 @pytest.mark.parametrize(
-    "input_str,expected_output",
+    "input_str,expected",
     [
         ("", []),
         (None, []),
@@ -393,8 +396,8 @@ def test_calc_total_kw(kw_list, output_raw, expected):
         ("test1, test2, test3", []),
     ],
 )
-def test_extract_kw_list(input_str, expected_output):
-    assert extract_kw_list(input_str) == expected_output
+def test_extract_kw_list(input_str, expected):
+    assert extract_kw_list(input_str) == expected
 
 
 def test_extract_kw_map():

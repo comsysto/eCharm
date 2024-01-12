@@ -1,3 +1,6 @@
+"""This module contains the pipeline for the Nobil data provider."""
+
+import configparser
 import logging
 import os
 from _decimal import Decimal
@@ -11,21 +14,25 @@ from tqdm import tqdm
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
+from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.shared import download_file, load_json_file, reject_if
 
 logger = logging.getLogger(__name__)
 
 
-# Nobil is the name of the data provider for norwegian and swedish data
 class NobilConnector:
+    """This class represents a connector for the Nobil API."""
+
     def __init__(self, power_in_kw: Decimal):
         self.power_in_kw = power_in_kw
 
 
 class NobilStation:
-    def __init__(self, id, operator, position, created, updated, street, house_number, zipcode, city,
+    """This class represents a station from the Nobil API."""
+
+    def __init__(self, station_id, operator, position, created, updated, street, house_number, zipcode, city,
                  number_charging_points, connectors: list[NobilConnector]):
-        self.id = id
+        self.station_id = station_id
         self.operator = operator
         self.position = position
         self.created = created
@@ -52,6 +59,7 @@ def _parse_json_data(json_data) -> list[NobilStation]:
 
 
 def parse_nobil_connectors(connectors: dict):
+    """Parse the connectors of a nobil station."""
     parsed_connectors: list[NobilConnector] = []
     # iterate over all connectors and add them to the station
     for k, v in connectors.items():
@@ -73,7 +81,7 @@ def _extract_lon_lat_from_position(position: str) -> tuple[float, float]:
 
 def _map_station_to_domain(nobil_station: NobilStation, country_code: str) -> Station:
     new_station = Station()
-    new_station.source_id = str(nobil_station.id)
+    new_station.source_id = str(nobil_station.station_id)
     new_station.data_source = "NOBIL"
     new_station.operator = nobil_station.operator
     lat, long = _extract_lon_lat_from_position(nobil_station.position)
@@ -106,20 +114,23 @@ def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
 
 def _load_datadump_and_write_to_target(path_to_target, country_code: str):
     nobil_api_key = os.getenv("NOBIL_APIKEY")
-    link_to_datadump = f"https://nobil.no/api/server/datadump.php?apikey={nobil_api_key}&countrycode={country_code}&format=json&file=true"
+    link_to_datadump = (f"https://nobil.no/api/server/datadump.php?apikey="
+                        f"{nobil_api_key}&countrycode={country_code}&format=json&file=true")
     download_file(link_to_datadump, path_to_target)
 
 
-class NobilPipeline:
-    def __init__(self, session: Session, country_code: str, online: bool = False):
-        self.session = session
+class NobilPipeline(Pipeline):
+    """This class represents the pipeline for the Nobil data provider."""
+
+    def __init__(self, session: Session, country_code: str, config: configparser, online: bool = False):
+        super().__init__(config, session, online)
 
         accepted_country_codes = ["NOR", "SWE"]
         reject_if(country_code.upper() not in accepted_country_codes, "Invalid country code ")
         self.country_code = country_code.upper()
-        self.online: bool = online
 
     def run(self):
+        """Run the pipeline."""
         logger.info("Running NOR/SWE GOV Pipeline...")
         path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
         if self.online:

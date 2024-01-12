@@ -4,8 +4,20 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from charging_stations_pipelines.shared import (check_coordinates, float_cmp_eq, lst_expand, lst_filter_none,
-    lst_flatten, parse_date, str_clean_pattern, str_split_pattern, str_strip_whitespace, str_to_float, try_remove_dupes)
+from charging_stations_pipelines.shared import (
+    check_coordinates,
+    coalesce,
+    float_cmp_eq,
+    lst_expand,
+    lst_filter_none,
+    lst_flatten,
+    parse_date,
+    str_clean_pattern,
+    str_split_pattern,
+    str_strip_whitespace,
+    str_to_float,
+    try_remove_dupes,
+)
 
 
 def test_check_coordinates():
@@ -30,10 +42,7 @@ def test_check_coordinates():
 
 def test_str_parse_date():
     assert parse_date("2022-01-01") == datetime(2022, 1, 1)
-    assert (
-        parse_date("2023-03-29T17:45:00Z").isoformat()
-        == "2023-03-29T17:45:00+00:00"
-    )
+    assert parse_date("2023-03-29T17:45:00Z").isoformat() == "2023-03-29T17:45:00+00:00"
     assert parse_date(None) is None
     assert parse_date("abc") is None
 
@@ -44,6 +53,7 @@ def test_str_strip_whitespace():
         "test1",
         "test2",
     ]
+    assert str_strip_whitespace("   ") == ""
     assert str_strip_whitespace(None) == ""
     assert str_strip_whitespace(None, default=None) is None
     assert str_strip_whitespace(None, default="abc") == "abc"
@@ -115,7 +125,7 @@ def test_lst_flatten():
         None,
         None,
     ]
-    assert lst_flatten([[1,2, [3,4]], [5,[[6]]]]) == [1,2,3,4,5,6]
+    assert lst_flatten([[1, 2, [3, 4]], [5, [[6]]]]) == [1, 2, 3, 4, 5, 6]
 
 
 def test_lst_remove_dupes():
@@ -146,3 +156,12 @@ def test_lst_filter_none():
     assert lst_filter_none([1, None, 2, None, 3]) == [1, 2, 3]
     assert lst_filter_none(["a", None, "b", None, "c"]) == ["a", "b", "c"]
     assert lst_filter_none(None) == []
+
+
+def test_coalesce():
+    assert coalesce(None, "", "Hello", "World") == "Hello"
+    assert coalesce(None, "", None) is None
+    assert coalesce("", "", "Test") == "Test"
+    assert coalesce(None, "Hello", "") == "Hello"
+    assert coalesce("", None, 1) == 1
+    assert coalesce("", 1, None, 2) == 1

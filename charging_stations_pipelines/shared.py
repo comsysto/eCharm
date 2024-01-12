@@ -117,11 +117,13 @@ def str_strip_whitespace(
         return default
 
 
-def str_clean_pattern(raw_str: Optional[str], remove_pattern: str) -> Optional[str]:
+def str_clean_pattern(
+    raw_str: Optional[str], remove_pattern: Optional[str]
+) -> Optional[str]:
     """Removes a given pattern from a string."""
     return (
         re.sub(remove_pattern, "", raw_str, flags=re.IGNORECASE).strip()
-        if raw_str
+        if raw_str and remove_pattern
         else None
     )
 
@@ -197,6 +199,14 @@ def lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
     )
 
 
+def coalesce(*args):
+    """Returns the first non-empty argument."""
+    for arg in args:
+        if arg is not None and arg != '':
+            return arg
+    return None
+
+
 def reject_if(test: bool, error_message: str = ""):
     """Raises a RuntimeError if the given test is True."""
     if test:
@@ -214,14 +224,15 @@ def load_excel_file(path: str) -> pd.DataFrame:
     """Loads an excel file into a pandas dataframe."""
     # noinspection PyArgumentList
     df = pd.read_excel(path, engine="openpyxl")
+    # Set the column names to the values in the 10th row
     df.columns = df.iloc[9]
     # Drop the comments in the Excel
     df_dropped = df[10:]
     return df_dropped
 
 
-def download_file(url, target_file):
-    """Downloads a file from the given url and saves it to the given target file."""
+def download_file(url: str, target_file: str) -> None:
+    """Downloads a file from the specified url and saves it to the target file path."""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
