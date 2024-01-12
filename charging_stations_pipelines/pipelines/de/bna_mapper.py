@@ -43,7 +43,16 @@ def map_station_bna(row):
     new_station = Station()
     datasource = "BNA"
     new_station.country_code = "DE"
+
+    # FIXME Currently the source_id value for BNA's charging stations is filled with the has value over lat/long.
+    #  This leads to the situation that some charging stations have the same hash value,
+    #  because they have the same lat/long values set (most likely by error) and this in turn leads
+    #  to the fact that some stations cannot be imported because of a unique key constraint
+    #  error (source_id has to be unique). I think we should generate the hash over all attributes of
+    #  the BNA's charging station to avoid the described situation
+    # see https://github.com/comsysto/eCharm/issues/30
     new_station.source_id = lat_long_hash(lat, long, datasource)
+
     new_station.operator = row["Betreiber"]
     new_station.data_source = datasource
     new_station.point = from_shape(Point(float(long), float(lat)))
