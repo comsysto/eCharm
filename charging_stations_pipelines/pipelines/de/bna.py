@@ -30,7 +30,9 @@ class BnaPipeline(Pipeline):
         # All BNA data is from Germany
         self.country_code = "DE"
 
-        self.data_dir: Final[pathlib.Path] = (pathlib.Path(__file__).parents[3] / "data").resolve()
+        self.data_dir: Final[pathlib.Path] = (
+            pathlib.Path(__file__).parents[3] / "data"
+        ).resolve()
 
     def retrieve_data(self):
         self.data_dir.mkdir(parents=True, exist_ok=True)

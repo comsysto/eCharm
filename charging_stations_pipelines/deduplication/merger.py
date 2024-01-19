@@ -9,7 +9,9 @@ from sqlalchemy.orm import make_transient, sessionmaker
 from tqdm import tqdm
 
 from charging_stations_pipelines import settings
-from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
+from charging_stations_pipelines.deduplication import (
+    attribute_match_thresholds_strategy,
+)
 from charging_stations_pipelines.models.station import MergedStationSource, Station
 
 logger = logging.getLogger(__name__)
@@ -93,7 +95,9 @@ class StationMerger:
     ):
         merged_station: Optional[Station] = None
         for source in [self.gov_source, "OCM", "OSM"]:
-            station_id = stations_to_merge[stations_to_merge["data_source"] == source]["station_id_col"]
+            station_id = stations_to_merge[stations_to_merge["data_source"] == source][
+                "station_id_col"
+            ]
             if len(station_id) > 0:
                 station_id = int(station_id.iloc[0])
                 station, address, charging = self.get_station_with_address_and_charging(
@@ -166,7 +170,9 @@ class StationMerger:
 
     def get_station_with_address_and_charging(self, session, station_id):
         # get station from DB and create new object
-        merged_station: Station = session.query(Station).filter(Station.id == station_id).first()
+        merged_station: Station = (
+            session.query(Station).filter(Station.id == station_id).first()
+        )
         address = merged_station.address
         charging = merged_station.charging
         session.expunge(merged_station)  # expunge the object from session

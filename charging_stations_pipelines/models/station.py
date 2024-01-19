@@ -9,6 +9,7 @@ from charging_stations_pipelines.models import Base
 
 class Station(Base):
     """Station class for representing a station in a database."""
+
     __tablename__ = f"{settings.db_table_prefix}stations"
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, index=True, nullable=True, unique=True)
@@ -19,7 +20,7 @@ class Station(Base):
     operator = Column(String)
     payment = Column(String)
     authentication = Column(String)
-    point = Column(Geography(geometry_type='POINT', srid=4326))
+    point = Column(Geography(geometry_type="POINT", srid=4326))
     date_created = Column(Date)
     date_updated = Column(Date)
     raw_data = Column(JSON)
@@ -40,6 +41,7 @@ Index(
 
 class MergedStationSource(Base):
     """This class represents a merged station source entity."""
+
     __tablename__ = f"{settings.db_table_prefix}merged_station_source"
     id = Column(Integer, primary_key=True, autoincrement=True)
     merged_station_id = Column(Integer, ForeignKey(f"{Station.__tablename__}.id"))

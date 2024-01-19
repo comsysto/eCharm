@@ -11,6 +11,7 @@ from charging_stations_pipelines.pipelines.at import econtrol_crawler
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import (
     __name__ as test_module_name,
 )
+
 # NOTE: "local_caplog" is a pytest fixture from test.shared.local_caplog
 from test.shared import local_caplog, LogLocalCaptureFixture  # noqa: F401
 
@@ -82,8 +83,8 @@ def test_get_data(
     mock_getenv,
     mock_get_paginated_stations,
     mock_open,
-    local_caplog: LogLocalCaptureFixture,
-):  # noqa: F811
+    local_caplog: LogLocalCaptureFixture,  # noqa: F811
+):
     # Prepare test data and mocks
     expected_file_size: Final[int] = 2184
     tmp_data_path = "/tmp/test_data.ndjson"
@@ -145,8 +146,8 @@ def test_get_data_empty_response(
     mock_getsize,
     mock_get_paginated_stations,
     mock_open,
-    local_caplog: LogLocalCaptureFixture,
-):  # noqa: F811
+    local_caplog: LogLocalCaptureFixture,  # noqa: F811
+):
     # Prepare test data and mocks
     expected_file_size: Final[int] = 0
     tmp_data_path = "/tmp/test_data.ndjson"

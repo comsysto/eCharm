@@ -4,12 +4,13 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from charging_stations_pipelines import models, settings
+from charging_stations_pipelines.models import address, charging, station
 
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-from charging_stations_pipelines import settings
-from charging_stations_pipelines.models import address, charging, station
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,7 +22,8 @@ fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from charging_stations_pipelines import models
+
+
 target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -39,12 +41,14 @@ def exclude_tables_from_config(config_):
 
 
 # Excluded tables are defined in alembic.ini in section [alembic:exclude], here for PostGIS table spatial_ref_sys
-exclude_tables = exclude_tables_from_config(config.get_section('alembic:exclude'))
+exclude_tables = exclude_tables_from_config(config.get_section("alembic:exclude"))
 
-restrict_tables = [address.Address.__tablename__,
-                 charging.Charging.__tablename__,
-                 station.Station.__tablename__,
-                 station.MergedStationSource.__tablename__]
+restrict_tables = [
+    address.Address.__tablename__,
+    charging.Charging.__tablename__,
+    station.Station.__tablename__,
+    station.MergedStationSource.__tablename__,
+]
 
 
 def include_object(object, name, type_, reflected, compare_to):
@@ -120,7 +124,7 @@ def run_migrations_online():
         )
 
         with context.begin_transaction():
-            context.execute(f'set search_path to {target_metadata.schema},public')
+            context.execute(f"set search_path to {target_metadata.schema},public")
             context.run_migrations()
 
 

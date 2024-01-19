@@ -202,7 +202,7 @@ def lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
 def coalesce(*args):
     """Returns the first non-empty argument."""
     for arg in args:
-        if arg is not None and arg != '':
+        if arg is not None and arg != "":
             return arg
     return None
 

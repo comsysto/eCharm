@@ -28,7 +28,9 @@ def map_station_bna(row: pd.Series):
     new_station.country_code = "DE"
 
     new_station.data_source = bna.DATA_SOURCE_KEY
-    new_station.source_id = hashlib.sha256(f"{lat}{long}{new_station.data_source}".encode()).hexdigest()
+    new_station.source_id = hashlib.sha256(
+        f"{lat}{long}{new_station.data_source}".encode()
+    ).hexdigest()
 
     new_station.operator = row["Betreiber"]
     new_station.point = from_shape(Point(float(long), float(lat)))
@@ -45,7 +47,9 @@ def map_address_bna(row: pd.Series, station_id) -> Address:
     if len(postcode) == 4:
         postcode = "0" + postcode
     if len(postcode) != 5:
-        logger.debug(f"Failed to process postcode {postcode}! Will set postcode to None!")
+        logger.debug(
+            f"Failed to process postcode {postcode}! Will set postcode to None!"
+        )
         postcode = None
     if len(town) < 2:
         logger.debug(f"Failed to process town {town}! Will set town to None!")
@@ -54,7 +58,11 @@ def map_address_bna(row: pd.Series, station_id) -> Address:
     address = Address()
 
     address.station_id = station_id
-    address.street = str_strip_whitespace(row.get("Straße")) + " " + str_strip_whitespace(row.get("Hausnummer"))
+    address.street = (
+        str_strip_whitespace(row.get("Straße"))
+        + " "
+        + str_strip_whitespace(row.get("Hausnummer"))
+    )
     address.town = town
     address.postcode = postcode
     address.district = row["Kreis/kreisfreie Stadt"]

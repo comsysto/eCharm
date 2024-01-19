@@ -56,5 +56,7 @@ class GbPipeline(Pipeline):
             mapped_station = map_station_gb(entry, "    GB")
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
-            station_updater.update_station(station=mapped_station, data_source_key="GBGOV")
+            station_updater.update_station(
+                station=mapped_station, data_source_key="GBGOV"
+            )
         station_updater.log_update_station_counts()

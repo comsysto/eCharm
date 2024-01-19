@@ -7,7 +7,11 @@ from typing import Optional
 import requests as requests
 from bs4 import BeautifulSoup
 
-from charging_stations_pipelines.pipelines.de import DownloadFileException, ExtractURLException, FetchWebsiteException
+from charging_stations_pipelines.pipelines.de import (
+    DownloadFileException,
+    ExtractURLException,
+    FetchWebsiteException,
+)
 from charging_stations_pipelines.shared import download_file
 
 logger = logging.getLogger(__name__)
@@ -37,15 +41,19 @@ def get_bna_data(tmp_data_path: str) -> None:
     download_link_elems = soup.find_all("a", class_=LINK_CLASS)
     download_link_url: Optional[str] = None
     for link in download_link_elems:
-        download_link_url = link.get('href')
-        if (download_link_url
-                and SEARCH_TERM in download_link_url.lower()
-                and download_link_url.lower().endswith(FILE_EXTENSION)):
+        download_link_url = link.get("href")
+        if (
+            download_link_url
+            and SEARCH_TERM in download_link_url.lower()
+            and download_link_url.lower().endswith(FILE_EXTENSION)
+        ):
             break
 
     # Check if the url extraction is successful
     if download_link_url is None:
-        raise ExtractURLException("Failed to extract the download url from the website.")
+        raise ExtractURLException(
+            "Failed to extract the download url from the website."
+        )
 
     logger.debug(f"Downloading BNA data from '{download_link_url}'")
     try:

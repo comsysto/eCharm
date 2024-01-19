@@ -15,9 +15,9 @@ class StationTableUpdater:
         self.session = session
         self.logger = logger
         self.counts = {
-            'new': 0,
-            'updated': 0,  # no update mechanism yet
-            'error': 0
+            "new": 0,
+            "updated": 0,  # no update mechanism yet
+            "error": 0,
         }
 
     def update_station(self, station: Station, data_source_key: str):
@@ -38,12 +38,14 @@ class StationTableUpdater:
             self.session.rollback()
 
         if error_occurred:
-            self.counts['error'] += 1
+            self.counts["error"] += 1
         else:
-            self.counts['new'] += 1
+            self.counts["new"] += 1
 
     def log_update_station_counts(self):
         """Log the number of new and updated stations."""
-        self.logger.info(f"new stations: {self.counts['new']}, "
-                         f"updated stations: {self.counts['updated']}, "
-                         f"errors: {self.counts['error']}")
+        self.logger.info(
+            f"new stations: {self.counts['new']}, "
+            f"updated stations: {self.counts['updated']}, "
+            f"errors: {self.counts['error']}"
+        )

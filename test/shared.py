@@ -92,7 +92,7 @@ def create_charging() -> Charging:
 
 def skip_if_github():
     """Checks if the current workflow is running on GitHub."""
-    return 'GITHUB_WORKFLOW' in os.environ
+    return "GITHUB_WORKFLOW" in os.environ
 
 
 class LogLocalCaptureFixture:
@@ -102,7 +102,9 @@ class LogLocalCaptureFixture:
         self.handler = LogCaptureHandler()
 
     @contextmanager
-    def __call__(self, level: int, logger: logging.Logger) -> Generator[None, None, None]:
+    def __call__(
+        self, level: int, logger: logging.Logger
+    ) -> Generator[None, None, None]:
         """Context manager that sets the level for capturing of logs."""
         orig_level = logger.level
 

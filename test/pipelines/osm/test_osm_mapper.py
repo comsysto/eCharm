@@ -294,7 +294,8 @@ def test_charging_mapping__amperage(raw_amperage, expected):
 
 
 @pytest.mark.parametrize(
-    "amperage_tag_missing, expected", [({}, None)]  # Missing amperage key
+    "amperage_tag_missing, expected",
+    [({}, None)],  # Missing amperage key
 )
 def test_charging_mapping__amperage_missing_key(amperage_tag_missing, expected):
     charging = osm_mapper.map_charging_osm(

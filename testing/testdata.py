@@ -17,6 +17,7 @@ from charging_stations_pipelines.settings import db_uri
 @dataclass
 class TestData:
     """Class used to store test data for geographic locations."""
+
     osm_id: Optional[str] = None
     ocm_id: Optional[str] = None
     bna_id: Optional[str] = None
@@ -27,7 +28,7 @@ def load_test_data() -> List[TestData]:
     """Create TestData objects from spreadsheet data."""
     rows = testdata_import.main()
     if not rows:
-        print('No test data found.')
+        print("No test data found.")
         return []
     test_data = []
     for row in rows[1:]:
@@ -63,7 +64,9 @@ def run():
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
 
-    merger: StationMerger = StationMerger('DE', config=config, db_engine=create_engine(db_uri, echo=True))
+    merger: StationMerger = StationMerger(
+        "DE", config=config, db_engine=create_engine(db_uri, echo=True)
+    )
 
     # print(test_data)
     with open("testdata_merge.csv", "w") as outfile:
@@ -71,23 +74,31 @@ def run():
             duplicates: pd.DataFrame = pd.DataFrame()
             if station.osm_coordinates:
                 # print(f"OSM ID of central charging station: {station.osm_id}")
-                duplicates, _ = merger.find_duplicates(station.osm_id, station.osm_coordinates, radius_m,
-                                                       filter_by_source_id=True)
+                duplicates, _ = merger.find_duplicates(
+                    station.osm_id,
+                    station.osm_coordinates,
+                    radius_m,
+                    filter_by_source_id=True,
+                )
             if not duplicates.empty:
-                data_sources_in_duplicates = ','.join(duplicates.data_source.unique())
+                data_sources_in_duplicates = ",".join(duplicates.data_source.unique())
                 # print(f"Data Sources in duplicates: {data_sources_in_duplicates}")
-                result: list[Optional[str]] = [station.osm_id, str(len(duplicates)), data_sources_in_duplicates]
+                result: list[Optional[str]] = [
+                    station.osm_id,
+                    str(len(duplicates)),
+                    data_sources_in_duplicates,
+                ]
                 print(f"Result of merge on test data: {result}")
-                outfile.write(','.join(result))
-                outfile.write('\n')
+                outfile.write(",".join(result))
+                outfile.write("\n")
             else:
                 print("No successful merge on test data")
-                outfile.write('NA\n')
+                outfile.write("NA\n")
 
-            if station.osm_id == '6417375309':
+            if station.osm_id == "6417375309":
                 pass  # break
         outfile.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

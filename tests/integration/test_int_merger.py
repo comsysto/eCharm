@@ -63,11 +63,13 @@ def _run_merger(engine):
     # Suppressing Pandas warning (1/2): "A value is trying to be set on a copy of a slice from a DataFrame."
     pd.options.mode.chained_assignment = None  # default: 'warn'
 
-    station_merger = StationMerger(country_code='DE', config=(get_config()), db_engine=engine)
+    station_merger = StationMerger(
+        country_code="DE", config=(get_config()), db_engine=engine
+    )
     station_merger.run()
 
     # Suppressing Pandas warning (2/2): restoring default value
-    pd.options.mode.chained_assignment = 'warn'
+    pd.options.mode.chained_assignment = "warn"
 
 
 @pytest.mark.integration_test
@@ -75,12 +77,12 @@ def test_int_deduplication_expect_a_merged_entry_if_two_duplicates_exists(engine
     def _create_stations():
         # Given: two duplicate stations
         station_one = create_station()
-        station_one.data_source = 'BNA'
-        station_one.source_id = 'BNA_ID1'
+        station_one.data_source = "BNA"
+        station_one.source_id = "BNA_ID1"
 
         station_duplicate = create_station()
-        station_duplicate.data_source = 'OSM'
-        station_duplicate.source_id = 'OSM_ID1'
+        station_duplicate.data_source = "OSM"
+        station_duplicate.source_id = "OSM_ID1"
 
         return station_one, station_duplicate
 
@@ -92,7 +94,7 @@ def test_int_deduplication_expect_a_merged_entry_if_two_duplicates_exists(engine
 
         not_merged_stations = [s for s in all_stations if not s.is_merged]
         assert len(not_merged_stations) == 2
-        assert all(s.merge_status == 'is_duplicate' for s in not_merged_stations)
+        assert all(s.merge_status == "is_duplicate" for s in not_merged_stations)
 
         merged_stations = [s for s in all_stations if s.is_merged]
         assert len(merged_stations) == 1
@@ -128,7 +130,7 @@ def test_int_deduplication_ocm_should_have_higher_prio_than_bna(engine):
         assert len(merged_stations) == 1
 
         merged_station = merged_stations[0]
-        assert merged_station.data_source == 'OCM'
+        assert merged_station.data_source == "OCM"
 
         point = wkb.loads(bytes(merged_station.point.data))
         expected_x, expected_y = 1.11111112, 1.111111
@@ -153,56 +155,62 @@ def test_int_at_merger_bug_country_code_data_source_mismatch(engine):
     def _create_stations():
         # Given: two problematic stations
         # noinspection DuplicatedCode
-        raw1: pd.Series = pd.Series({
-            'evseCountryId': 'DE',
-            'evseOperatorId': 'ELE',
-            'evseStationId': 'EKRIMML4',
-            'status': 'ACTIVE',
-            'label': 'KRIMML',
-            'description': None,
-            'postCode': 5743,
-            'city': 'Krimml',
-            'street': 'Gerlos Straße, Parkplatz P4',
-            'location': {'latitude': 12.167938, 'longitude': 12.167938},
-            'distance': None,
-            'contactName': 'David Gruber',
-            'telephone': '+4369917057801',
-            'email': 'david@elektroauto.at',
-            'website': 'www.elektroauto.at',
-            'directions': 'Ober dem letzten Parkplatz Krimmler Wasserfälle',
-            'greenEnergy': 1.0,
-            'freeParking': 1.0,
-            'openingHours': {'text': None, 'details': []},
-            'priceUrl': None,
-            'points': [],
-            'public': True})
+        raw1: pd.Series = pd.Series(
+            {
+                "evseCountryId": "DE",
+                "evseOperatorId": "ELE",
+                "evseStationId": "EKRIMML4",
+                "status": "ACTIVE",
+                "label": "KRIMML",
+                "description": None,
+                "postCode": 5743,
+                "city": "Krimml",
+                "street": "Gerlos Straße, Parkplatz P4",
+                "location": {"latitude": 12.167938, "longitude": 12.167938},
+                "distance": None,
+                "contactName": "David Gruber",
+                "telephone": "+4369917057801",
+                "email": "david@elektroauto.at",
+                "website": "www.elektroauto.at",
+                "directions": "Ober dem letzten Parkplatz Krimmler Wasserfälle",
+                "greenEnergy": 1.0,
+                "freeParking": 1.0,
+                "openingHours": {"text": None, "details": []},
+                "priceUrl": None,
+                "points": [],
+                "public": True,
+            }
+        )
 
         # noinspection DuplicatedCode
-        raw2: pd.Series = pd.Series({
-            'evseCountryId': 'DE',
-            'evseOperatorId': 'ELE',
-            'evseStationId': 'EKRIMML',
-            'status': 'ACTIVE',
-            'label': 'KRIMML',
-            'description': None,
-            'postCode': 5743,
-            'city': 'Krimml',
-            'street': 'Gerlos Straße, Parkplatz P4',
-            'location': {'latitude': 12.167938, 'longitude': 12.167938},
-            'distance': None,
-            'contactName': 'David Gruber',
-            'telephone': '+4369917057801',
-            'email': 'david@elektroauto.at',
-            'website': 'www.elektroauto.at',
-            'directions': 'Ober dem letzten Parkplatz Krimmler Wasserfälle',
-            'greenEnergy': 1.0,
-            'freeParking': 1.0,
-            'openingHours': {'text': None, 'details': []},
-            'priceUrl': None,
-            'points': [],
-            'public': True})
+        raw2: pd.Series = pd.Series(
+            {
+                "evseCountryId": "DE",
+                "evseOperatorId": "ELE",
+                "evseStationId": "EKRIMML",
+                "status": "ACTIVE",
+                "label": "KRIMML",
+                "description": None,
+                "postCode": 5743,
+                "city": "Krimml",
+                "street": "Gerlos Straße, Parkplatz P4",
+                "location": {"latitude": 12.167938, "longitude": 12.167938},
+                "distance": None,
+                "contactName": "David Gruber",
+                "telephone": "+4369917057801",
+                "email": "david@elektroauto.at",
+                "website": "www.elektroauto.at",
+                "directions": "Ober dem letzten Parkplatz Krimmler Wasserfälle",
+                "greenEnergy": 1.0,
+                "freeParking": 1.0,
+                "openingHours": {"text": None, "details": []},
+                "priceUrl": None,
+                "points": [],
+                "public": True,
+            }
+        )
 
-        return _create_test_station(raw1, 'AT'), _create_test_station(raw2, 'AT')
+        return _create_test_station(raw1, "AT"), _create_test_station(raw2, "AT")
 
     # Given: db with two problematic station entries
     session = _set_up_db(engine, _create_stations())
@@ -213,11 +221,13 @@ def test_int_at_merger_bug_country_code_data_source_mismatch(engine):
     # Suppressing Pandas warning (1/2): "A value is trying to be set on a copy of a slice from a DataFrame."
     pd.options.mode.chained_assignment = None  # default: 'warn'
 
-    station_merger = StationMerger(country_code='AT', config=(get_config()), db_engine=engine)
+    station_merger = StationMerger(
+        country_code="AT", config=(get_config()), db_engine=engine
+    )
     station_merger.run()
 
     # Suppressing Pandas warning (2/2): restoring default value
-    pd.options.mode.chained_assignment = 'warn'
+    pd.options.mode.chained_assignment = "warn"
 
     # Check that all_stations are merged
     # noinspection DuplicatedCode
@@ -226,7 +236,7 @@ def test_int_at_merger_bug_country_code_data_source_mismatch(engine):
 
     not_merged_stations = [s for s in all_stations if not s.is_merged]
     assert len(not_merged_stations) == 2
-    assert all(s.merge_status == 'is_duplicate' for s in not_merged_stations)
+    assert all(s.merge_status == "is_duplicate" for s in not_merged_stations)
 
     merged_stations = [s for s in all_stations if s.is_merged]
     assert len(merged_stations) == 1
