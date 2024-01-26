@@ -4,13 +4,11 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
-from charging_stations_pipelines import models, settings
-from charging_stations_pipelines.models import address, charging, station
-
 
 current_path = os.path.abspath(".")
 sys.path.append(current_path)
-
+from charging_stations_pipelines import settings  # noqa: E402
+from charging_stations_pipelines.models import address, charging, station  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,7 +20,7 @@ fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-
+from charging_stations_pipelines import models  # noqa: E402
 
 target_metadata = models.Base.metadata
 
