@@ -170,9 +170,7 @@ def test_map_charging__kw_list():
     ]
 
     for raw, expected in sample_data:
-        raw_datapoint = pd.Series(
-            {"points": [{"energyInKw": raw[0], "connectorTypes": raw[1]}]}
-        )
+        raw_datapoint = pd.Series({"points": [{"energyInKw": raw[0], "connectorTypes": raw[1]}]})
 
         exp_kw_list, exp_max_kw, exp_total_kw = expected
 

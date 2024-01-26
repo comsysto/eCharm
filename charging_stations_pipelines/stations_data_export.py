@@ -32,11 +32,7 @@ def stations_data_export(
 ):
     """Exports stations data to a file."""
     logger.info(f"Exporting stations data for country {country_code}")
-    country_filter = (
-        f"country_code='{country_code}' AND "
-        if country_code != "" and not export_all_countries
-        else ""
-    )
+    country_filter = f"country_code='{country_code}' AND " if country_code != "" and not export_all_countries else ""
     merged_filter = "s.is_merged" if export_merged else "NOT s.is_merged"
     export_area_filter = (
         (
@@ -77,9 +73,7 @@ def stations_data_export(
         """
 
     logger.debug(f"Running postgis query {get_stations_list_sql}")
-    gdf: gpd.GeoDataFrame = gpd.read_postgis(
-        get_stations_list_sql, con=db_connection, geom_col="point"
-    )
+    gdf: gpd.GeoDataFrame = gpd.read_postgis(get_stations_list_sql, con=db_connection, geom_col="point")
     logger.debug(f"Found stations of shape: {gdf.shape}")
 
     if len(gdf) == 0:
@@ -87,12 +81,8 @@ def stations_data_export(
     else:
         if export_to_csv:
             suffix = "csv"
-            gdf["latitude"] = gdf["point"].apply(
-                lambda point: point.y if point else None
-            )
-            gdf["longitude"] = gdf["point"].apply(
-                lambda point: point.x if point else None
-            )
+            gdf["latitude"] = gdf["point"].apply(lambda point: point.y if point else None)
+            gdf["longitude"] = gdf["point"].apply(lambda point: point.x if point else None)
             export_data = gdf.to_csv()
         else:
             suffix = "geo.json"
@@ -101,9 +91,7 @@ def stations_data_export(
         logger.debug(f"Data sample: {gdf.sample(5)}")
 
         file_country = "europe" if export_all_countries else country_code
-        file_description = get_file_description(
-            file_descriptor, file_country, export_area
-        )
+        file_description = get_file_description(file_descriptor, file_country, export_area)
         file_suffix_merged = "merged" if export_merged else "w_duplicates"
         file_suffix_charging = "_w_charging" if export_charging_attributes else ""
 
@@ -114,16 +102,12 @@ def stations_data_export(
             logger.info(f"Done writing, file size: {outfile.tell()}")
 
 
-def get_file_description(
-    file_descriptor: str, file_country: str, export_circle: ExportArea
-):
+def get_file_description(file_descriptor: str, file_country: str, export_circle: ExportArea):
     """Returns a file description based on the given parameters."""
     is_export_circle_specified = export_circle is not None
     if file_descriptor == "":
         if is_export_circle_specified:
-            return (
-                f"{export_circle.lon}_{export_circle.lat}_{export_circle.radius_meters}"
-            )
+            return f"{export_circle.lon}_{export_circle.lat}_{export_circle.radius_meters}"
         else:
             return file_country
     else:

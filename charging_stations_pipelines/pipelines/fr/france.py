@@ -25,9 +25,7 @@ logger = logging.getLogger(__name__)
 
 class FraPipeline(Pipeline):
     def _retrieve_data(self):
-        data_dir = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
-        )
+        data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_data_path = os.path.join(data_dir, self.config["FRGOV"]["filename"])
         if self.online:
@@ -51,9 +49,7 @@ class FraPipeline(Pipeline):
             mapped_station = map_station_fra(row)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
-            station_updater.update_station(
-                station=mapped_station, data_source_key="FRGOV"
-            )
+            station_updater.update_station(station=mapped_station, data_source_key="FRGOV")
         station_updater.log_update_station_counts()
 
     @staticmethod

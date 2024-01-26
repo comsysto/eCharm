@@ -63,9 +63,7 @@ def _run_merger(engine):
     # Suppressing Pandas warning (1/2): "A value is trying to be set on a copy of a slice from a DataFrame."
     pd.options.mode.chained_assignment = None  # default: 'warn'
 
-    station_merger = StationMerger(
-        country_code="DE", config=(get_config()), db_engine=engine
-    )
+    station_merger = StationMerger(country_code="DE", config=(get_config()), db_engine=engine)
     station_merger.run()
 
     # Suppressing Pandas warning (2/2): restoring default value
@@ -221,9 +219,7 @@ def test_int_at_merger_bug_country_code_data_source_mismatch(engine):
     # Suppressing Pandas warning (1/2): "A value is trying to be set on a copy of a slice from a DataFrame."
     pd.options.mode.chained_assignment = None  # default: 'warn'
 
-    station_merger = StationMerger(
-        country_code="AT", config=(get_config()), db_engine=engine
-    )
+    station_merger = StationMerger(country_code="AT", config=(get_config()), db_engine=engine)
     station_merger.run()
 
     # Suppressing Pandas warning (2/2): restoring default value

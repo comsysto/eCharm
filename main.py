@@ -175,9 +175,7 @@ def run_merge(countries: list[str], delete_data: bool):
 
 def run_export(cli_args):
     """This method runs the export process based on the provided command line arguments."""
-    args_file_descriptor = (
-        cli_args.export_file_descriptor if cli_args.export_file_descriptor else ""
-    )
+    args_file_descriptor = cli_args.export_file_descriptor if cli_args.export_file_descriptor else ""
 
     args_export_area = (
         ExportArea(
@@ -229,19 +227,14 @@ def main():
     setup_logging(command_line_args.verbose)
 
     tasks = {
-        "import": lambda args: run_import(
-            args.countries, not args.offline, args.delete_data
-        ),
+        "import": lambda args: run_import(args.countries, not args.offline, args.delete_data),
         "merge": lambda args: run_merge(args.countries, args.delete_data),
         "testdata": lambda args: testdata.run(),
         "export": run_export,
     }
 
     logger.info("Starting eCharm...")
-    logger.info(
-        f"Specified {len(command_line_args.tasks)} tasks: "
-        + ", ".join(command_line_args.tasks)
-    )
+    logger.info(f"Specified {len(command_line_args.tasks)} tasks: " + ", ".join(command_line_args.tasks))
     for task_name in command_line_args.tasks:
         logger.info(f"Running task: {task_name}")
         task_function = tasks.get(task_name)

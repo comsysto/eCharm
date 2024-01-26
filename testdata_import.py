@@ -36,9 +36,7 @@ def main() -> list[Any]:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                os.path.join(directory, "credentials.json"), SCOPES
-            )
+            flow = InstalledAppFlow.from_client_secrets_file(os.path.join(directory, "credentials.json"), SCOPES)
             creds = flow.run_local_server(port=8083)
         # Save the credentials for the next run
         with open(token_filename, "w") as token:
@@ -49,9 +47,7 @@ def main() -> list[Any]:
 
         # Call the Sheets API
         sheet = service.spreadsheets()
-        result = (
-            sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="A1:Z100").execute()
-        )
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="A1:Z100").execute()
         values = result.get("values", [])
 
         return values

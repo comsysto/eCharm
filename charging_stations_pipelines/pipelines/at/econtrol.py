@@ -50,15 +50,11 @@ class EcontrolAtPipeline(Pipeline):
         self.country_code = "AT"
 
         relative_dir = os.path.join("../../..", "data")
-        self.data_dir = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), relative_dir
-        )
+        self.data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
 
     def _retrieve_data(self):
         pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_data_path = os.path.join(
-            self.data_dir, self.config[DATA_SOURCE_KEY]["filename"]
-        )
+        tmp_data_path = os.path.join(self.data_dir, self.config[DATA_SOURCE_KEY]["filename"])
         if self.online:
             logger.info("Retrieving Online Data")
             get_data(tmp_data_path)
@@ -78,9 +74,7 @@ class EcontrolAtPipeline(Pipeline):
 
         stats = collections.defaultdict(int)
         datapoint: pd.Series
-        for _, datapoint in tqdm(
-            iterable=self.data.iterrows(), total=self.data.shape[0]
-        ):
+        for _, datapoint in tqdm(iterable=self.data.iterrows(), total=self.data.shape[0]):
             try:
                 station = map_station(datapoint, self.country_code)
 
@@ -92,11 +86,7 @@ class EcontrolAtPipeline(Pipeline):
                 station.address = map_address(datapoint, self.country_code, None)
 
                 # Count stations which have an invalid address
-                if (
-                    station.address
-                    and station.address.country
-                    and station.address.country not in SCOPE_COUNTRIES
-                ):
+                if station.address and station.address.country and station.address.country not in SCOPE_COUNTRIES:
                     stats["count_country_mismatch_stations"] += 1
 
                 # Count stations which have a mismatching country code between Station and Address
@@ -111,8 +101,7 @@ class EcontrolAtPipeline(Pipeline):
             except Exception as e:
                 stats["count_parse_error"] += 1
                 logger.debug(
-                    f"{DATA_SOURCE_KEY} entry could not be parsed, error:\n{e}\n"
-                    f"Row:\n----\n{datapoint}\n----\n"
+                    f"{DATA_SOURCE_KEY} entry could not be parsed, error:\n{e}\n" f"Row:\n----\n{datapoint}\n----\n"
                 )
         logger.info(
             f"Finished {DATA_SOURCE_KEY} Pipeline:\n"

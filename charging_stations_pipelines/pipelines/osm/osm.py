@@ -39,9 +39,7 @@ class OsmPipeline(Pipeline):
         self.country_code = country_code
 
     def retrieve_data(self):
-        data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
-        )
+        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config[DATA_SOURCE_KEY]["filename"])
         if self.online:
@@ -70,11 +68,7 @@ class OsmPipeline(Pipeline):
                 station.address = osm_mapper.map_address_osm(entry, None)
 
                 # Count stations which have an invalid address
-                if (
-                    station.address
-                    and station.address.country
-                    and station.address.country not in SCOPE_COUNTRIES
-                ):
+                if station.address and station.address.country and station.address.country not in SCOPE_COUNTRIES:
                     stats["count_country_mismatch_stations"] += 1
 
                 # Count stations which have a mismatching country code between Station and Address
@@ -93,9 +87,7 @@ class OsmPipeline(Pipeline):
                 stats["count_valid_stations"] += 1
             except Exception as ex:
                 stats["count_parse_error"] += 1
-                logger.debug(
-                    f"{DATA_SOURCE_KEY} entry could not be parsed, error: {ex}. Row: {entry}"
-                )
+                logger.debug(f"{DATA_SOURCE_KEY} entry could not be parsed, error: {ex}. Row: {entry}")
 
         logger.info(
             f"Finished {DATA_SOURCE_KEY} Pipeline:\n"

@@ -103,9 +103,7 @@ def map_station(row: pd.Series, country_code: str) -> Station:
     return station
 
 
-def map_address(
-    row: pd.Series, country_code: str, station_id: Optional[int]
-) -> Address:
+def map_address(row: pd.Series, country_code: str, station_id: Optional[int]) -> Address:
     """Maps the given raw datapoint to an Address object.
 
     :param row: A datapoint representing the raw data.

@@ -34,16 +34,10 @@ def test_map_station_bna():
     assert station.data_source == DATA_SOURCE_KEY
     assert (
         station.source_id
-        == hashlib.sha256(
-            (
-                data_row["Breitengrad"] + data_row["Längengrad"] + station.data_source
-            ).encode()
-        ).hexdigest()
+        == hashlib.sha256((data_row["Breitengrad"] + data_row["Längengrad"] + station.data_source).encode()).hexdigest()
     )
     assert station.operator == data_row["Betreiber"]
-    assert station.point == from_shape(
-        Point(float(data_row["Längengrad"]), float(data_row["Breitengrad"]))
-    )
+    assert station.point == from_shape(Point(float(data_row["Längengrad"]), float(data_row["Breitengrad"])))
     assert station.date_created == data_row["Inbetriebnahmedatum"].strftime("%Y-%m-%d")
 
 
@@ -98,9 +92,7 @@ def test_map_address_bna():
 
 def test_map_charging_bna():
     # Pandas Series to simulate the row
-    row = pd.Series(
-        {"Nennleistung Ladeeinrichtung [kW]": "5.0", "Anzahl Ladepunkte": 2}
-    )
+    row = pd.Series({"Nennleistung Ladeeinrichtung [kW]": "5.0", "Anzahl Ladepunkte": 2})
 
     charging = de_mapper.map_charging_bna(row, 1)
 

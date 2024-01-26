@@ -57,13 +57,9 @@ def get_osm_data(country_code: str, tmp_data_path):
         """
     }
 
-    response: Response = requests.get(
-        "https://overpass-api.de/api/interpreter", query_params
-    )
+    response: Response = requests.get("https://overpass-api.de/api/interpreter", query_params)
     status_code: int = response.status_code
     if status_code != 200:
-        raise RuntimeError(
-            f"Failed to get {DATA_SOURCE_KEY} data! Status code: {status_code}"
-        )
+        raise RuntimeError(f"Failed to get {DATA_SOURCE_KEY} data! Status code: {status_code}")
     with open(tmp_data_path, "w") as f:
         json.dump(response.json(), f, ensure_ascii=False, indent=4, sort_keys=True)

@@ -68,9 +68,7 @@ def test_file_size(bna_data):
 def test_dataframe_schema(bna_data):
     _, bna_in_data = bna_data
     # Check schema of the downloaded Excel file
-    assert verify_schema_follows(
-        bna_in_data, EXPECTED_DATA_SCHEMA
-    ), "Mismatch in schema of the downloaded Excel file!"
+    assert verify_schema_follows(bna_in_data, EXPECTED_DATA_SCHEMA), "Mismatch in schema of the downloaded Excel file!"
 
 
 @pytest.mark.integration_test

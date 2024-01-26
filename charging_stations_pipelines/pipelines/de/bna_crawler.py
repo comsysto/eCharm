@@ -51,9 +51,7 @@ def get_bna_data(tmp_data_path: str) -> None:
 
     # Check if the url extraction is successful
     if download_link_url is None:
-        raise ExtractURLException(
-            "Failed to extract the download url from the website."
-        )
+        raise ExtractURLException("Failed to extract the download url from the website.")
 
     logger.debug(f"Downloading BNA data from '{download_link_url}'")
     try:

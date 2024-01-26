@@ -45,9 +45,7 @@ def map_station_fra(row: pd.Series) -> Station:
     station.date_updated = row.get("date_maj").strptime("%Y-%m-%d")
 
     if not pd.isna(row.get("date_mise_en_service")):
-        station.date_created = datetime.strptime(
-            row.get("date_mise_en_service"), "%Y-%m-%d"
-        )
+        station.date_created = datetime.strptime(row.get("date_mise_en_service"), "%Y-%m-%d")
     if not pd.isna(row.get("date_maj")):
         station.date_updated = datetime.strptime(row.get("date_maj"), "%Y-%m-%d")
     else:

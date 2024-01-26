@@ -20,9 +20,7 @@ def delete_all_data(session: Session):
     ]
     for model in models:
         logger.info(f"Dropping table: '{model.__tablename__}'...")
-        session.execute(
-            text(f"TRUNCATE TABLE {model.__tablename__} RESTART IDENTITY CASCADE")
-        )
+        session.execute(text(f"TRUNCATE TABLE {model.__tablename__} RESTART IDENTITY CASCADE"))
     session.commit()
     session.close()
     logger.info("Finished deleting all data from the database.")
@@ -30,15 +28,9 @@ def delete_all_data(session: Session):
 
 def delete_all_merged_data(session: Session):
     """Deletes all merged data from the database."""
-    session.execute(
-        text(
-            f"TRUNCATE TABLE {station.MergedStationSource.__tablename__} RESTART IDENTITY"
-        )
-    )
+    session.execute(text(f"TRUNCATE TABLE {station.MergedStationSource.__tablename__} RESTART IDENTITY"))
     session.execute(delete(address.Address).where(address.Address.is_merged.is_(True)))
-    session.execute(
-        delete(charging.Charging).where(charging.Charging.is_merged.is_(True))
-    )
+    session.execute(delete(charging.Charging).where(charging.Charging.is_merged.is_(True)))
     session.execute(delete(station.Station).where(station.Station.is_merged.is_(True)))
     session.execute(update(station.Station).values(merge_status=None))
     session.commit()

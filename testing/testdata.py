@@ -64,9 +64,7 @@ def run():
     current_dir = os.path.join(pathlib.Path(__file__).parent.resolve())
     config.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
 
-    merger: StationMerger = StationMerger(
-        "DE", config=config, db_engine=create_engine(db_uri, echo=True)
-    )
+    merger: StationMerger = StationMerger("DE", config=config, db_engine=create_engine(db_uri, echo=True))
 
     # print(test_data)
     with open("testdata_merge.csv", "w") as outfile:

@@ -85,15 +85,11 @@ def parse_nobil_connectors(connectors: dict):
     parsed_connectors: list[NobilConnector] = []
     # iterate over all connectors and add them to the station
     for k, v in connectors.items():
-        charging_capacity = v["5"][
-            "trans"
-        ]  # contains a string like "7,4 kW - 230V 1-phase max 32A" or "75 kW DC"
+        charging_capacity = v["5"]["trans"]  # contains a string like "7,4 kW - 230V 1-phase max 32A" or "75 kW DC"
 
         # extract the power in kW from the charging capacity string
         power_in_kw = (
-            Decimal(charging_capacity.split(" kW")[0].replace(",", "."))
-            if " kW" in charging_capacity
-            else None
+            Decimal(charging_capacity.split(" kW")[0].replace(",", ".")) if " kW" in charging_capacity else None
         )
 
         parsed_connectors.append(NobilConnector(power_in_kw))
@@ -132,9 +128,7 @@ def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
     new_charging: Charging = Charging()
     new_charging.capacity = nobil_station.number_charging_points
     new_charging.kw_list = [
-        connector.power_in_kw
-        for connector in nobil_station.connectors
-        if connector.power_in_kw is not None
+        connector.power_in_kw for connector in nobil_station.connectors if connector.power_in_kw is not None
     ]
     if len(new_charging.kw_list) > 0:
         new_charging.max_kw = max(new_charging.kw_list)
@@ -164,17 +158,13 @@ class NobilPipeline(Pipeline):
         super().__init__(config, session, online)
 
         accepted_country_codes = ["NOR", "SWE"]
-        reject_if(
-            country_code.upper() not in accepted_country_codes, "Invalid country code "
-        )
+        reject_if(country_code.upper() not in accepted_country_codes, "Invalid country code ")
         self.country_code = country_code.upper()
 
     def run(self):
         """Run the pipeline."""
         logger.info("Running NOR/SWE GOV Pipeline...")
-        path_to_target = Path(__file__).parent.parent.parent.parent.joinpath(
-            "data/" + self.country_code + "_gov.json"
-        )
+        path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
         if self.online:
             logger.info("Retrieving Online Data")
             _load_datadump_and_write_to_target(path_to_target, self.country_code)
@@ -182,9 +172,7 @@ class NobilPipeline(Pipeline):
         nobil_stations_as_json = load_json_file(path_to_target)
         all_nobil_stations = _parse_json_data(nobil_stations_as_json)
 
-        for nobil_station in tqdm(
-            iterable=all_nobil_stations, total=len(all_nobil_stations)
-        ):
+        for nobil_station in tqdm(iterable=all_nobil_stations, total=len(all_nobil_stations)):
             station: Station = _map_station_to_domain(nobil_station, self.country_code)
             address: Address = _map_address_to_domain(nobil_station)
             charging: Charging = _map_charging_to_domain(nobil_station)
@@ -193,11 +181,7 @@ class NobilPipeline(Pipeline):
             station.charging = charging
 
             # check if station already exists in db and add
-            existing_station = (
-                self.session.query(Station)
-                .filter_by(source_id=station.source_id)
-                .first()
-            )
+            existing_station = self.session.query(Station).filter_by(source_id=station.source_id).first()
             if existing_station is None:
                 self.session.add(station)
 

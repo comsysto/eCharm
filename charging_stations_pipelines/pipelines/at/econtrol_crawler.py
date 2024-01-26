@@ -12,9 +12,7 @@ from charging_stations_pipelines.pipelines import at
 logger = logging.getLogger(__name__)
 
 
-def _get_paginated_stations(
-    url: str, headers: dict[str, str] = None
-) -> Generator[dict[str, Any], None, None]:
+def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generator[dict[str, Any], None, None]:
     session = requests.Session()
     session.headers.update(headers)
 
@@ -47,9 +45,7 @@ def _get_paginated_stations(
         idx_end = min(page_size * page_num - 1, total_count - 1)
 
         logger.debug(f"Downloading chunk: {idx_start}..{idx_end}")
-        next_page = session.get(
-            url, params={"fromIndex": idx_start, "endIndex": idx_end}
-        ).json()
+        next_page = session.get(url, params={"fromIndex": idx_start, "endIndex": idx_end}).json()
         yield next_page
 
 

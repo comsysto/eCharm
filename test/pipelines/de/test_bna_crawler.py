@@ -30,9 +30,7 @@ def test_get_bna_data_downloads_file_with_correct_url(
     mock_requests_get.return_value = mock_response
 
     # Mock the BeautifulSoup find_all method
-    mock_beautiful_soup.return_value.find_all.return_value = [
-        {"href": "https://some_ladesaeulenregister_url.xlsx"}
-    ]
+    mock_beautiful_soup.return_value.find_all.return_value = [{"href": "https://some_ladesaeulenregister_url.xlsx"}]
 
     # Mock the os.path.getsize method
     mock_getsize.return_value = 4321
@@ -53,16 +51,12 @@ def test_get_bna_data_downloads_file_with_correct_url(
     )
 
     # Assert that the os.path.getsize method was called with the correct parameters
-    mock_getsize.assert_called_once_with(
-        "./tmp_data_path/some_ladesaeulenregister_url.xlsx"
-    )
+    mock_getsize.assert_called_once_with("./tmp_data_path/some_ladesaeulenregister_url.xlsx")
 
 
 @patch.object(requests, "get")
 @patch.object(charging_stations_pipelines.pipelines.de.bna_crawler, "BeautifulSoup")
-def test_get_bna_data_logs_error_when_no_download_link_found(
-    mock_beautiful_soup, mock_requests_get, caplog
-):
+def test_get_bna_data_logs_error_when_no_download_link_found(mock_beautiful_soup, mock_requests_get, caplog):
     # Mock the requests.get response
     mock_requests_get.return_value = Mock(content=b"some content", status_code=200)
 
@@ -125,6 +119,4 @@ def test_get_bna_data_logs_file_size_after_download(
     )
 
     # Assert that os.path.getsize was called correctly
-    mock_getsize.assert_called_once_with(
-        "tmp_data_path/some_url1_with_search_term.xlsx"
-    )
+    mock_getsize.assert_called_once_with("tmp_data_path/some_url1_with_search_term.xlsx")

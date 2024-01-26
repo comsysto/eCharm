@@ -24,16 +24,12 @@ def test_paginated_stations(mock_get):
             "totalResults": 13,
             "fromIndex": i * 3,
             "endIndex": min((i + 1) * 3 - 1, 13 - 1),
-            "stations": [
-                {f"id{j}": f"station{j}"} for j in range(i * 3 + 1, (i + 1) * 3)
-            ],
+            "stations": [{f"id{j}": f"station{j}"} for j in range(i * 3 + 1, (i + 1) * 3)],
         }
         for i in range(13 // 3 + 13 % 3)
     ]
 
-    page_generator = econtrol_crawler._get_paginated_stations(
-        station_api_url, headers={}
-    )
+    page_generator = econtrol_crawler._get_paginated_stations(station_api_url, headers={})
 
     for idx, station_page in enumerate(station_pages):
         mock_get.return_value.json.return_value = station_page
@@ -63,9 +59,7 @@ def test_get_paginated_stations_key_error():
     }
 
     with mock.patch("requests.Session") as mock_session:
-        mock_session.return_value.get.return_value.json.return_value = (
-            mock_response_content
-        )
+        mock_session.return_value.get.return_value.json.return_value = mock_response_content
 
         # Expect a KeyError due to missing 'endIndex' key
         with pytest.raises(KeyError, match=r"endIndex"):
@@ -73,9 +67,7 @@ def test_get_paginated_stations_key_error():
 
 
 @mock.patch("builtins.open", new_callable=mock.mock_open)
-@mock.patch(
-    "charging_stations_pipelines.pipelines.at.econtrol_crawler._get_paginated_stations"
-)
+@mock.patch("charging_stations_pipelines.pipelines.at.econtrol_crawler._get_paginated_stations")
 @mock.patch("os.getenv")
 @mock.patch("os.path.getsize")
 def test_get_data(
@@ -104,10 +96,7 @@ def test_get_data(
                 "totalResults": 100,
                 "fromIndex": i * 10,
                 "endIndex": min((i + 1) * 10 - 1, 100 - 1),
-                "stations": [
-                    {f"id{j}": f"station{j}"}
-                    for j in range(i * 10 + 1, (i + 1) * 10 + 1)
-                ],
+                "stations": [{f"id{j}": f"station{j}"} for j in range(i * 10 + 1, (i + 1) * 10 + 1)],
             }
             for i in range(100 // 10 + 100 % 10)
         ]
@@ -138,9 +127,7 @@ def test_get_data(
 
 
 @mock.patch("builtins.open", new_callable=mock.mock_open)
-@mock.patch(
-    "charging_stations_pipelines.pipelines.at.econtrol_crawler._get_paginated_stations"
-)
+@mock.patch("charging_stations_pipelines.pipelines.at.econtrol_crawler._get_paginated_stations")
 @mock.patch("os.path.getsize")
 def test_get_data_empty_response(
     mock_getsize,

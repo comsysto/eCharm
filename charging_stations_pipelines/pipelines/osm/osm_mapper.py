@@ -59,14 +59,10 @@ def map_station_osm(entry: JSON, country_code: str) -> Station:
     new_station = Station()
     new_station.country_code = country_code
     new_station.source_id = entry.get("id") or None
-    new_station.operator = (
-        str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
-    )
+    new_station.operator = str_strip_whitespace(entry.get("tags", {}).get("operator")) or None
     new_station.data_source = DATA_SOURCE_KEY
     new_station.point = from_shape(Point(lon, lat)) if lon and lat else None
-    new_station.date_created = (
-        str_strip_whitespace(entry.get("timestamp")) or datetime.now()
-    )
+    new_station.date_created = str_strip_whitespace(entry.get("timestamp")) or datetime.now()
     new_station.raw_data = json.dumps(entry, ensure_ascii=False)
 
     return new_station
@@ -90,9 +86,7 @@ def map_address_osm(entry: JSON, station_id: Optional[int]) -> Optional[Address]
     map_address.station_id = station_id
     map_address.street = (
         str_strip_whitespace(
-            str_strip_whitespace(tags.get("addr:street"))
-            + " "
-            + str_strip_whitespace(tags.get("addr:housenumber"))
+            str_strip_whitespace(tags.get("addr:street")) + " " + str_strip_whitespace(tags.get("addr:housenumber"))
         )
         or None
     )
@@ -153,9 +147,7 @@ def extract_kw_map(datapoint: JSON) -> dict[str, list[float]]:
 
     socket_output_dict = {}
     for socket_type in SOCKET_TYPES.keys():
-        socket_output_dict[socket_type] = extract_kw_list(
-            tags.get(f"{socket_type}:output")
-        )
+        socket_output_dict[socket_type] = extract_kw_list(tags.get(f"{socket_type}:output"))
     socket_output_map = {k: v for k, v in socket_output_dict.items() if v}
 
     return socket_output_map
@@ -210,10 +202,7 @@ def map_charging_osm(row: JSON, station_id: Optional[int]) -> Charging:
     charging.volt_list = extract_volt_list(row) or None
     charging.socket_type_list = [SOCKET_TYPES.get(k) for k in kw_map.keys()] or None
     charging.dc_support = None
-    charging.total_kw = (
-        calc_total_kw(kw_list, row.get("tags", {}).get("charging_station:output"))
-        or None
-    )
+    charging.total_kw = calc_total_kw(kw_list, row.get("tags", {}).get("charging_station:output")) or None
     charging.max_kw = max(kw_list) if kw_list else None
 
     return charging

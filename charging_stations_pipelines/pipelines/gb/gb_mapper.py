@@ -32,28 +32,18 @@ def map_station_gb(entry, country_code: str):
 
 
 def map_address_gb(entry, station_id):
-    postcode_raw: Optional[str] = (
-        entry.get("ChargeDeviceLocation").get("Address").get("PostCode")
-    )
+    postcode_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("PostCode")
     postcode: Optional[str] = postcode_raw
 
-    town_raw: Optional[str] = (
-        entry.get("ChargeDeviceLocation").get("Address").get("PostTown")
-    )
+    town_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("PostTown")
     town: Optional[str] = town_raw if isinstance(town_raw, str) else None
 
-    state_raw: Optional[str] = (
-        entry.get("ChargeDeviceLocation").get("Address").get("County")
-    )
+    state_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("County")
     state: Optional[str] = state_raw if isinstance(state_raw, str) else None
 
-    country: Optional[str] = (
-        entry.get("ChargeDeviceLocation").get("Address").get("Country")
-    )
+    country: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("Country")
 
-    street_raw: Optional[str] = (
-        entry.get("ChargeDeviceLocation").get("Address").get("Street")
-    )
+    street_raw: Optional[str] = entry.get("ChargeDeviceLocation").get("Address").get("Street")
     street: Optional[str] = street_raw if isinstance(street_raw, str) else None
 
     map_address = Address()

@@ -38,9 +38,7 @@ class OcmPipeline(Pipeline):
         self.data: JSON = None
 
     def _retrieve_data(self):
-        data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
-        )
+        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OCM"]["filename"])
         if self.online:
@@ -61,7 +59,5 @@ class OcmPipeline(Pipeline):
             mapped_station = map_station_ocm(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
-            station_updater.update_station(
-                station=mapped_station, data_source_key="OCM"
-            )
+            station_updater.update_station(station=mapped_station, data_source_key="OCM")
         station_updater.log_update_station_counts()

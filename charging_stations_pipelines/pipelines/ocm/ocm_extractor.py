@@ -20,12 +20,8 @@ def reference_data_to_frame(data: List[Dict]) -> pd.DataFrame:
     return frame
 
 
-def merge_connection_types(
-    connection: pd.DataFrame, reference_data: pd.DataFrame
-) -> pd.DataFrame:
-    connection_ids: pd.Series = (
-        connection["ConnectionTypeID"].dropna().drop_duplicates()
-    )
+def merge_connection_types(connection: pd.DataFrame, reference_data: pd.DataFrame) -> pd.DataFrame:
+    connection_ids: pd.Series = connection["ConnectionTypeID"].dropna().drop_duplicates()
     return connection.merge(
         reference_data.loc[connection_ids],
         how="left",
@@ -34,9 +30,7 @@ def merge_connection_types(
     )
 
 
-def merge_address_infos(
-    address_info: pd.Series, reference_data: pd.DataFrame
-) -> pd.DataFrame:
+def merge_address_infos(address_info: pd.Series, reference_data: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([address_info, reference_data.loc[address_info["CountryID"]]])
 
 
@@ -50,9 +44,7 @@ def merge_with_reference_data(
         connection=pd.json_normalize(row["Connections"]),
         reference_data=connection_types,
     )
-    row["AddressInfo"] = merge_address_infos(
-        address_info=pd.Series(row["AddressInfo"]), reference_data=address_info
-    )
+    row["AddressInfo"] = merge_address_infos(address_info=pd.Series(row["AddressInfo"]), reference_data=address_info)
     row["OperatorID"] = operators.loc[row["OperatorID"]]
     return row
 
@@ -61,9 +53,7 @@ def merge_connections(row, connection_types):
     frame = pd.DataFrame(row)
     if "ConnectionTypeID" not in frame.columns:
         return frame
-    return pd.merge(
-        frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID"
-    )
+    return pd.merge(frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID")
 
 
 def ocm_extractor(tmp_file_path: str, country_code: str):
@@ -134,9 +124,7 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
         data_ref: Dict = json.load(f)
 
     connection_types: pd.DataFrame = pd.json_normalize(data_ref["ConnectionTypes"])
-    connection_frame = pd.json_normalize(
-        records, record_path=["Connections"], meta=["UUID"]
-    )
+    connection_frame = pd.json_normalize(records, record_path=["Connections"], meta=["UUID"])
     connection_frame = pd.merge(
         connection_frame,
         connection_types,
@@ -146,9 +134,7 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
     )
     connection_frame_grouped = connection_frame.groupby("UUID").agg(list)
     connection_frame_grouped.reset_index(inplace=True)
-    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(
-        lambda x: x.to_frame(), axis=1
-    )
+    connection_frame_grouped["ConnectionsEnriched"] = connection_frame_grouped.apply(lambda x: x.to_frame(), axis=1)
     data = pd.merge(
         data,
         connection_frame_grouped[["ConnectionsEnriched", "UUID"]],
@@ -176,6 +162,4 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
         how="left",
     )
 
-    pd_merged_with_operators.reset_index(drop=True).to_json(
-        tmp_file_path, orient="index"
-    )
+    pd_merged_with_operators.reset_index(drop=True).to_json(tmp_file_path, orient="index")

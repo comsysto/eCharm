@@ -24,16 +24,12 @@ class BaseWithSafeSetProperty:
         :return: None.
         """
         if not (name.startswith("_") or hasattr(self, name)):
-            raise AttributeError(
-                f"Cannot set non-existing attribute '{name}' on class '{self.__class__.__name__}'."
-            )
+            raise AttributeError(f"Cannot set non-existing attribute '{name}' on class '{self.__class__.__name__}'.")
         super().__setattr__(name, value)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} with id: {self.id}>"
 
 
-Base = declarative_base(
-    cls=BaseWithSafeSetProperty, metadata=MetaData(schema=settings.db_schema)
-)
+Base = declarative_base(cls=BaseWithSafeSetProperty, metadata=MetaData(schema=settings.db_schema))
 """The base class for all models."""
