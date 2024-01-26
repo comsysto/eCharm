@@ -79,7 +79,7 @@ def map_station(row: pd.Series, country_code: str) -> Station:
     - 'date_created': The creation date of the station.
     - 'date_updated': The update date of the station.
     """
-    operator_id  = str_strip_whitespace(row.get("evseOperatorId")) or None
+    operator_id = str_strip_whitespace(row.get("evseOperatorId")) or None
     station_id = str_strip_whitespace(row.get("evseStationId")) or None
 
     station = Station()

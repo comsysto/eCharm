@@ -30,8 +30,20 @@ class NobilConnector:
 class NobilStation:
     """This class represents a station from the Nobil API."""
 
-    def __init__(self, station_id, operator, position, created, updated, street, house_number, zipcode, city,
-                 number_charging_points, connectors: list[NobilConnector]):
+    def __init__(
+        self,
+        station_id,
+        operator,
+        position,
+        created,
+        updated,
+        street,
+        house_number,
+        zipcode,
+        city,
+        number_charging_points,
+        connectors: list[NobilConnector],
+    ):
         self.station_id = station_id
         self.operator = operator
         self.position = position
@@ -47,13 +59,23 @@ class NobilStation:
 
 def _parse_json_data(json_data) -> list[NobilStation]:
     all_nobil_stations: list[NobilStation] = []
-    for s in json_data['chargerstations']:
-        csmd = s['csmd']
-        parsed_connectors = parse_nobil_connectors(s['attr']['conn'])
+    for s in json_data["chargerstations"]:
+        csmd = s["csmd"]
+        parsed_connectors = parse_nobil_connectors(s["attr"]["conn"])
 
-        nobil_station = NobilStation(csmd['id'], csmd['Operator'], csmd['Position'], csmd['Created'],
-                                     csmd['Updated'], csmd['Street'], csmd['House_number'], csmd['Zipcode'],
-                                     csmd['City'], csmd['Number_charging_points'], parsed_connectors)
+        nobil_station = NobilStation(
+            csmd["id"],
+            csmd["Operator"],
+            csmd["Position"],
+            csmd["Created"],
+            csmd["Updated"],
+            csmd["Street"],
+            csmd["House_number"],
+            csmd["Zipcode"],
+            csmd["City"],
+            csmd["Number_charging_points"],
+            parsed_connectors,
+        )
         all_nobil_stations.append(nobil_station)
     return all_nobil_stations
 
@@ -63,11 +85,12 @@ def parse_nobil_connectors(connectors: dict):
     parsed_connectors: list[NobilConnector] = []
     # iterate over all connectors and add them to the station
     for k, v in connectors.items():
-        charging_capacity = v['5']['trans']  # contains a string like "7,4 kW - 230V 1-phase max 32A" or "75 kW DC"
+        charging_capacity = v["5"]["trans"]  # contains a string like "7,4 kW - 230V 1-phase max 32A" or "75 kW DC"
 
         # extract the power in kW from the charging capacity string
-        power_in_kw = Decimal(charging_capacity.split(" kW")[0].replace(",", ".")) \
-            if " kW" in charging_capacity else None
+        power_in_kw = (
+            Decimal(charging_capacity.split(" kW")[0].replace(",", ".")) if " kW" in charging_capacity else None
+        )
 
         parsed_connectors.append(NobilConnector(power_in_kw))
     return parsed_connectors
@@ -104,8 +127,9 @@ def _map_address_to_domain(nobil_station: NobilStation) -> Address:
 def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
     new_charging: Charging = Charging()
     new_charging.capacity = nobil_station.number_charging_points
-    new_charging.kw_list = [connector.power_in_kw for connector in nobil_station.connectors
-                            if connector.power_in_kw is not None]
+    new_charging.kw_list = [
+        connector.power_in_kw for connector in nobil_station.connectors if connector.power_in_kw is not None
+    ]
     if len(new_charging.kw_list) > 0:
         new_charging.max_kw = max(new_charging.kw_list)
         new_charging.total_kw = sum(new_charging.kw_list)
@@ -114,15 +138,23 @@ def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
 
 def _load_datadump_and_write_to_target(path_to_target, country_code: str):
     nobil_api_key = os.getenv("NOBIL_APIKEY")
-    link_to_datadump = (f"https://nobil.no/api/server/datadump.php?apikey="
-                        f"{nobil_api_key}&countrycode={country_code}&format=json&file=true")
+    link_to_datadump = (
+        f"https://nobil.no/api/server/datadump.php?apikey="
+        f"{nobil_api_key}&countrycode={country_code}&format=json&file=true"
+    )
     download_file(link_to_datadump, path_to_target)
 
 
 class NobilPipeline(Pipeline):
     """This class represents the pipeline for the Nobil data provider."""
 
-    def __init__(self, session: Session, country_code: str, config: configparser, online: bool = False):
+    def __init__(
+        self,
+        session: Session,
+        country_code: str,
+        config: configparser,
+        online: bool = False,
+    ):
         super().__init__(config, session, online)
 
         accepted_country_codes = ["NOR", "SWE"]

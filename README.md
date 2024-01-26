@@ -218,18 +218,8 @@ alembic revision --autogenerate -m "your revision comment"
 
 ### Coding Style & Formatting
 
-Please take advantage of the following tooling:
+We are using 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+for linting and code formatting.
 
-```bash
-pip install isort autoflake black
-```
-
-Black re-formats the code, isort orders the imports and flake8 checks for remaining issues.
-Example usage:
-
-```bash
-isort --force-single-line-imports .
-autoflake --remove-all-unused-imports -i -r --exclude ./alembic .
-# Note: '3' means 3-vert-hanging multiline imports
-isort --multi-line 3 .
-```
+A pre-commit hook can be set up with `pre-commit install` after installing dependencies.

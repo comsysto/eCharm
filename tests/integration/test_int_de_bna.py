@@ -10,38 +10,34 @@ from charging_stations_pipelines.pipelines.de.bna_crawler import get_bna_data
 from charging_stations_pipelines.shared import load_excel_file
 from tests.test_utils import verify_schema_follows
 
-EXPECTED_DATA_SCHEMA = {'Betreiber': 'object',
-                        'Straße': 'object',
-                        'Hausnummer': 'object',
-                        'Adresszusatz': 'object',
-                        'Postleitzahl': 'object',
-                        'Ort': 'object',
-                        'Bundesland': 'object',
-                        'Kreis/kreisfreie Stadt': 'object',
-                        'Breitengrad': 'object',
-                        'Längengrad': 'object',
-
-                        'Inbetriebnahmedatum': 'object',
-
-                        'Nennleistung Ladeeinrichtung [kW]': 'object',
-                        'Art der Ladeeinrichung': 'object',
-                        'Anzahl Ladepunkte': 'object',
-
-                        'Steckertypen1': 'object',
-                        'P1 [kW]': 'object',
-                        'Public Key1': 'object',
-
-                        'Steckertypen2': 'object',
-                        'P2 [kW]': 'object',
-                        'Public Key2': 'object',
-
-                        'Steckertypen3': 'object',
-                        'P3 [kW]': 'object',
-                        'Public Key3': 'object',
-
-                        'Steckertypen4': 'object',
-                        'P4 [kW]': 'object',
-                        'Public Key4': 'object'}
+EXPECTED_DATA_SCHEMA = {
+    "Betreiber": "object",
+    "Straße": "object",
+    "Hausnummer": "object",
+    "Adresszusatz": "object",
+    "Postleitzahl": "object",
+    "Ort": "object",
+    "Bundesland": "object",
+    "Kreis/kreisfreie Stadt": "object",
+    "Breitengrad": "object",
+    "Längengrad": "object",
+    "Inbetriebnahmedatum": "object",
+    "Nennleistung Ladeeinrichtung [kW]": "object",
+    "Art der Ladeeinrichung": "object",
+    "Anzahl Ladepunkte": "object",
+    "Steckertypen1": "object",
+    "P1 [kW]": "object",
+    "Public Key1": "object",
+    "Steckertypen2": "object",
+    "P2 [kW]": "object",
+    "Public Key2": "object",
+    "Steckertypen3": "object",
+    "P3 [kW]": "object",
+    "Public Key3": "object",
+    "Steckertypen4": "object",
+    "P4 [kW]": "object",
+    "Public Key4": "object",
+}
 
 
 @pytest.fixture(scope="module")

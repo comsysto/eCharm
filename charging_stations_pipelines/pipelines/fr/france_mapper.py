@@ -35,8 +35,12 @@ def map_station_fra(row: pd.Series) -> Station:
     station.source_id = row.get("id_station_itinerance")
     station.operator = row.get("nom_operateur")
     station.data_source = "FRGOV"
-    station.point = from_shape(Point(float(check_coordinates(row.get("consolidated_longitude"))),
-                                     float(check_coordinates(row.get("consolidated_latitude")))))
+    station.point = from_shape(
+        Point(
+            float(check_coordinates(row.get("consolidated_longitude"))),
+            float(check_coordinates(row.get("consolidated_latitude"))),
+        )
+    )
     station.date_created = row.get("date_mise_en_service").strptime("%Y-%m-%d")
     station.date_updated = row.get("date_maj").strptime("%Y-%m-%d")
 

@@ -7,10 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 def attribute_match_thresholds_duplicates(
-        current_station: pd.Series,
-        duplicate_candidates: pd.DataFrame,
-        station_id_name: str,
-        max_distance: int = 100,
+    current_station: pd.Series,
+    duplicate_candidates: pd.DataFrame,
+    station_id_name: str,
+    max_distance: int = 100,
 ) -> pd.DataFrame:
     pd.options.mode.chained_assignment = None
 
@@ -18,10 +18,11 @@ def attribute_match_thresholds_duplicates(
     if remaining_duplicate_candidates.empty:
         return duplicate_candidates
 
-    logger.debug(f"### Searching for duplicates to station {current_station.source_id}, "
-                 f"operator: {current_station.operator}, "
-                 f"address: {current_station['address']}"
-                 )
+    logger.debug(
+        f"### Searching for duplicates to station {current_station.source_id}, "
+        f"operator: {current_station.operator}, "
+        f"address: {current_station['address']}"
+    )
     logger.debug(f"{len(remaining_duplicate_candidates)} duplicate candidates")
 
     remaining_duplicate_candidates["operator_match"] = remaining_duplicate_candidates.operator.apply(
@@ -31,8 +32,8 @@ def attribute_match_thresholds_duplicates(
     )
 
     remaining_duplicate_candidates["address_match"] = remaining_duplicate_candidates.address.apply(
-        lambda x: SequenceMatcher(None, current_station['address'], x).ratio()
-        if (current_station['address'] != "None,None") & (x != "None,None")
+        lambda x: SequenceMatcher(None, current_station["address"], x).ratio()
+        if (current_station["address"] != "None,None") & (x != "None,None")
         else 0.0,
     )
 
@@ -51,12 +52,14 @@ def attribute_match_thresholds_duplicates(
             logger.debug("duplicate according to distance")
         else:
             is_duplicate = False
-            logger.debug(f"no duplicate: {duplicate_candidate.data_source}, "
-                         f"source id: {duplicate_candidate.source_id}, "
-                         f"operator: {duplicate_candidate.operator}, "
-                         f"address: {duplicate_candidate.address}, "
-                         f"row id: {duplicate_candidate.name}, "
-                         f"distance: {duplicate_candidate.distance}")
+            logger.debug(
+                f"no duplicate: {duplicate_candidate.data_source}, "
+                f"source id: {duplicate_candidate.source_id}, "
+                f"operator: {duplicate_candidate.operator}, "
+                f"address: {duplicate_candidate.address}, "
+                f"row id: {duplicate_candidate.name}, "
+                f"distance: {duplicate_candidate.distance}"
+            )
         return is_duplicate
 
     remaining_duplicate_candidates["is_duplicate"] = remaining_duplicate_candidates.apply(is_duplicate_by_score, axis=1)
@@ -77,7 +80,7 @@ def attribute_match_thresholds_duplicates(
         duplicate_candidates = attribute_match_thresholds_duplicates(
             current_station=current_station,
             duplicate_candidates=duplicate_candidates,
-            station_id_name=station_id_name
+            station_id_name=station_id_name,
         )
 
     return duplicate_candidates

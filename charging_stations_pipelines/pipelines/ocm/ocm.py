@@ -11,24 +11,34 @@ from tqdm import tqdm
 
 from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.pipelines.ocm.ocm_extractor import ocm_extractor
-from charging_stations_pipelines.pipelines.ocm.ocm_mapper import map_address_ocm, map_charging_ocm, map_station_ocm
-from charging_stations_pipelines.pipelines.station_table_updater import StationTableUpdater
+from charging_stations_pipelines.pipelines.ocm.ocm_mapper import (
+    map_address_ocm,
+    map_charging_ocm,
+    map_station_ocm,
+)
+from charging_stations_pipelines.pipelines.station_table_updater import (
+    StationTableUpdater,
+)
 from charging_stations_pipelines.shared import JSON
 
 logger = logging.getLogger(__name__)
 
 
 class OcmPipeline(Pipeline):
-    def __init__(self, country_code: str, config: configparser, session: Session, online: bool = False):
+    def __init__(
+        self,
+        country_code: str,
+        config: configparser,
+        session: Session,
+        online: bool = False,
+    ):
         super().__init__(config, session, online)
 
         self.country_code = country_code
         self.data: JSON = None
 
     def _retrieve_data(self):
-        data_dir: str = os.path.join(
-                pathlib.Path(__file__).parent.resolve(), "../../..", "data"
-        )
+        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["OCM"]["filename"])
         if self.online:
@@ -49,5 +59,5 @@ class OcmPipeline(Pipeline):
             mapped_station = map_station_ocm(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
-            station_updater.update_station(station=mapped_station, data_source_key='OCM')
+            station_updater.update_station(station=mapped_station, data_source_key="OCM")
         station_updater.log_update_station_counts()

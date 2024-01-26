@@ -92,7 +92,7 @@ def create_charging() -> Charging:
 
 def skip_if_github():
     """Checks if the current workflow is running on GitHub."""
-    return 'GITHUB_WORKFLOW' in os.environ
+    return "GITHUB_WORKFLOW" in os.environ
 
 
 class LogLocalCaptureFixture:

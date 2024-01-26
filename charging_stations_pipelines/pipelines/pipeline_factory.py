@@ -25,10 +25,10 @@ class EmptyPipeline(Pipeline):
 def pipeline_factory(db_session: Session, country="DE", online=True) -> Pipeline:
     """Creates a pipeline based on the country code."""
     pipelines = {
-        "AT":  EcontrolAtPipeline(config, db_session, online),
-        "DE":  BnaPipeline(config, db_session, online),
-        "FR":  FraPipeline(config, db_session, online),
-        "GB":  GbPipeline(config, db_session, online),
+        "AT": EcontrolAtPipeline(config, db_session, online),
+        "DE": BnaPipeline(config, db_session, online),
+        "FR": FraPipeline(config, db_session, online),
+        "GB": GbPipeline(config, db_session, online),
         "NOR": NobilPipeline(db_session, "NOR", online),
         "SWE": NobilPipeline(db_session, "SWE", online),
     }

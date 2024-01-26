@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 current_dir = os.path.join(pathlib.Path(__file__).parent.parent.resolve())
 
 
-_PlainJSON = Union[
-    None, bool, int, float, str, List["_PlainJSON"], Dict[str, "_PlainJSON"]
-]
+_PlainJSON = Union[None, bool, int, float, str, List["_PlainJSON"], Dict[str, "_PlainJSON"]]
 """_PlainJSON is a type alias for a JSON object without custom types."""
 
 JSON = Union[_PlainJSON, Dict[str, "JSON"], List["JSON"]]
@@ -52,9 +50,7 @@ def check_coordinates(coords: Optional[Union[float, int, str]]) -> Optional[floa
 
     if isinstance(coords, str):
         try:
-            processed_coords = "".join(
-                c for c in coords.replace(",", ".") if c.isdigit() or c in ".-"
-            )
+            processed_coords = "".join(c for c in coords.replace(",", ".") if c.isdigit() or c in ".-")
             logger.debug(f"Coords are string: {coords} will be transformed!")
             return float(processed_coords)
         except (ValueError, TypeError):
@@ -117,15 +113,9 @@ def str_strip_whitespace(
         return default
 
 
-def str_clean_pattern(
-    raw_str: Optional[str], remove_pattern: Optional[str]
-) -> Optional[str]:
+def str_clean_pattern(raw_str: Optional[str], remove_pattern: Optional[str]) -> Optional[str]:
     """Removes a given pattern from a string."""
-    return (
-        re.sub(remove_pattern, "", raw_str, flags=re.IGNORECASE).strip()
-        if raw_str and remove_pattern
-        else None
-    )
+    return re.sub(remove_pattern, "", raw_str, flags=re.IGNORECASE).strip() if raw_str and remove_pattern else None
 
 
 def str_split_pattern(raw_str: Optional[str], split_pattern: str) -> list[str]:
@@ -194,15 +184,13 @@ def lst_expand(aggregated_list: list[tuple[float, int]]) -> list[float]:
     [1.0, 1.0, 1.0, 2.5, 2.5]
     """
     # [0] - float value, [1] - count, how often this value occurs
-    return (
-        [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []
-    )
+    return [e[0] for e in aggregated_list for _ in range(e[1])] if aggregated_list else []
 
 
 def coalesce(*args):
     """Returns the first non-empty argument."""
     for arg in args:
-        if arg is not None and arg != '':
+        if arg is not None and arg != "":
             return arg
     return None
 

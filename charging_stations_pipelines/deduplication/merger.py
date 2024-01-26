@@ -9,16 +9,16 @@ from sqlalchemy.orm import make_transient, sessionmaker
 from tqdm import tqdm
 
 from charging_stations_pipelines import settings
-from charging_stations_pipelines.deduplication import attribute_match_thresholds_strategy
+from charging_stations_pipelines.deduplication import (
+    attribute_match_thresholds_strategy,
+)
 from charging_stations_pipelines.models.station import MergedStationSource, Station
 
 logger = logging.getLogger(__name__)
 
 
 class StationMerger:
-    def __init__(
-        self, country_code: str, config: configparser, db_engine, is_test: bool = False
-    ):
+    def __init__(self, country_code: str, config: configparser, db_engine, is_test: bool = False):
         self.country_code = country_code
         self.config = config
         self.db_engine: Engine = db_engine
@@ -62,25 +62,19 @@ class StationMerger:
             att_values = [str(x) for x in att_values if len(str(x)) > 0]
             if att_name in station.dropna():
                 att_value = str(station[att_name])
-                att_values += (
-                    [att_value] if ";" not in att_value else att_value.split(";")
-                )
+                att_values += [att_value] if ";" not in att_value else att_value.split(";")
             att_values = set(att_values)
             new_value = ";".join([str(x) for x in att_values]) if att_values else None
             station.at[att_name] = new_value
         station.at["merged_attributes"] = True
 
-    def _get_attribute_by_priority(
-        self, stations_to_merge, column_name, priority_list=None
-    ):
+    def _get_attribute_by_priority(self, stations_to_merge, column_name, priority_list=None):
         attribute = None
         if priority_list is None:
             priority_list = [self.gov_source, "OCM", "OSM"]
         for source in priority_list:
             # get stations of source with attribute not empty, and return only attribute column
-            stations_by_source = stations_to_merge[
-                stations_to_merge["data_source"] == source
-            ][column_name].dropna()
+            stations_by_source = stations_to_merge[stations_to_merge["data_source"] == source][column_name].dropna()
             if len(stations_by_source) > 0:
                 attribute = stations_by_source.iloc[0]
                 break
@@ -88,17 +82,13 @@ class StationMerger:
             logger.debug(f"attribute {column_name} not found ?!?!? {stations_to_merge}")
         return attribute
 
-    def _get_station_with_address_and_charging_by_priority(
-        self, session, stations_to_merge
-    ):
+    def _get_station_with_address_and_charging_by_priority(self, session, stations_to_merge):
         merged_station: Optional[Station] = None
         for source in [self.gov_source, "OCM", "OSM"]:
             station_id = stations_to_merge[stations_to_merge["data_source"] == source]["station_id_col"]
             if len(station_id) > 0:
                 station_id = int(station_id.iloc[0])
-                station, address, charging = self.get_station_with_address_and_charging(
-                    session, station_id
-                )
+                station, address, charging = self.get_station_with_address_and_charging(session, station_id)
                 if not merged_station and station:
                     merged_station = station
                 if merged_station and address and not merged_station.address:
@@ -129,14 +119,10 @@ class StationMerger:
             merged_station.point = stations_to_merge["point"].wkt
             merged_station.operator = stations_to_merge["operator"]
 
-            source = MergedStationSource(
-                duplicate_source_id=stations_to_merge["source_id"]
-            )
+            source = MergedStationSource(duplicate_source_id=stations_to_merge["source_id"])
             merged_station.source_stations.append(source)
         else:
-            merged_station = self._get_station_with_address_and_charging_by_priority(
-                session, stations_to_merge
-            )
+            merged_station = self._get_station_with_address_and_charging_by_priority(session, stations_to_merge)
 
             data_sources = stations_to_merge["data_source"].unique()
             data_sources.sort()
@@ -151,9 +137,7 @@ class StationMerger:
                 priority_list=["OSM", "OCM", self.gov_source],
             )
             merged_station.point = point.wkt
-            merged_station.operator = self._get_attribute_by_priority(
-                stations_to_merge, "operator"
-            )
+            merged_station.operator = self._get_attribute_by_priority(stations_to_merge, "operator")
 
             for source_id in stations_to_merge["source_id"]:
                 source = MergedStationSource(duplicate_source_id=source_id)
@@ -236,9 +220,7 @@ class StationMerger:
             """
 
         with self.db_engine.connect() as con:
-            gdf: GeoDataFrame = read_postgis(
-                get_stations_list_sql, con=con, geom_col="point"
-            )
+            gdf: GeoDataFrame = read_postgis(get_stations_list_sql, con=con, geom_col="point")
 
         gdf.sort_values(by=["station_id"], inplace=True, ignore_index=True)
 
@@ -258,21 +240,15 @@ class StationMerger:
                 stations_to_merge = current_station_full  # .to_frame()
                 station_ids = [current_station["station_id"].item()]
             else:
-                stations_to_merge = pd.concat(
-                    [duplicates, current_station_full.to_frame().T]
-                )
-                station_ids = (
-                    stations_to_merge["station_id_col"].values.astype(int).tolist()
-                )
+                stations_to_merge = pd.concat([duplicates, current_station_full.to_frame().T])
+                station_ids = stations_to_merge["station_id_col"].values.astype(int).tolist()
 
             if not stations_to_merge.empty:
                 # merge attributes of duplicates into one station
                 session.query(Station).filter(Station.id.in_(station_ids)).update(
                     {Station.merge_status: "is_duplicate"}, synchronize_session="fetch"
                 )
-                merged_station: Station = self._merge_duplicates(
-                    stations_to_merge, session
-                )
+                merged_station: Station = self._merge_duplicates(stations_to_merge, session)
                 session.add(merged_station)
                 self._write_session(session)
         session.close()
@@ -303,17 +279,13 @@ class StationMerger:
         """
 
         with self.db_engine.connect() as con:
-            nearby_stations: GeoDataFrame = read_postgis(
-                find_surrounding_stations_sql, con=con, geom_col="point"
-            )
+            nearby_stations: GeoDataFrame = read_postgis(find_surrounding_stations_sql, con=con, geom_col="point")
 
         if nearby_stations.empty:
             logger.debug(f"##### Already merged, id {current_station_id} #####")
             return GeoDataFrame(), GeoSeries()
 
-        logger.debug(
-            f"coordinates of current station: {current_station_coordinates}, ID: {current_station_id}"
-        )
+        logger.debug(f"coordinates of current station: {current_station_coordinates}, ID: {current_station_id}")
         logger.debug(f"# nearby stations incl current: {len(nearby_stations)}")
         # copy station id to new column otherwise it's not addressable as column after setting index
         station_id_col = "station_id_col"
@@ -338,24 +310,18 @@ class StationMerger:
         # skip if only center station itself was found
         if len(nearby_stations) < 2 or current_station_full.empty:
             return GeoDataFrame(), current_station_full
-        duplicate_candidates = nearby_stations[
-            nearby_stations[station_id_name] != current_station_id
-        ]
+        duplicate_candidates = nearby_stations[nearby_stations[station_id_name] != current_station_id]
         duplicate_candidates["is_duplicate"] = False
         current_station_full["is_duplicate"] = True
-        duplicate_candidates["address"] = duplicate_candidates[
-            ["street", "town"]
-        ].apply(lambda x: f"{x['street']},{x['town']}", axis=1)
-        current_station_full[
-            "address"
-        ] = f"{current_station_full['street']},{current_station_full['town']}"
-        duplicate_candidates = (
-            attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
-                current_station=current_station_full,
-                duplicate_candidates=duplicate_candidates,
-                station_id_name=station_id_name,
-                max_distance=radius_m,
-            )
+        duplicate_candidates["address"] = duplicate_candidates[["street", "town"]].apply(
+            lambda x: f"{x['street']},{x['town']}", axis=1
+        )
+        current_station_full["address"] = f"{current_station_full['street']},{current_station_full['town']}"
+        duplicate_candidates = attribute_match_thresholds_strategy.attribute_match_thresholds_duplicates(
+            current_station=current_station_full,
+            duplicate_candidates=duplicate_candidates,
+            station_id_name=station_id_name,
+            max_distance=radius_m,
         )
         duplicates = duplicate_candidates[duplicate_candidates["is_duplicate"]]
         return duplicates, current_station_full

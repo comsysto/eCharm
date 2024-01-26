@@ -31,9 +31,7 @@ class GbPipeline(Pipeline):
         self.data: Optional[JSON] = None
 
     def _retrieve_data(self):
-        data_dir: str = os.path.join(
-            pathlib.Path(__file__).parent.resolve(), "../../..", "data"
-        )
+        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
         tmp_file_path = os.path.join(data_dir, self.config["GBGOV"]["filename"])
         if self.online:

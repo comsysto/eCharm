@@ -63,27 +63,17 @@ def map_charging_ocm(row, station_id) -> Charging:
     mapped_charging_ocm.station_id = station_id
     mapped_charging_ocm.capacity = row.get("NumberOfPoints")
     mapped_charging_ocm.kw_list = None
-    mapped_charging_ocm.ampere_list = (
-        connections["Amps"].to_list() if "Amps" in connections.columns else None
-    )
-    mapped_charging_ocm.volt_list = (
-        connections["Voltage"].to_list() if "Voltage" in connections.columns else None
-    )
+    mapped_charging_ocm.ampere_list = connections["Amps"].to_list() if "Amps" in connections.columns else None
+    mapped_charging_ocm.volt_list = connections["Voltage"].to_list() if "Voltage" in connections.columns else None
     mapped_charging_ocm.socket_type_list = (
-        connections["Title"].str.cat(sep=",")
-        if "Title" in connections.columns
-        else None
+        connections["Title"].str.cat(sep=",") if "Title" in connections.columns else None
     )
     mapped_charging_ocm.dc_support = None
     mapped_charging_ocm.total_kw = (
-        float(round(connections["PowerKW"].dropna().sum(), 2))
-        if "PowerKW" in connections.columns
-        else None
+        float(round(connections["PowerKW"].dropna().sum(), 2)) if "PowerKW" in connections.columns else None
     )
     mapped_charging_ocm.max_kw = (
-        float(connections["PowerKW"].dropna().max())
-        if "PowerKW" in connections.columns
-        else None
+        float(connections["PowerKW"].dropna().max()) if "PowerKW" in connections.columns else None
     )
 
     return mapped_charging_ocm

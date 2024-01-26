@@ -10,8 +10,14 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from charging_stations_pipelines.pipelines import Pipeline
-from charging_stations_pipelines.pipelines.fr.france_mapper import map_address_fra, map_charging_fra, map_station_fra
-from charging_stations_pipelines.pipelines.station_table_updater import StationTableUpdater
+from charging_stations_pipelines.pipelines.fr.france_mapper import (
+    map_address_fra,
+    map_charging_fra,
+    map_station_fra,
+)
+from charging_stations_pipelines.pipelines.station_table_updater import (
+    StationTableUpdater,
+)
 from charging_stations_pipelines.shared import download_file, reject_if
 
 logger = logging.getLogger(__name__)
@@ -25,8 +31,12 @@ class FraPipeline(Pipeline):
         if self.online:
             logger.info("Retrieving Online Data")
             self.download_france_gov_file(tmp_data_path)
-        self.data = pd.read_csv(os.path.join(data_dir, "france_stations.csv"), delimiter=",", encoding="utf-8",
-                                encoding_errors="replace")
+        self.data = pd.read_csv(
+            os.path.join(data_dir, "france_stations.csv"),
+            delimiter=",",
+            encoding="utf-8",
+            encoding_errors="replace",
+        )
 
     def run(self):
         logger.info("Running FR GOV Pipeline...")
@@ -39,7 +49,7 @@ class FraPipeline(Pipeline):
             mapped_station = map_station_fra(row)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
-            station_updater.update_station(station=mapped_station, data_source_key='FRGOV')
+            station_updater.update_station(station=mapped_station, data_source_key="FRGOV")
         station_updater.log_update_station_counts()
 
     @staticmethod
@@ -50,9 +60,16 @@ class FraPipeline(Pipeline):
         r = requests.get(base_url, headers={"User-Agent": "Mozilla/5.0"})
         soup = BeautifulSoup(r.content, "html.parser")
 
-        all_links_on_gov_page = soup.findAll('a')
+        all_links_on_gov_page = soup.findAll("a")
 
         link_to_dataset = list(
-                filter(lambda a: a["href"].startswith("https://www.data.gouv.fr/fr/datasets"), all_links_on_gov_page))
-        reject_if(len(link_to_dataset) != 1, "Could not determine source for french government data")
+            filter(
+                lambda a: a["href"].startswith("https://www.data.gouv.fr/fr/datasets"),
+                all_links_on_gov_page,
+            )
+        )
+        reject_if(
+            len(link_to_dataset) != 1,
+            "Could not determine source for french government data",
+        )
         download_file(link_to_dataset[0]["href"], target_file)

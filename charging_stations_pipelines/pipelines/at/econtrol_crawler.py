@@ -22,14 +22,14 @@ def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generat
 
     try:
         # Sample data from returned JSON chunk: "totalResults":9454,"fromIndex":0,"endIndex":999
-        total_count = first_page['totalResults']
+        total_count = first_page["totalResults"]
         logger.info(f"Total count of stations: {total_count}")
         yield first_page
 
-        idx_start = first_page['fromIndex']
-        idx_end = first_page['endIndex']
+        idx_start = first_page["fromIndex"]
+        idx_end = first_page["endIndex"]
     except KeyError as e:
-        logging.fatal(f'Failed to parse response:\n{first_page}\n{e}')
+        logging.fatal(f"Failed to parse response:\n{first_page}\n{e}")
         raise e
 
     # Number of datapoints (=station) per page, e.g. 1000
@@ -44,8 +44,8 @@ def _get_paginated_stations(url: str, headers: dict[str, str] = None) -> Generat
         idx_start = page_size * (page_num - 1)
         idx_end = min(page_size * page_num - 1, total_count - 1)
 
-        logger.debug(f'Downloading chunk: {idx_start}..{idx_end}')
-        next_page = session.get(url, params={'fromIndex': idx_start, 'endIndex': idx_end}).json()
+        logger.debug(f"Downloading chunk: {idx_start}..{idx_end}")
+        next_page = session.get(url, params={"fromIndex": idx_start, "endIndex": idx_end}).json()
         yield next_page
 
 
@@ -57,23 +57,26 @@ def get_data(tmp_data_path):
     :return: None
     :rtype: None
     """
-    url: Final[str] = 'https://api.e-control.at/charge/1.0/search/stations'
+    url: Final[str] = "https://api.e-control.at/charge/1.0/search/stations"
 
     # HTTP header
     # TODO fix the issue with the api key
     # econtrol_at_apikey = os.getenv('ECONTROL_AT_APIKEY')
     # econtrol_at_domain = os.getenv('ECONTROL_AT_DOMAIN')
-    headers = {'Authorization': f"Basic {os.getenv('ECONTROL_AT_AUTH')}", 'User-Agent': 'Mozilla/5.0'}
-    logger.debug(f'Using HTTP headers:\n{headers}')
+    headers = {
+        "Authorization": f"Basic {os.getenv('ECONTROL_AT_AUTH')}",
+        "User-Agent": "Mozilla/5.0",
+    }
+    logger.debug(f"Using HTTP headers:\n{headers}")
 
     logger.info(f"Downloading {at.DATA_SOURCE_KEY} data from {url}...")
-    with open(tmp_data_path, 'w') as f:
+    with open(tmp_data_path, "w") as f:
         for page in _get_paginated_stations(url, headers):
             logger.debug(f"Getting data: {page['fromIndex']}..{page['endIndex']}")
 
             # Save as newline-delimited JSON (*.ndjson), i.e. one JSON object per line
-            for station in page['stations']:
+            for station in page["stations"]:
                 json.dump(station, f, ensure_ascii=False)
-                f.write('\n')
+                f.write("\n")
     logger.info(f"Downloaded {at.DATA_SOURCE_KEY} data to: {tmp_data_path}")
     logger.info(f"Downloaded file size: {os.path.getsize(tmp_data_path)} bytes")
