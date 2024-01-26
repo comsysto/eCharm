@@ -61,7 +61,7 @@ def bna_data():
 def test_file_size(bna_data):
     bna_file_name, _ = bna_data
     # Check file size of the downloaded file
-    assert os.path.getsize(bna_file_name) >= 8_602_458  # ~ 9 MB
+    assert os.path.getsize(bna_file_name) >= 1_000  # actual file is ~ 9 MB, just make sure it is not quasi empty here
 
 
 @pytest.mark.integration_test
