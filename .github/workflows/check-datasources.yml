@@ -28,8 +28,8 @@ jobs:
 
       - name: "[DE/BNA] Data retrieval check"
         run: |
-          pytest tests/integration/test_int_de_bna.py
+          python -m pytest tests/integration/test_int_de_bna.py
 
       - name: "[FR] Data retrieval check"
         run: |
-          pytest tests/integration/test_int_fr_france.py
+          python -m pytest tests/integration/test_int_fr_france.py

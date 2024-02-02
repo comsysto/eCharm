@@ -193,14 +193,14 @@ Before you run the tests you need to install test dependencies by
 pip install -r test/requirements.txt
 ```
 
-You can run all tests under `/test` by running the following command:
+You can run all tests by running the following command:
 
 ```bash
 # to run all tests, use:
-pytest
+python -m pytest
 
 # ... or the following to run only the unit tests, i.e. not the integration tests (which run a bit longer): 
-pytest -m 'not integration_test' -W ignore::DeprecationWarning
+python -m pytest -m 'not integration_test'
 ```
 
 #### Testdata import / Integration test for the merger

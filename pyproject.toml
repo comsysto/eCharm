@@ -15,16 +15,20 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-
-# Set logging for code under test
-addopts = "--verbose  --capture=no --log-cli-level=DEBUG --log-cli-format='%(asctime)s %(levelname)s %(message)s' --log-cli-date-format='%Y-%m-%d %H:%M:%S' -W ignore::DeprecationWarning"
-
+addopts = [
+    "--import-mode=importlib",
+    "--capture=no",
+    "--log-level=WARN",
+    "--log-cli-level=DEBUG",
+    "--log-cli-format='%(asctime)s %(levelname)s %(message)s'",
+    "--log-cli-date-format='%Y-%m-%d %H:%M:%S'",
+    "-W ignore::DeprecationWarning"
+]
 # Limit search for tests to following folders
 testpaths = [
     "test", # TODO: move content to tests/unit/ folder
     "tests",
 ]
-
 # Declare custom markers
 markers = [
     "integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\"')",
