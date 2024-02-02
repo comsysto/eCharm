@@ -45,4 +45,4 @@ jobs:
       - name: Run tests
         run: |
           pip install -r test/requirements.txt
-          pytest
+          pytest -m "not check_datasource"

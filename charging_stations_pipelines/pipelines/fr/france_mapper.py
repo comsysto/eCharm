@@ -41,15 +41,11 @@ def map_station_fra(row: pd.Series) -> Station:
             float(check_coordinates(row.get("consolidated_latitude"))),
         )
     )
-    station.date_created = row.get("date_mise_en_service").strptime("%Y-%m-%d")
-    station.date_updated = row.get("date_maj").strptime("%Y-%m-%d")
 
     if not pd.isna(row.get("date_mise_en_service")):
         station.date_created = datetime.strptime(row.get("date_mise_en_service"), "%Y-%m-%d")
     if not pd.isna(row.get("date_maj")):
         station.date_updated = datetime.strptime(row.get("date_maj"), "%Y-%m-%d")
-    else:
-        station.date_updated = datetime.now
 
     return station
 

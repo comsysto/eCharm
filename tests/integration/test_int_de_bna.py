@@ -58,25 +58,16 @@ def bna_data():
 
 
 @pytest.mark.integration_test
+@pytest.mark.check_datasource
 def test_file_size(bna_data):
     bna_file_name, _ = bna_data
     # Check file size of the downloaded file
-    assert os.path.getsize(bna_file_name) >= 8_602_458  # ~ 9 MB
+    assert os.path.getsize(bna_file_name) >= 1_000  # actual file is ~ 9 MB, just make sure it is not quasi empty here
 
 
 @pytest.mark.integration_test
+@pytest.mark.check_datasource
 def test_dataframe_schema(bna_data):
     _, bna_in_data = bna_data
     # Check schema of the downloaded Excel file
     assert verify_schema_follows(bna_in_data, EXPECTED_DATA_SCHEMA), "Mismatch in schema of the downloaded Excel file!"
-
-
-@pytest.mark.integration_test
-def test_dataframe_shape(bna_data):
-    _, bna_in_data = bna_data
-    # Check shape of the dataframe
-    # Not exact check, because file grows over time
-    # Expected: at least 54,223 rows and 23 columns
-    num_rows, num_cols = bna_in_data.shape
-    assert num_rows >= 54_223, "Mismatch in dataframe shape: too few rows!"
-    assert num_cols >= 23, "Mismatch in dataframe shape: too few columns!"

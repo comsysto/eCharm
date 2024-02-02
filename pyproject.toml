@@ -27,5 +27,6 @@ testpaths = [
 
 # Declare custom markers
 markers = [
-    "integration_test: marks tests as integration tests, which are bit slow (deselect with '-m \"integration_test\"')",
+    "integration_test: marks tests as integration tests (deselect with '-m \"not integration_test\"')",
+    "check_datasource: marks tests as datasource check for scheduled github action (deselect with '-m \"not check_datasource\"')",
 ]

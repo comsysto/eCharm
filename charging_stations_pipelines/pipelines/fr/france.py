@@ -31,12 +31,7 @@ class FraPipeline(Pipeline):
         if self.online:
             logger.info("Retrieving Online Data")
             self.download_france_gov_file(tmp_data_path)
-        self.data = pd.read_csv(
-            os.path.join(data_dir, "france_stations.csv"),
-            delimiter=",",
-            encoding="utf-8",
-            encoding_errors="replace",
-        )
+        self.data = self.load_csv_file(tmp_data_path)
 
     def run(self):
         logger.info("Running FR GOV Pipeline...")
@@ -55,7 +50,7 @@ class FraPipeline(Pipeline):
     @staticmethod
     def download_france_gov_file(target_file):
         """Download a file from the French government website."""
-        base_url = "https://transport.data.gouv.fr/resources/79624"
+        base_url = "https://transport.data.gouv.fr/resources/81548"
 
         r = requests.get(base_url, headers={"User-Agent": "Mozilla/5.0"})
         soup = BeautifulSoup(r.content, "html.parser")
@@ -73,3 +68,13 @@ class FraPipeline(Pipeline):
             "Could not determine source for french government data",
         )
         download_file(link_to_dataset[0]["href"], target_file)
+
+    @staticmethod
+    def load_csv_file(target_file):
+        return pd.read_csv(
+            target_file,
+            delimiter=",",
+            encoding="utf-8",
+            encoding_errors="replace",
+            low_memory=False,
+        )
