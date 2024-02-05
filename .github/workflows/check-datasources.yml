@@ -7,6 +7,14 @@ on:
     # Runs the workflow every day at midnight
     - cron: '0 0 * * *'
 
+env:
+  DB_NAME: gis
+  DB_HOST: localhost
+  DB_PORT: 54322
+  DB_USER: docker
+  DB_PASSWORD: docker
+  DB_SCHEMA: friendly_fox
+
 jobs:
   test:
     runs-on: ubuntu-latest
