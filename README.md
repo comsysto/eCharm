@@ -19,7 +19,7 @@ All steps are decoupled, so it's easy to integrate your own data source.
 The primary data sources for electronic vehicle charging stations that are generally available across Europe are
 Open Street Map (OSM) and Open Charge Map (OCM).
 
-For each country, we then integrate the official government data source (where available).
+For some countries, we are able to then integrate the official government data source.
 Just to name a few examples, the government data source we use for Germany is Bundesnetzagentur (BNA),
 or the National Chargepoint Registry (NCR) for the UK.
 
@@ -148,6 +148,8 @@ Then run migration
 
 eCharm can be run similar to a command line tool.
 Run `python main.py -h` to see the full list of command line options.
+Run `python list-countries.py` to see a list of supported countries
+together with information about the availability of a governmental data source, and availability in OSM and OCM.
 
 Here are a few example commands for running tasks:
 
@@ -169,7 +171,8 @@ tasks, since eCharm is not (yet) clever with updating data from consecutive impo
 python main.py import merge --countries de it --delete_data
 ```
 
-Currently, we support `at`, `de`,`gb`,`fr`, `it`, `nor` and `swe` as country codes.
+Currently, we support the [ISO 3166-1 alpha 2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) 
+country codes of most European countries.
 
 #### Export all original (un-merged) station data for Germany in csv format:
 

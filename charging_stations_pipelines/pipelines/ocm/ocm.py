@@ -40,7 +40,9 @@ class OcmPipeline(Pipeline):
     def _retrieve_data(self):
         data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_file_path = os.path.join(data_dir, self.config["OCM"]["filename"])
+        country_dir = os.path.join(data_dir, self.country_code)
+        pathlib.Path(country_dir).mkdir(parents=True, exist_ok=True)
+        tmp_file_path = os.path.join(country_dir, self.config["OCM"]["filename"])
         if self.online:
             logger.info("Retrieving Online Data")
             ocm_extractor(tmp_file_path, self.country_code)

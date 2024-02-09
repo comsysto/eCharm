@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-import pathlib
+from pathlib import Path
 import re
 import shutil
 import subprocess
@@ -9,6 +9,8 @@ from typing import Dict, List
 
 import pandas as pd
 from packaging import version
+
+from charging_stations_pipelines import PROJ_DATA_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -56,17 +58,12 @@ def merge_connections(row, connection_types):
     return pd.merge(frame, connection_types, how="left", left_on="ConnectionTypeID", right_on="ID")
 
 
-def ocm_extractor(tmp_file_path: str, country_code: str):
+def ocm_extractor(extracted_data_file_path: str, country_code: str):
     """This method extracts Open Charge Map (OCM) data for a given country and saves it to a specified file."""
-    # OCM export contains norwegian data under country code "NO" and that's why we need to rename it to "NO"
-    if country_code == "NOR":
-        country_code = "NO"
-    if country_code == "SWE":
-        country_code = "SE"
 
-    project_data_dir: str = pathlib.Path(tmp_file_path).parent.resolve().name
-    data_root_dir: str = os.path.join(project_data_dir, "ocm-export")
-    data_dir: str = os.path.join(data_root_dir, f"data/{country_code}")
+    project_data_dir: Path = PROJ_DATA_DIR
+    ocm_source_dir: Path = project_data_dir / "ocm-export"
+    data_dir: Path = ocm_source_dir / "data" / country_code
 
     try:
         git_version_raw: str = subprocess.check_output(["git", "--version"]).decode()
@@ -86,7 +83,7 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
             raise RuntimeError("Git version must be >= 2.25.0!")
 
     if (not os.path.isdir(data_dir)) or len(os.listdir(data_dir)) == 0:
-        shutil.rmtree(data_root_dir, ignore_errors=True)
+        shutil.rmtree(ocm_source_dir, ignore_errors=True)
         subprocess.call(
             [
                 "git",
@@ -101,17 +98,17 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
         )
         subprocess.call(
             ["git", "sparse-checkout", "init", "--cone"],
-            cwd=data_root_dir,
+            cwd=ocm_source_dir,
             stdout=subprocess.PIPE,
         )
         subprocess.call(
             ["git", "sparse-checkout", "set", f"data/{country_code}"],
-            cwd=data_root_dir,
+            cwd=ocm_source_dir,
             stdout=subprocess.PIPE,
         )
-        subprocess.call(["git", "checkout"], cwd=data_root_dir, stdout=subprocess.PIPE)
+        subprocess.call(["git", "checkout"], cwd=ocm_source_dir, stdout=subprocess.PIPE)
     else:
-        subprocess.call(["git", "pull"], cwd=data_root_dir, stdout=subprocess.PIPE)
+        subprocess.call(["git", "pull"], cwd=ocm_source_dir, stdout=subprocess.PIPE)
 
     records: List = []
     for subdir, dirs, files in os.walk(os.path.join(data_dir)):
@@ -162,4 +159,4 @@ def ocm_extractor(tmp_file_path: str, country_code: str):
         how="left",
     )
 
-    pd_merged_with_operators.reset_index(drop=True).to_json(tmp_file_path, orient="index")
+    pd_merged_with_operators.reset_index(drop=True).to_json(extracted_data_file_path, orient="index")

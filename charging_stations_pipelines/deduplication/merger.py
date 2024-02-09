@@ -32,13 +32,14 @@ class StationMerger:
             "AT": "AT_ECONTROL",
             "FR": "FRGOV",
             "GB": "GBGOV",
-            "IT": "",  # No gov source for Italy so far (5.4.2023)
-            "NOR": "NOBIL",
-            "SWE": "NOBIL",
+            "NO": "NOBIL",
+            "SE": "NOBIL",
         }
         if country_code not in country_code_to_gov_source:
-            raise Exception(f"country code '{country_code}' unknown in merger")
-        self.gov_source = country_code_to_gov_source[country_code]
+            logger.info(f"No governmental data source available for country code '{country_code}'")
+            self.gov_source = ""
+        else:
+            self.gov_source = country_code_to_gov_source[country_code]
 
     @staticmethod
     def merge_attributes(station: pd.Series, duplicates_to_merge: pd.DataFrame):

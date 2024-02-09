@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from charging_stations_pipelines.pipelines import Pipeline
-from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY, SCOPE_COUNTRIES
+from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import get_data
 from charging_stations_pipelines.pipelines.at.econtrol_mapper import (
     map_address,
@@ -78,19 +78,21 @@ class EcontrolAtPipeline(Pipeline):
             try:
                 station = map_station(datapoint, self.country_code)
 
-                # Count stations with country codes that are not in the scope of the pipeline
-                if station.country_code not in SCOPE_COUNTRIES:
-                    stats["count_country_mismatch_stations"] += 1
-
                 # Address mapping
                 station.address = map_address(datapoint, self.country_code, None)
 
-                # Count stations which have an invalid address
-                if station.address and station.address.country and station.address.country not in SCOPE_COUNTRIES:
-                    stats["count_country_mismatch_stations"] += 1
-
-                # Count stations which have a mismatching country code between Station and Address
-                if station.country_code != station.address.country:
+                # Count stations that have some kind of country code mismatch
+                if (
+                    # Count stations which have an invalid country code in address
+                    (station.address and station.address.country and station.address.country != "AT")
+                    # Count stations which have a mismatching country code between Station and Address
+                    or (
+                        station.country_code is not None
+                        and station.address is not None
+                        and station.address.country is not None
+                        and station.country_code != station.address.country
+                    )
+                ):
                     stats["count_country_mismatch_stations"] += 1
 
                 # Charging point

@@ -137,10 +137,11 @@ def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
 
 
 def _load_datadump_and_write_to_target(path_to_target, country_code: str):
+    nobil_api_country_code = "NOR" if country_code == "NO" else "SWE"
     nobil_api_key = os.getenv("NOBIL_APIKEY")
     link_to_datadump = (
         f"https://nobil.no/api/server/datadump.php?apikey="
-        f"{nobil_api_key}&countrycode={country_code}&format=json&file=true"
+        f"{nobil_api_key}&countrycode={nobil_api_country_code}&format=json&file=true"
     )
     download_file(link_to_datadump, path_to_target)
 
@@ -157,13 +158,13 @@ class NobilPipeline(Pipeline):
     ):
         super().__init__(config, session, online)
 
-        accepted_country_codes = ["NOR", "SWE"]
+        accepted_country_codes = ["NO", "SE"]
         reject_if(country_code.upper() not in accepted_country_codes, "Invalid country code ")
         self.country_code = country_code.upper()
 
     def run(self):
         """Run the pipeline."""
-        logger.info("Running NOR/SWE GOV Pipeline...")
+        logger.info(f"Running {self.country_code} GOV Pipeline...")
         path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
         if self.online:
             logger.info("Retrieving Online Data")

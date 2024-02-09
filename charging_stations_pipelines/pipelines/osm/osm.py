@@ -3,17 +3,16 @@ import collections
 import configparser
 import json
 import logging
-import os
-import pathlib
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from charging_stations_pipelines import PROJ_DATA_DIR, OSM_COUNTRY_CODES
 from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.pipelines.osm import (
     DATA_SOURCE_KEY,
     osm_mapper,
-    SCOPE_COUNTRIES,
 )
 from charging_stations_pipelines.pipelines.osm.osm_receiver import get_osm_data
 from charging_stations_pipelines.pipelines.station_table_updater import (
@@ -39,9 +38,11 @@ class OsmPipeline(Pipeline):
         self.country_code = country_code
 
     def retrieve_data(self):
-        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
-        pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_file_path = os.path.join(data_dir, self.config[DATA_SOURCE_KEY]["filename"])
+        data_dir: Path = PROJ_DATA_DIR
+        data_dir.mkdir(parents=True, exist_ok=True)
+        country_dir = data_dir / self.country_code
+        country_dir.mkdir(parents=True, exist_ok=True)
+        tmp_file_path = country_dir / self.config[DATA_SOURCE_KEY]["filename"]
         if self.online:
             logger.info("Retrieving Online Data")
             get_osm_data(self.country_code, tmp_file_path)
@@ -60,23 +61,20 @@ class OsmPipeline(Pipeline):
             try:
                 station = osm_mapper.map_station_osm(entry, self.country_code)
 
-                # Count stations with country codes that are not in the scope of the pipeline
-                if station.country_code not in SCOPE_COUNTRIES:
-                    stats["count_country_mismatch_stations"] += 1
-
                 # Address mapping
                 station.address = osm_mapper.map_address_osm(entry, None)
 
-                # Count stations which have an invalid address
-                if station.address and station.address.country and station.address.country not in SCOPE_COUNTRIES:
-                    stats["count_country_mismatch_stations"] += 1
-
-                # Count stations which have a mismatching country code between Station and Address
+                # Count stations that have some kind of country code mismatch
                 if (
-                    station.country_code is not None
-                    and station.address is not None
-                    and station.address.country is not None
-                    and station.country_code != station.address.country
+                    # Count stations which have an invalid country code in address
+                    (station.address and station.address.country and station.address.country not in OSM_COUNTRY_CODES)
+                    # Count stations which have a mismatching country code between Station and Address
+                    or (
+                        station.country_code is not None
+                        and station.address is not None
+                        and station.address.country is not None
+                        and station.country_code != station.address.country
+                    )
                 ):
                     stats["count_country_mismatch_stations"] += 1
 

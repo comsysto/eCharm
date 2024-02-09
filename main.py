@@ -7,7 +7,14 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from charging_stations_pipelines import db_utils, settings
+from charging_stations_pipelines import (
+    db_utils,
+    settings,
+    COUNTRY_CODES,
+    OCM_COUNTRY_CODES,
+    OSM_COUNTRY_CODES,
+    GOV_COUNTRY_CODES,
+)
 from charging_stations_pipelines.deduplication.merger import StationMerger
 from charging_stations_pipelines.pipelines.ocm.ocm import OcmPipeline
 from charging_stations_pipelines.pipelines.osm.osm import OsmPipeline
@@ -26,7 +33,7 @@ logger = logging.getLogger("charging_stations_pipelines.main")
 def parse_args(args):
     """This method is used to parse the command line arguments for the eCharm program."""
     valid_task_options = ["import", "merge", "export", "testdata"]
-    valid_country_options = ["DE", "AT", "FR", "GB", "IT", "NOR", "SWE"]
+    valid_country_options = COUNTRY_CODES
     valid_export_format_options = ["csv", "GeoJSON"]
 
     parser = argparse.ArgumentParser(
@@ -56,7 +63,9 @@ def parse_args(args):
         nargs="+",
         type=lambda s: s.upper(),
         metavar="<country-code>",
-        help="specifies the countries for which to perform the given tasks. "
+        help="specifies the countries for which to perform the given tasks, "
+        "given as ISO 3166-1 alpha-2 code, see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2. "
+        "Run 'python list-countries.py' for more information. "
         "The country-codes must be one or several of %(choices)s (case-insensitive). "
         "If not specified, the given tasks are run for all available countries",
     )
@@ -145,14 +154,23 @@ def run_import(countries: list[str], online: bool, delete_data: bool):
         logger.info(f"Importing data for country: {country}...")
         db_session = sessionmaker(bind=get_db_engine())()
 
-        gov_pipeline = pipeline_factory(db_session, country, online)
-        gov_pipeline.run()
+        if country not in GOV_COUNTRY_CODES:
+            logger.info(f"no governmental data available for country code '{country}'... skipping GOV pipeline")
+        else:
+            gov_pipeline = pipeline_factory(db_session, country, online)
+            gov_pipeline.run()
 
-        osm = OsmPipeline(country, config, db_session, online)
-        osm.run()
+        if country not in OSM_COUNTRY_CODES:
+            logger.info(f"country code '{country}' unknown for OSM... skipping OSM pipeline")
+        else:
+            osm = OsmPipeline(country, config, db_session, online)
+            osm.run()
 
-        ocm = OcmPipeline(country, config, db_session, online)
-        ocm.run()
+        if country not in OCM_COUNTRY_CODES:
+            logger.info(f"country code '{country}' unknown for OCM... skipping OCM pipeline")
+        else:
+            ocm = OcmPipeline(country, config, db_session, online)
+            ocm.run()
     logger.info("Finished importing data.")
 
 
