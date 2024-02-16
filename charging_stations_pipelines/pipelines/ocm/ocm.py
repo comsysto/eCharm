@@ -3,8 +3,6 @@
 import configparser
 import json
 import logging
-import os
-import pathlib
 
 from sqlalchemy.orm import Session
 from tqdm import tqdm
@@ -19,7 +17,7 @@ from charging_stations_pipelines.pipelines.ocm.ocm_mapper import (
 from charging_stations_pipelines.pipelines.station_table_updater import (
     StationTableUpdater,
 )
-from charging_stations_pipelines.shared import JSON
+from charging_stations_pipelines.shared import JSON, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +36,7 @@ class OcmPipeline(Pipeline):
         self.data: JSON = None
 
     def _retrieve_data(self):
-        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
-        pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        country_dir = os.path.join(data_dir, self.country_code)
-        pathlib.Path(country_dir).mkdir(parents=True, exist_ok=True)
-        tmp_file_path = os.path.join(country_dir, self.config["OCM"]["filename"])
+        tmp_file_path = country_import_data_path(self.country_code) / self.config["OCM"]["filename"]
         if self.online:
             logger.info("Retrieving Online Data")
             ocm_extractor(tmp_file_path, self.country_code)

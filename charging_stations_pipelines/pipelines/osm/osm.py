@@ -3,12 +3,11 @@ import collections
 import configparser
 import json
 import logging
-from pathlib import Path
 
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from charging_stations_pipelines import PROJ_DATA_DIR, OSM_COUNTRY_CODES
+from charging_stations_pipelines import OSM_COUNTRY_CODES
 from charging_stations_pipelines.pipelines import Pipeline
 from charging_stations_pipelines.pipelines.osm import (
     DATA_SOURCE_KEY,
@@ -18,7 +17,7 @@ from charging_stations_pipelines.pipelines.osm.osm_receiver import get_osm_data
 from charging_stations_pipelines.pipelines.station_table_updater import (
     StationTableUpdater,
 )
-from charging_stations_pipelines.shared import JSON
+from charging_stations_pipelines.shared import JSON, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +37,7 @@ class OsmPipeline(Pipeline):
         self.country_code = country_code
 
     def retrieve_data(self):
-        data_dir: Path = PROJ_DATA_DIR
-        data_dir.mkdir(parents=True, exist_ok=True)
-        country_dir = data_dir / self.country_code
-        country_dir.mkdir(parents=True, exist_ok=True)
-        tmp_file_path = country_dir / self.config[DATA_SOURCE_KEY]["filename"]
+        tmp_file_path = country_import_data_path(self.country_code) / self.config[DATA_SOURCE_KEY]["filename"]
         if self.online:
             logger.info("Retrieving Online Data")
             get_osm_data(self.country_code, tmp_file_path)

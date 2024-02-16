@@ -2,20 +2,19 @@
 import configparser
 import json
 import logging
-import os
-import pathlib
 import re
 from collections.abc import Iterable
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional, TypeVar, Union
 
 import pandas as pd
 import requests
 from dateutil import parser
 
-logger = logging.getLogger(__name__)
+from charging_stations_pipelines import PROJ_ROOT, PROJ_DATA_DIR
 
-current_dir = os.path.join(pathlib.Path(__file__).parent.parent.resolve())
+logger = logging.getLogger(__name__)
 
 
 _PlainJSON = Union[None, bool, int, float, str, List["_PlainJSON"], Dict[str, "_PlainJSON"]]
@@ -28,7 +27,7 @@ JSON = Union[_PlainJSON, Dict[str, "JSON"], List["JSON"]]
 def init_config():
     """Initializes the configuration from the config.ini file."""
     cfg: configparser = configparser.RawConfigParser()
-    cfg.read(os.path.join(os.path.join(current_dir, "config", "config.ini")))
+    cfg.read(PROJ_ROOT / "config" / "config.ini")
     return cfg
 
 
@@ -229,3 +228,12 @@ def download_file(url: str, target_file: str) -> None:
     output = open(target_file, "wb")
     output.write(resp.content)
     output.close()
+
+
+def country_import_data_path(country_code: str) -> Path:
+    """Creates a directory 'PROJ_DATA_DIR/country_code/' if not already existing and returns the path"""
+    data_dir: Path = PROJ_DATA_DIR
+    data_dir.mkdir(parents=True, exist_ok=True)
+    country_dir = data_dir / country_code
+    country_dir.mkdir(parents=True, exist_ok=True)
+    return country_dir

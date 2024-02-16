@@ -3,8 +3,6 @@
 import configparser
 import json
 import logging
-import os
-import pathlib
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -19,7 +17,7 @@ from charging_stations_pipelines.pipelines.gb.gb_receiver import get_gb_data
 from charging_stations_pipelines.pipelines.station_table_updater import (
     StationTableUpdater,
 )
-from charging_stations_pipelines.shared import JSON
+from charging_stations_pipelines.shared import JSON, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +29,7 @@ class GbPipeline(Pipeline):
         self.data: Optional[JSON] = None
 
     def _retrieve_data(self):
-        data_dir: str = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
-        pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_file_path = os.path.join(data_dir, self.config["GBGOV"]["filename"])
+        tmp_file_path = country_import_data_path("GB") / self.config["GBGOV"]["filename"]
         if self.online:
             logger.info("Retrieving Online Data")
             get_gb_data(tmp_file_path)
@@ -51,7 +47,7 @@ class GbPipeline(Pipeline):
         for entry in self.data.get("ChargeDevice", []):
             mapped_address = map_address_gb(entry, None)
             mapped_charging = map_charging_gb(entry)
-            mapped_station = map_station_gb(entry, "    GB")
+            mapped_station = map_station_gb(entry, self.country_code)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
             station_updater.update_station(station=mapped_station, data_source_key="GBGOV")

@@ -4,19 +4,17 @@ import configparser
 import logging
 import os
 from _decimal import Decimal
-from pathlib import Path
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
-from charging_stations_pipelines import PROJ_DATA_DIR
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines import Pipeline
-from charging_stations_pipelines.shared import download_file, load_json_file, reject_if
+from charging_stations_pipelines.shared import download_file, load_json_file, reject_if, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -166,11 +164,7 @@ class NobilPipeline(Pipeline):
     def run(self):
         """Run the pipeline."""
         logger.info(f"Running {self.country_code} GOV Pipeline...")
-        data_dir: Path = PROJ_DATA_DIR
-        data_dir.mkdir(parents=True, exist_ok=True)
-        country_dir = data_dir / self.country_code
-        country_dir.mkdir(parents=True, exist_ok=True)
-        path_to_target = country_dir / "nobil.json"
+        path_to_target = country_import_data_path(self.country_code) / "nobil.json"
         if self.online:
             logger.info("Retrieving Online Data")
             _load_datadump_and_write_to_target(path_to_target, self.country_code)
