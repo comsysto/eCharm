@@ -69,6 +69,8 @@ def parse_date(date_str: Optional[str]) -> Optional[datetime]:
     :param date_str: The string representation of a date.
     :return: A datetime object representing the parsed date, or None if the date could not be parsed.
     """
+    if date_str is None:
+        return None
     try:
         return parser.parse(date_str)
     except (parser.ParserError, TypeError) as e:

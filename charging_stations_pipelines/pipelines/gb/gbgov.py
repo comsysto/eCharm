@@ -47,7 +47,7 @@ class GbPipeline(Pipeline):
         for entry in self.data.get("ChargeDevice", []):
             mapped_address = map_address_gb(entry, None)
             mapped_charging = map_charging_gb(entry)
-            mapped_station = map_station_gb(entry, self.country_code)
+            mapped_station = map_station_gb(entry)
             mapped_station.address = mapped_address
             mapped_station.charging = mapped_charging
             station_updater.update_station(station=mapped_station, data_source_key="GBGOV")

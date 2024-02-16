@@ -43,8 +43,10 @@ def test_check_coordinates():
 def test_str_parse_date():
     assert parse_date("2022-01-01") == datetime(2022, 1, 1)
     assert parse_date("2023-03-29T17:45:00Z").isoformat() == "2023-03-29T17:45:00+00:00"
+    assert parse_date("2020-05-04 10:33:41").isoformat() == "2020-05-04T10:33:41"
     assert parse_date(None) is None
     assert parse_date("abc") is None
+    assert parse_date("0000-00-00 00:00:00") is None
 
 
 def test_str_strip_whitespace():
