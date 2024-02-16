@@ -11,6 +11,7 @@ from shapely.geometry import Point
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
+from charging_stations_pipelines import PROJ_DATA_DIR
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
@@ -151,9 +152,9 @@ class NobilPipeline(Pipeline):
 
     def __init__(
         self,
+        config: configparser,
         session: Session,
         country_code: str,
-        config: configparser,
         online: bool = False,
     ):
         super().__init__(config, session, online)
@@ -165,7 +166,11 @@ class NobilPipeline(Pipeline):
     def run(self):
         """Run the pipeline."""
         logger.info(f"Running {self.country_code} GOV Pipeline...")
-        path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
+        data_dir: Path = PROJ_DATA_DIR
+        data_dir.mkdir(parents=True, exist_ok=True)
+        country_dir = data_dir / self.country_code
+        country_dir.mkdir(parents=True, exist_ok=True)
+        path_to_target = country_dir / "nobil.json"
         if self.online:
             logger.info("Retrieving Online Data")
             _load_datadump_and_write_to_target(path_to_target, self.country_code)
