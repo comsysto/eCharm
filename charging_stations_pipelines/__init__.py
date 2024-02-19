@@ -27,7 +27,7 @@ COUNTRIES: Final[dict[str, CountryInfo]] = dict(
         ("EE", CountryInfo(name="Estonia", gov=False, osm=True, ocm=True)),
         ("ES", CountryInfo(name="Spain", gov=False, osm=True, ocm=True)),
         ("FI", CountryInfo(name="Finland", gov=False, osm=True, ocm=True)),
-        ("FR", CountryInfo(name="France", gov=False, osm=True, ocm=True)),
+        ("FR", CountryInfo(name="France", gov=True, osm=True, ocm=True)),
         ("GB", CountryInfo(name="United Kingdom", gov=True, osm=True, ocm=True)),
         ("GR", CountryInfo(name="Greece", gov=False, osm=True, ocm=True)),
         ("HR", CountryInfo(name="Croatia", gov=False, osm=True, ocm=True)),
