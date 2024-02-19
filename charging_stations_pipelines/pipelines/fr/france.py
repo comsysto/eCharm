@@ -1,8 +1,6 @@
 """Pipeline for retrieving data from the French government website."""
 
 import logging
-import os
-import pathlib
 
 import pandas as pd
 import requests as requests
@@ -18,16 +16,14 @@ from charging_stations_pipelines.pipelines.fr.france_mapper import (
 from charging_stations_pipelines.pipelines.station_table_updater import (
     StationTableUpdater,
 )
-from charging_stations_pipelines.shared import download_file, reject_if
+from charging_stations_pipelines.shared import download_file, reject_if, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
 
 class FraPipeline(Pipeline):
     def _retrieve_data(self):
-        data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../..", "data")
-        pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_data_path = os.path.join(data_dir, self.config["FRGOV"]["filename"])
+        tmp_data_path = country_import_data_path("FR") / self.config["FRGOV"]["filename"]
         if self.online:
             logger.info("Retrieving Online Data")
             self.download_france_gov_file(tmp_data_path)

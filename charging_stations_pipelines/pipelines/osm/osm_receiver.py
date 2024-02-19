@@ -6,7 +6,6 @@ import requests
 from requests import Response
 
 from charging_stations_pipelines.pipelines.osm import (
-    COUNTRY_CODE_TO_AREA_MAP,
     DATA_SOURCE_KEY,
 )
 
@@ -15,8 +14,7 @@ def get_osm_data(country_code: str, tmp_data_path):
     """This method retrieves OpenStreetMap (OSM) data for a specific country based on its country code. The OSM data
     includes information about charging stations in the specified country.
 
-    The `country_code` parameter is a string representing the two-letter country code. Valid country codes are "DE"
-    for Germany, "FR" for France, "GB" for the United Kingdom, "IT" for Italy, "NOR" for Norway, and "SWE" for Sweden.
+    The `country_code` parameter is a string representing the ISO3166-1 alpha-2 country code.
 
     The `tmp_data_path parameter` is a string representing the path to save the downloaded OSM data. The OSM data will
     be saved in JSON format.
@@ -34,16 +32,12 @@ def get_osm_data(country_code: str, tmp_data_path):
     :type tmp_data_path: str
     :return: None
     """
-    if country_code not in COUNTRY_CODE_TO_AREA_MAP:
-        raise Exception(f"country code '{country_code}' unknown for {DATA_SOURCE_KEY}")
-
-    area_name = COUNTRY_CODE_TO_AREA_MAP[country_code]
 
     query_params = {
         "data": f"""
         [out:json];
         
-        area[name="{area_name}"];
+        area["ISO3166-1"="{country_code}"][admin_level=2];
         
         // gather results
         (

@@ -2,8 +2,6 @@
 
 import configparser
 import logging
-import pathlib
-from typing import Final
 
 import pandas as pd
 from sqlalchemy.orm import Session
@@ -18,7 +16,7 @@ from .bna_mapper import (
 )
 from ...pipelines import Pipeline
 from ...pipelines.station_table_updater import StationTableUpdater
-from ...shared import load_excel_file
+from ...shared import load_excel_file, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +28,8 @@ class BnaPipeline(Pipeline):
         # All BNA data is from Germany
         self.country_code = "DE"
 
-        self.data_dir: Final[pathlib.Path] = (pathlib.Path(__file__).parents[3] / "data").resolve()
-
     def retrieve_data(self):
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        tmp_data_path = self.data_dir / self.config[DATA_SOURCE_KEY]["filename"]
+        tmp_data_path = country_import_data_path(self.country_code) / self.config[DATA_SOURCE_KEY]["filename"]
 
         if self.online:
             logger.info("Retrieving Online Data")

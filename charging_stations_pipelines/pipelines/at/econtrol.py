@@ -7,15 +7,13 @@ The data is structured into three main objects:
 import collections
 import configparser
 import logging
-import os
-import pathlib
 
 import pandas as pd
 from sqlalchemy.orm import Session
 from tqdm import tqdm
 
 from charging_stations_pipelines.pipelines import Pipeline
-from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY, SCOPE_COUNTRIES
+from charging_stations_pipelines.pipelines.at import DATA_SOURCE_KEY
 from charging_stations_pipelines.pipelines.at.econtrol_crawler import get_data
 from charging_stations_pipelines.pipelines.at.econtrol_mapper import (
     map_address,
@@ -25,6 +23,7 @@ from charging_stations_pipelines.pipelines.at.econtrol_mapper import (
 from charging_stations_pipelines.pipelines.station_table_updater import (
     StationTableUpdater,
 )
+from charging_stations_pipelines.shared import country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,6 @@ class EcontrolAtPipeline(Pipeline):
     :ivar config: A `configparser` object containing configurations for the pipeline.
     :ivar session: A `Session` object representing the session used for database operations.
     :ivar online: A boolean indicating whether the pipeline should retrieve data online.
-    :ivar data_dir: A string representing the directory where data files will be stored.
     """
 
     def __init__(self, config: configparser, session: Session, online: bool = False):
@@ -49,12 +47,8 @@ class EcontrolAtPipeline(Pipeline):
         # Is always 'AT' for this pipeline
         self.country_code = "AT"
 
-        relative_dir = os.path.join("../../..", "data")
-        self.data_dir = os.path.join(pathlib.Path(__file__).parent.resolve(), relative_dir)
-
     def _retrieve_data(self):
-        pathlib.Path(self.data_dir).mkdir(parents=True, exist_ok=True)
-        tmp_data_path = os.path.join(self.data_dir, self.config[DATA_SOURCE_KEY]["filename"])
+        tmp_data_path = country_import_data_path(self.country_code) / self.config[DATA_SOURCE_KEY]["filename"]
         if self.online:
             logger.info("Retrieving Online Data")
             get_data(tmp_data_path)
@@ -78,19 +72,21 @@ class EcontrolAtPipeline(Pipeline):
             try:
                 station = map_station(datapoint, self.country_code)
 
-                # Count stations with country codes that are not in the scope of the pipeline
-                if station.country_code not in SCOPE_COUNTRIES:
-                    stats["count_country_mismatch_stations"] += 1
-
                 # Address mapping
                 station.address = map_address(datapoint, self.country_code, None)
 
-                # Count stations which have an invalid address
-                if station.address and station.address.country and station.address.country not in SCOPE_COUNTRIES:
-                    stats["count_country_mismatch_stations"] += 1
-
-                # Count stations which have a mismatching country code between Station and Address
-                if station.country_code != station.address.country:
+                # Count stations that have some kind of country code mismatch
+                if (
+                    # Count stations which have an invalid country code in address
+                    (station.address and station.address.country and station.address.country != "AT")
+                    # Count stations which have a mismatching country code between Station and Address
+                    or (
+                        station.country_code is not None
+                        and station.address is not None
+                        and station.address.country is not None
+                        and station.country_code != station.address.country
+                    )
+                ):
                     stats["count_country_mismatch_stations"] += 1
 
                 # Charging point

@@ -7,27 +7,24 @@ from shapely.geometry import Point
 from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
-from charging_stations_pipelines.shared import check_coordinates
+from charging_stations_pipelines.shared import check_coordinates, parse_date
 
 logger = logging.getLogger(__name__)
 
 
 # functions for GB gov data:
-def map_station_gb(entry, country_code: str):
+def map_station_gb(entry):
     datasource = "GBGOV"
     lat: float = check_coordinates(entry.get("ChargeDeviceLocation").get("Latitude"))
     long: float = check_coordinates(entry.get("ChargeDeviceLocation").get("Longitude"))
-    operator: Optional[str] = entry.get("DeviceController").get("OrganisationName")
     new_station = Station()
-    new_station.country_code = country_code
+    new_station.country_code = "GB"
     new_station.source_id = entry.get("ChargeDeviceId")
-    new_station.operator = operator
+    new_station.operator = entry.get("DeviceController").get("OrganisationName")
     new_station.data_source = datasource
     new_station.point = from_shape(Point(float(long), float(lat)))
-    new_station.date_created = entry.get("DateCreated")
-    new_station.date_updated = entry.get("DateUpdated")
-    # TODO: find way to parse date into desired format
-    # parse_date having issues with "date out of range" at value 0"
+    new_station.date_created = parse_date(entry.get("DateCreated"))
+    new_station.date_updated = parse_date(entry.get("DateUpdated"))
     return new_station
 
 

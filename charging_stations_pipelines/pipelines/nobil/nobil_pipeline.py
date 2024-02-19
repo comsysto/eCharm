@@ -4,7 +4,6 @@ import configparser
 import logging
 import os
 from _decimal import Decimal
-from pathlib import Path
 
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
@@ -15,7 +14,7 @@ from charging_stations_pipelines.models.address import Address
 from charging_stations_pipelines.models.charging import Charging
 from charging_stations_pipelines.models.station import Station
 from charging_stations_pipelines.pipelines import Pipeline
-from charging_stations_pipelines.shared import download_file, load_json_file, reject_if
+from charging_stations_pipelines.shared import download_file, load_json_file, reject_if, country_import_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -137,10 +136,11 @@ def _map_charging_to_domain(nobil_station: NobilStation) -> Charging:
 
 
 def _load_datadump_and_write_to_target(path_to_target, country_code: str):
+    nobil_api_country_code = "NOR" if country_code == "NO" else "SWE"
     nobil_api_key = os.getenv("NOBIL_APIKEY")
     link_to_datadump = (
         f"https://nobil.no/api/server/datadump.php?apikey="
-        f"{nobil_api_key}&countrycode={country_code}&format=json&file=true"
+        f"{nobil_api_key}&countrycode={nobil_api_country_code}&format=json&file=true"
     )
     download_file(link_to_datadump, path_to_target)
 
@@ -150,21 +150,21 @@ class NobilPipeline(Pipeline):
 
     def __init__(
         self,
+        config: configparser,
         session: Session,
         country_code: str,
-        config: configparser,
         online: bool = False,
     ):
         super().__init__(config, session, online)
 
-        accepted_country_codes = ["NOR", "SWE"]
+        accepted_country_codes = ["NO", "SE"]
         reject_if(country_code.upper() not in accepted_country_codes, "Invalid country code ")
         self.country_code = country_code.upper()
 
     def run(self):
         """Run the pipeline."""
-        logger.info("Running NOR/SWE GOV Pipeline...")
-        path_to_target = Path(__file__).parent.parent.parent.parent.joinpath("data/" + self.country_code + "_gov.json")
+        logger.info(f"Running {self.country_code} GOV Pipeline...")
+        path_to_target = country_import_data_path(self.country_code) / "nobil.json"
         if self.online:
             logger.info("Retrieving Online Data")
             _load_datadump_and_write_to_target(path_to_target, self.country_code)
