@@ -18,6 +18,39 @@ from charging_stations_pipelines.shared import check_coordinates, str_strip_whit
 logger = logging.getLogger(__name__)
 
 
+def transform_raw_bna_data(df: pd.DataFrame) -> pd.DataFrame:
+    group_columns = [
+        "Betreiber",
+        "Straße",
+        "Hausnummer",
+        "Adresszusatz",
+        "Postleitzahl",
+        "Ort",
+        "Bundesland",
+        "Kreis/kreisfreie Stadt",
+        "Breitengrad",
+        "Längengrad",
+    ]
+
+    df = df.convert_dtypes()
+
+    def create_hash(row: pd.Series):
+        hash_string = "".join(f"{str(row[col]) if pd.notna(row[col]) else ''}" for col in sorted(group_columns))
+        return hashlib.sha256(hash_string.encode()).hexdigest()
+
+    df["source_hash"] = df.apply(create_hash, axis=1)
+
+    # Group the dataframe by the specified columns + 'source_hash'
+    # and merge the information for all other columns into a new field as list of dict
+    grouped = df.groupby(group_columns + ["source_hash"], dropna=False).apply(
+        lambda x: x.drop(columns=group_columns + ["source_hash"]).apply(lambda row: row.to_dict(), axis=1).tolist()
+    )
+
+    # Convert the Series into a DataFrame and reset the index, so we keep the grouping columns
+    transformed_df = grouped.reset_index(name="charging_points")
+    return transformed_df
+
+
 def map_station_bna(row: pd.Series):
     """Maps the data from the given pandas Series (row) to create a Station object for storage in the DB."""
     lat = check_coordinates(row["Breitengrad"])
